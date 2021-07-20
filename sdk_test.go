@@ -7,8 +7,8 @@ import (
 	"github.com/hdget/sdk/types"
 	"github.com/hdget/sdk/utils"
 	"github.com/hdget/sdk/utils/alidts"
-	"github.com/hdget/sdk/utils/alidts/goavro"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"log"
 	"testing"
@@ -161,31 +161,6 @@ const TEST_CONFIG_ALIYUN_DTS = `
                 topic = "testtopic"
 `
 
-type testcommon interface {
-	Error(args ...interface{})
-	Errorf(format string, args ...interface{})
-	Fail()
-	FailNow()
-	Failed() bool
-	Fatal(args ...interface{})
-	Fatalf(format string, args ...interface{})
-	Helper()
-	Log(args ...interface{})
-	Logf(format string, args ...interface{})
-	Name() string
-	Skip(args ...interface{})
-	SkipNow()
-	Skipf(format string, args ...interface{})
-	Skipped() bool
-}
-
-func assertEqual(t testcommon, a, b interface{}) {
-	t.Helper()
-	if a != b {
-		t.Errorf("Not Equal. %d %d", a, b)
-	}
-}
-
 // nolint:errcheck
 func TestLogger(t *testing.T) {
 	v := LoadConfig("test", "local", "")
@@ -308,52 +283,52 @@ func TestRedis(t *testing.T) {
 	Redis.My().Set("key3", 123)
 
 	value1, _ := Redis.My().GetInt("key1")
-	assertEqual(t, value1, 1)
+	assert.Equal(t, value1, 1)
 
 	value2, _ := Redis.My().GetString("key2")
-	assertEqual(t, value2, "strvalue")
+	assert.Equal(t, value2, "strvalue")
 
 	value3, _ := Redis.My().GetInt64("key3")
-	assertEqual(t, value3, int64(123))
+	assert.Equal(t, value3, int64(123))
 
 	k1exist, _ := Redis.My().Exists("key1")
-	assertEqual(t, k1exist, true)
+	assert.Equal(t, k1exist, true)
 
 	Redis.My().Del("key1")
 	k1exist, _ = Redis.My().Exists("key1")
-	assertEqual(t, k1exist, false)
+	assert.Equal(t, k1exist, false)
 
 	Redis.My().Expire("key2", 3)
 	k2exist, _ := Redis.My().Exists("key2")
-	assertEqual(t, k2exist, true)
+	assert.Equal(t, k2exist, true)
 	time.Sleep(time.Second * 4)
 	k2exist, _ = Redis.My().Exists("key2")
-	assertEqual(t, k2exist, false)
+	assert.Equal(t, k2exist, false)
 
 	Redis.My().Incr("key3")
 	v3, _ := Redis.My().GetInt("key3")
-	assertEqual(t, v3, 124)
+	assert.Equal(t, v3, 124)
 
 	err = Redis.My().Ping()
-	assertEqual(t, err, nil)
+	assert.Equal(t, err, nil)
 
 	Redis.My().SetEx("key4", 456, 3)
 	k4exist, _ := Redis.My().Exists("key4")
-	assertEqual(t, k4exist, true)
+	assert.Equal(t, k4exist, true)
 	time.Sleep(time.Second * 4)
 	k4exist, _ = Redis.My().Exists("key4")
-	assertEqual(t, k4exist, false)
+	assert.Equal(t, k4exist, false)
 
 	Redis.My().HSet("key5", "field1", 111)
 	k5f1, _ := Redis.My().HGetInt("key5", "field1")
-	assertEqual(t, k5f1, 111)
+	assert.Equal(t, k5f1, 111)
 
 	Redis.My().HSet("key5", "field2", "field2value")
 	k5f2, _ := Redis.My().HGetString("key5", "field2")
-	assertEqual(t, k5f2, "field2value")
+	assert.Equal(t, k5f2, "field2value")
 
 	k5all, _ := Redis.My().HGetAll("key5")
-	assertEqual(t, k5all, map[string]string{
+	assert.Equal(t, k5all, map[string]string{
 		"field1": "111",
 		"field2": "field2value",
 	})
@@ -364,18 +339,18 @@ func TestRedis(t *testing.T) {
 		"field3": "v3",
 	})
 	k6values, _ := Redis.My().HMGet("key6", []string{"field1", "field2"})
-	assertEqual(t, k6values[0], utils.StringToBytes("v1"))
-	assertEqual(t, k6values[1], utils.StringToBytes("v2"))
+	assert.Equal(t, k6values[0], utils.StringToBytes("v1"))
+	assert.Equal(t, k6values[1], utils.StringToBytes("v2"))
 
 	Redis.My().HDels("key6", []interface{}{"field1", "field2"})
 	k61v, _ := Redis.My().HGet("key6", "field1")
-	assertEqual(t, len(k61v), 0)
+	assert.Equal(t, len(k61v), 0)
 	k63v, _ := Redis.My().HGet("key6", "field3")
-	assertEqual(t, k63v, utils.StringToBytes("v3"))
+	assert.Equal(t, k63v, utils.StringToBytes("v3"))
 
 	Redis.By("extra1").Set("key7", 333.01)
 	k7v, _ := Redis.By("extra1").GetFloat64("key7")
-	assertEqual(t, k7v, 333.01)
+	assert.Equal(t, k7v, 333.01)
 }
 
 // nolint:errcheck
@@ -516,32 +491,9 @@ func TestKafkaRecv(t *testing.T) {
 	c.Consume()
 }
 
-func BenchmarkGoavro(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		parseByGoavro()
-	}
-}
-
 func BenchmarkHamba(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		parseByHamba()
-	}
-}
-
-func parseByGoavro() {
-	dts, err := goavro.New()
-	if err != nil {
-		utils.Fatal("new alidts", "err", err)
-	}
-
-	data, err := ioutil.ReadFile("alidts.dump")
-	if err != nil {
-		utils.Fatal("open alidts data", "err", err)
-	}
-
-	_, err = dts.GetRecord(data)
-	if err != nil {
-		utils.Fatal("alidts getrecord", "err", err)
 	}
 }
 
@@ -560,25 +512,6 @@ func parseByHamba() {
 	if err != nil {
 		utils.Fatal("alidts getrecord", "err", err)
 	}
-}
-
-func TestGoavro(t *testing.T) {
-	dts, err := goavro.New()
-	if err != nil {
-		utils.Fatal("new alidts", "err", err)
-	}
-
-	data, err := ioutil.ReadFile("alidts.dump")
-	if err != nil {
-		utils.Fatal("open alidts data", "err", err)
-	}
-
-	r, err := dts.GetRecord(data)
-	if err != nil {
-		utils.Fatal("alidts getrecord", "err", err)
-	}
-
-	fmt.Println(r)
 }
 
 func TestUtilsAlidts(t *testing.T) {

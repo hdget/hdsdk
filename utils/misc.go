@@ -31,3 +31,11 @@ func RecordErrorStack(app string) {
 		log.Printf("RecordErrorStack: error write file, filename: %s, err: %v", filename, err)
 	}
 }
+
+// ReverseInt64Slice 将[]int64 slice倒序重新排列
+func ReverseInt64Slice(numbers []int64) []int64 {
+	for i, j := 0, len(numbers)-1; i < j; i, j = i+1, j-1 {
+		numbers[i], numbers[j] = numbers[j], numbers[i]
+	}
+	return numbers
+}
