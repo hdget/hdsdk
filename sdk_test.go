@@ -155,10 +155,10 @@ const TEST_CONFIG_ALIYUN_DTS = `
 			brokers=["127.0.0.1:18003"]
 			[[sdk.kafka.items.consumers]]
 				name = "syncdata"	
-				username="testuser"
-				password="testpassword"
-				group_id="testgroupid"
-				topic="testtopic"
+				user = "testuser"
+                password = "testpassword"
+                group_id = "testgroup"
+                topic = "testtopic"
 `
 
 type testcommon interface {
@@ -556,7 +556,7 @@ func parseByHamba() {
 		utils.Fatal("open alidts data", "err", err)
 	}
 
-	_, err = dts.GetRecord(data)
+	_, err = dts.Parse(data)
 	if err != nil {
 		utils.Fatal("alidts getrecord", "err", err)
 	}
@@ -592,7 +592,7 @@ func TestUtilsAlidts(t *testing.T) {
 		utils.Fatal("open alidts data", "err", err)
 	}
 
-	r, err := dts.GetRecord(data)
+	r, err := dts.Parse(data)
 	if err != nil {
 		utils.Fatal("alidts getrecord", "err", err)
 	}
@@ -601,8 +601,30 @@ func TestUtilsAlidts(t *testing.T) {
 }
 
 func dtsHandler(data []byte) types.MqMsgAction {
-	fmt.Println(utils.BytesToString(data))
+	r := parseDtsData(data)
+	fmt.Printf("%v %s %s.%s [%s]",
+		time.Unix(r.SourceTimeStamp, 0),
+		r.SourceTxId,
+		r.Database,
+		r.Table,
+		r.Operation,
+	)
 	return types.Ack
+}
+
+func parseDtsData(data []byte) *alidts.DtsRecord {
+	dts, err := alidts.New()
+	if err != nil {
+		utils.Print("error", "err new alidts")
+		return nil
+	}
+
+	r, err := dts.Parse(data)
+	if err != nil {
+		utils.Print("error", "err parse alidts data")
+		return nil
+	}
+	return r
 }
 
 // nolint:errcheck

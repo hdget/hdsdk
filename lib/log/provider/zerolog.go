@@ -73,8 +73,9 @@ func (c *ZerologProvider) Init(rootConfiger types.Configer, logger types.LogProv
 	// 多个日志通道输出
 	multi := zerolog.MultiLevelWriter(rotateLogs, writer)
 
+	// 给zerorlogger和stdlogger实例赋值
 	zeroLogger = zerolog.New(multi).With().Timestamp().Logger()
-	stdLogger = stdlog.New(multi, "", stdlog.LstdFlags|stdlog.Lshortfile)
+	stdLogger = stdlog.New(zeroLogger, "sarama: ", stdlog.Lshortfile|stdlog.Ldate|stdlog.Ltime)
 	return nil
 }
 

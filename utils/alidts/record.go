@@ -12,6 +12,7 @@ type DtsRecord struct {
 	Version         int                    `mapstructure:"version"`
 	Id              int64                  `mapstructure:"id"`
 	SourceTimeStamp int64                  `mapstructure:"sourceTimestamp"`
+	SourceTxId      string                 `mapstructure:"sourceTxid"`
 	ObjectName      map[string]string      `mapstructure:"objectName"` // 数据库名.表名
 	Operation       string                 `mapstructure:"operation"`
 	Fields          map[string]interface{} `mapstructure:"fields"`       // 字段slice

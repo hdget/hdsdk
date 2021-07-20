@@ -72,7 +72,7 @@ func (kc *KafkaConsumer) Consume() {
 	}()
 
 	<-kc.handler.ready // Await till the consumer handler has been set up
-	kc.Logger.Debug("sarama handler in consumer group up and running!...")
+	kc.Logger.Debug("handler in consumer group is up and running...", "name", kc.Client.name)
 
 	<-kc.ctx.Done()
 }

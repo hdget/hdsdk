@@ -6,6 +6,7 @@
 package kafka
 
 import (
+	"github.com/Shopify/sarama"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/hdget/sdk/lib/mq/provider"
 	"github.com/hdget/sdk/types"
@@ -30,6 +31,9 @@ func (kp *KafkaProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 	if err != nil {
 		return err
 	}
+
+	// 设置sarama日志输出
+	sarama.Logger = logger.GetStdLogger()
 
 	if config.Default != nil {
 		kp.Default, err = NewMq(types.PROVIDER_TYPE_DEFAULT, config.Default, logger)

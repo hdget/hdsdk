@@ -20,8 +20,8 @@ func New() (*AliDts, error) {
 	}, nil
 }
 
-// GetRecord 获取DTS的消息记录
-func (ad *AliDts) GetRecord(data []byte) (*DtsRecord, error) {
+// Parse 解析DTS的消息记录
+func (ad *AliDts) Parse(data []byte) (*DtsRecord, error) {
 	var v interface{}
 
 	err := avro.Unmarshal(ad.schema, data, &v)
