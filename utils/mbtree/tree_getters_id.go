@@ -1,6 +1,8 @@
 package mbtree
 
-import "github.com/hdget/sdk/utils"
+import (
+	"github.com/hdget/sdk/utils"
+)
 
 // GetParentId 获取父节点的ID, 如果没找到，返回-1
 func (t *SafeMultiBranchTree) GetParentId(id int64) int64 {
@@ -21,22 +23,28 @@ func (t *SafeMultiBranchTree) GetChildIds(id int64) []int64 {
 	return node.ChildIds
 }
 
-// GetPath 获取某个指定Node的路径，从根到叶节点
-func (t *SafeMultiBranchTree) GetPath(id int64) []int64 {
-	pathIds := make([]int64, 0)
+// GetPaths 获取某个指定Node的路径，从根到叶节点
+func (t *SafeMultiBranchTree) GetPaths(id int64) [][]int64 {
+	paths := make([][]int64, 0)
 	for _, leafNode := range t.GetLeafNodes() {
+		pathIds := make([]int64, 0)
 		if t.IsAncestor(id, leafNode.Id) {
 			for id := range t.RSearch(leafNode.Id) {
 				pathIds = append(pathIds, id)
 			}
 		}
+		// 倒序
+		if len(pathIds) > 0 {
+			reversedPathIds := utils.ReverseInt64Slice(pathIds)
+			paths = append(paths, reversedPathIds)
+		}
 	}
-	return utils.ReverseInt64Slice(pathIds)
+	return paths
 }
 
-// GetDescendantIds 获取所有子孙节点的Id
-func (t *SafeMultiBranchTree) GetDescendantIds(nid int64, args ...FilterFunc) []int64 {
-	subtree := t.SubTree(nid)
+// GetDescendantIds get all descendant node ids, including myself
+func (t *SafeMultiBranchTree) GetDescendantIds(id int64, args ...FilterFunc) []int64 {
+	subtree := t.SubTree(id)
 	if subtree == nil {
 		return nil
 	}

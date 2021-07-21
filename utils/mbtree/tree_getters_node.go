@@ -27,6 +27,54 @@ func (t *SafeMultiBranchTree) GetRootNode() *Node {
 	return t.GetNode(t.RootId)
 }
 
+// GetAncestorNode for a given id, get ancestor node object has distance to @nodeId
+// @param: specified node id
+// @param: distance value must > 1 and < current level,
+// if its value lesser than 1, it sets to be 1,
+// if its value larger than current level, it sets to be the current level
+// the parent distance is 1
+// the grandparent distance is 2
+// the great-grandfather distance is 3
+func (t *SafeMultiBranchTree) GetAncestorNode(id int64, distance int) *Node {
+	// no ancestor for root node
+	if id == t.RootId {
+		return nil
+	}
+
+	// if specified node is not found, no ancestor too
+	node := t.GetNode(id)
+	if node == nil {
+		return nil
+	}
+
+	// if distance lesser than 1, set to be 1
+	if distance < 1 {
+		distance = 1
+	}
+
+	// as root node has been checked before, here myLevel larger than 1
+	// distance should no larger than current level
+	myLevel := t.Level(id)
+	if distance > myLevel {
+		distance = myLevel
+	}
+
+	var found *Node
+	count := 1
+	descendant := node
+	ascendant := t.GetNode(descendant.Pid)
+	for {
+		if count == distance {
+			found = ascendant
+			break
+		}
+		descendant = ascendant
+		ascendant = t.GetNode(descendant.Pid)
+		count += 1
+	}
+	return found
+}
+
 // GetLeafNodes get leaf nodes of the tree,
 // if specified node id, then get leaf node for that node
 func (t *SafeMultiBranchTree) GetLeafNodes(args ...int64) []*Node {
@@ -50,63 +98,6 @@ func (t *SafeMultiBranchTree) GetLeafNodes(args ...int64) []*Node {
 		}
 	}
 	return leafNodes
-}
-
-// GetAncestorNode for a given id, get ancestor node object at a given level
-// @id: specified node id
-// @level: given level
-func (t *SafeMultiBranchTree) GetAncestorNode(id int64, level int) *Node {
-	// no ancestor for root node
-	if id == t.RootId {
-		return nil
-	}
-
-	// if specified node is not found, no ancestor too
-	node := t.GetNode(id)
-	if node == nil {
-		return nil
-	}
-
-	// if current node's parent cannot be found, return nil
-	descendant := node
-	ascendant := t.GetNode(descendant.Pid)
-	if ascendant == nil {
-		return nil
-	}
-
-	// ascendant is not nil when go to here
-	// if specified level is 0, just return it's direct ascendant node
-	if level == 0 {
-		return ascendant
-	}
-
-	// here level is larger than 0
-	descendantLevel := t.Level(id)
-	// specified level is the ancestor's level, so it should be lesser than current node's level
-	if level >= descendantLevel {
-		return nil
-	}
-
-	// 递归
-	ascendantLevel := t.Level(ascendant.Id)
-LOOP:
-	for {
-		if ascendantLevel == level {
-			return ascendant
-		} else {
-			// if reach to root level, break
-			if ascendantLevel == 0 {
-				break LOOP
-			}
-			descendant = ascendant
-			ascendant = t.GetNode(descendant.Pid)
-			if ascendant == nil {
-				return nil
-			}
-			ascendantLevel = t.Level(ascendant.Id)
-		}
-	}
-	return nil
 }
 
 // GetSiblingNodes return the siblings of given @id.
@@ -165,7 +156,7 @@ func (t *SafeMultiBranchTree) GetChildNodes(id int64) []*Node {
 	return childNodes
 }
 
-// GetDescendantNodes 获取所有子孙节点
+// GetDescendantNodes get all descendant nodes, including myself
 func (t *SafeMultiBranchTree) GetDescendantNodes(id int64, args ...FilterFunc) []*Node {
 	subtree := t.SubTree(id)
 	if subtree == nil {

@@ -17,6 +17,8 @@ type Node struct {
 	Data interface{}
 }
 
+const DEFAULT_ROOT_ID = 0
+
 // NewNode new node
 func NewNode(id int64, data interface{}) *Node {
 	return &Node{
@@ -26,6 +28,11 @@ func NewNode(id int64, data interface{}) *Node {
 		Data:     data,
 		Tag:      buildNodeTag(id),
 	}
+}
+
+// NewRootNode new root node
+func NewRootNode(data interface{}) *Node {
+	return NewNode(DEFAULT_ROOT_ID, data)
 }
 
 // IsLeaf return true if current node has no children
@@ -41,7 +48,8 @@ func (n *Node) HasChildren() bool {
 // updateChildren update the children list with different modes:
 // addition (Node.ADD or Node.INSERT) and deletion (Node.DELETE).
 func (n *Node) updateChildren(childId int64, action Action) {
-	if childId == 0 {
+	// ignore invalid childId
+	if childId <= 0 {
 		return
 	}
 

@@ -1,8 +1,6 @@
 package mbtree
 
-import (
-	"github.com/hdget/sdk/utils"
-)
+import "github.com/hdget/sdk/utils"
 
 // Size get how many nodes in the tree
 func (t *SafeMultiBranchTree) Size() int {
@@ -34,6 +32,10 @@ func (t *SafeMultiBranchTree) Level(id int64, args ...FilterFunc) int {
 }
 
 // Depth get the maximum level of the tree or the level of the given node
+// if specified the node id, then it get the depth of that given node
+// if not specified the node id, it get the maximum level of the tree
+// @param:  args it could be @nodeId
+// @return: the depth of the tree or the depth of the @nodeId
 func (t *SafeMultiBranchTree) Depth(args ...int64) int {
 	depth := 0
 	id, exist := getIdFromArgs(args...)
@@ -49,14 +51,14 @@ func (t *SafeMultiBranchTree) Depth(args ...int64) int {
 		return depth
 	}
 
-	// If specified id, then get level of the given node
+	// if specified id, then get level of the given node
 	if !t.Contains(id) {
 		return 0
 	}
 	return t.Level(id)
 }
 
-// Paths use this function to get the identifiers allowing to go from the root nodes to each leaf.
+// AllPaths use this function to get the identifiers allowing to go from the root nodes to each leaf.
 // @return: a list of list of identifiers, root being not omitted.
 // For example:
 //  Harry
@@ -73,7 +75,7 @@ func (t *SafeMultiBranchTree) Depth(args ...int64) int {
 //	['harry', 'jane', 'mark'],
 //	['harry', 'jane', 'diane', 'george', 'jill'],
 //	['harry', 'bill']]
-func (t *SafeMultiBranchTree) Paths() [][]int64 {
+func (t *SafeMultiBranchTree) AllPaths() [][]int64 {
 	paths := make([][]int64, 0)
 	for _, leafNode := range t.GetLeafNodes() {
 		pathIds := make([]int64, 0)
@@ -81,9 +83,26 @@ func (t *SafeMultiBranchTree) Paths() [][]int64 {
 			pathIds = append(pathIds, id)
 		}
 		// 倒序
-		reversedPathIds := utils.ReverseInt64Slice(pathIds)
-
-		paths = append(paths, reversedPathIds)
+		if len(pathIds) > 0 {
+			reversedPathIds := utils.ReverseInt64Slice(pathIds)
+			paths = append(paths, reversedPathIds)
+		}
 	}
 	return paths
+}
+
+// SubTree return a shallow COPY of subtree with nid being the new root.
+func (t *SafeMultiBranchTree) SubTree(id int64) *SafeMultiBranchTree {
+	newRootNode := t.GetNode(id)
+	if newRootNode == nil {
+		return nil
+	}
+
+	st := NewTree(newRootNode)
+	for nid := range t.DepthFirstTraversal(id) {
+		if node := t.GetNode(nid); node != nil {
+			st.Nodes.Store(nid, node)
+		}
+	}
+	return st
 }

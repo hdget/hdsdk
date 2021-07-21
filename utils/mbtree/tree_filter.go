@@ -16,8 +16,8 @@ func (t *SafeMultiBranchTree) filterNodes(f FilterFunc) []*Node {
 	return filtered
 }
 
-// filterNodesInIds filter nodes in specified id slice
-func (t *SafeMultiBranchTree) filterNodesInIds(ids []int64, f FilterFunc) []*Node {
+// filterNodesWithin filter nodes in specified id slice
+func (t *SafeMultiBranchTree) filterNodesWithin(ids []int64, f FilterFunc) []*Node {
 	filtered := make([]*Node, 0)
 	for _, id := range ids {
 		node := t.GetNode(id)

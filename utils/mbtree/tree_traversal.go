@@ -9,7 +9,8 @@ func (t *SafeMultiBranchTree) RSearch(id int64, args ...FilterFunc) chan int64 {
 	c := make(chan int64, t.MaxTreeLevel)
 
 	go func() {
-		if id == 0 {
+		// if iterate to root node, then need quit
+		if id == t.RootId {
 			close(c)
 			return
 		}
@@ -81,7 +82,7 @@ func (t *SafeMultiBranchTree) traversal(nid int64, mode TraversalMode, args ...F
 		}
 
 		// 过滤子节点
-		queue := t.filterNodesInIds(node.ChildIds, filter)
+		queue := t.filterNodesWithin(node.ChildIds, filter)
 		for {
 			// 如果无要遍历的节点了，break
 			if len(queue) == 0 {
@@ -90,7 +91,7 @@ func (t *SafeMultiBranchTree) traversal(nid int64, mode TraversalMode, args ...F
 			// 将需遍历的子节点的第一个取出来
 			c <- queue[0].Id
 			// 过滤该节点的子节点
-			expansion := t.filterNodesInIds(queue[0].ChildIds, filter)
+			expansion := t.filterNodesWithin(queue[0].ChildIds, filter)
 			// 如果深度优先，重新组装queue
 			if mode == DEPTH {
 				queue = append(expansion, queue[1:]...)

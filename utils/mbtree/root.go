@@ -42,31 +42,28 @@ const DEFAULT_TREE_LEVEL = 100
 // if function returns true then the node is matched and will be kept
 type FilterFunc func(*Node) bool
 
-func NewTree(args ...int) *SafeMultiBranchTree {
+func NewTree(rootNode *Node, args ...int) *SafeMultiBranchTree {
+	if rootNode == nil {
+		return nil
+	}
+
+	// max level
 	maxLevel := DEFAULT_TREE_LEVEL
 	if len(args) > 0 {
 		maxLevel = args[0]
-	}
-	if maxLevel < DEFAULT_TREE_LEVEL {
-		maxLevel = DEFAULT_TREE_LEVEL
+		if maxLevel < DEFAULT_TREE_LEVEL {
+			maxLevel = DEFAULT_TREE_LEVEL
+		}
 	}
 
-	return &SafeMultiBranchTree{
-		RootId:       0,
-		Nodes:        sync.Map{},
+	// new tree
+	t := &SafeMultiBranchTree{
+		RootId:       rootNode.Id,
 		MaxTreeLevel: maxLevel,
 	}
-}
-
-// CreateRootNode create root node
-func (t *SafeMultiBranchTree) CreateRootNode(id int64, data interface{}) *Node {
-	t.Lock()
-	defer t.Unlock()
-
-	node := NewNode(id, data)
-	t.RootId = node.Id
-	t.Nodes.Store(node.Id, node)
-	return node
+	// save root node
+	t.Nodes.Store(rootNode.Id, rootNode)
+	return t
 }
 
 func getFilterFromArgs(args ...FilterFunc) func(*Node) bool {
