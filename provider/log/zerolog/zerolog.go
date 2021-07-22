@@ -2,7 +2,7 @@
 // @Description  zerolog implementation of log capability
 // @Author  Ryan Fan 2021-06-09
 // @Update  Ryan Fan 2021-06-09
-package provider
+package zerolog
 
 import (
 	"fmt"

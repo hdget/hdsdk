@@ -29,9 +29,7 @@ func (t *SafeMultiBranchTree) GetRootNode() *Node {
 
 // GetAncestorNode for a given id, get ancestor node object has distance to @nodeId
 // @param: specified node id
-// @param: distance value must > 1 and < current level,
-// if its value lesser than 1, it sets to be 1,
-// if its value larger than current level, it sets to be the current level
+// @param: distance value must > 1 and <= current level,
 // the parent distance is 1
 // the grandparent distance is 2
 // the great-grandfather distance is 3
@@ -47,16 +45,16 @@ func (t *SafeMultiBranchTree) GetAncestorNode(id int64, distance int) *Node {
 		return nil
 	}
 
-	// if distance lesser than 1, set to be 1
+	// if distance lesser than 1, return nil
 	if distance < 1 {
-		distance = 1
+		return nil
 	}
 
-	// as root node has been checked before, here myLevel larger than 1
-	// distance should no larger than current level
+	// here myLevel larger than 1, as root node has been checked before
+	// distance must not larger than current level
 	myLevel := t.Level(id)
 	if distance > myLevel {
-		distance = myLevel
+		return nil
 	}
 
 	var found *Node

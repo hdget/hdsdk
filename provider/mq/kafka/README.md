@@ -3,8 +3,8 @@
 - default: 缺省的Kafka客户端
 - items:   额外的Kafka客户端
  
- ```
- [sdk.log]
+```
+[sdk.log]
         level = "debug"
          filename = "demo.log"
          [sdk.log.rotate]

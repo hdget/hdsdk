@@ -1,4 +1,4 @@
-package provider
+package zerolog
 
 import (
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"

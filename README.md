@@ -46,13 +46,14 @@ Enterprise ready, robust and easy extensible sdk which help to quickly develop b
     ```
 
 - 数据库能力
-    * MySQL: 请参考[MySQL能力介绍](https://github.com/hdget/sdk/tree/main/lib/db/provider/mysql)
+    * MySQL: 请参考[MySQL能力介绍](https://github.com/hdget/sdk/tree/main/provider/db/mysql)
  
 - 缓存能力配置，当前只支持redis的相关配置信息
-    * Redis: 请参考[Redis能力介绍](https://github.com/hdget/sdk/tree/main/lib/cache/provider/redis)
+    * Redis: 请参考[Redis能力介绍](https://github.com/hdget/sdk/tree/main/provider/cache/redis)
     
 - 消息队列能力配置，当前只支持redis的相关配置信息
-    * RabbitMq: 请参考[RabbitMQ能力介绍](https://github.com/hdget/sdk/tree/main/lib/mq/provider/rabbitmq)
+    * RabbitMq: 请参考[RabbitMQ能力介绍](https://github.com/hdget/sdk/tree/main/provider/mq/rabbitmq)
+    * Kafka: 请参考[RabbitMQ能力介绍](https://github.com/hdget/sdk/tree/main/provider/mq/kafka)
 
 ### SDK用户指南
 
@@ -135,11 +136,12 @@ if err != nil {
     - sdk.Log.Panic
 
 - 数据库能力
-    * MySQL: 请参考[MySQL能力介绍](https://github.com/hdget/sdk/tree/main/lib/db/provider/mysql)
+    * MySQL: 请参考[MySQL能力介绍](https://github.com/hdget/sdk/tree/main/provider/db/mysql)
   
 - 缓存能力
-    * Redis: 请参考[Redis能力介绍](https://github.com/hdget/sdk/tree/main/lib/cache/provider/redis)
+    * Redis: 请参考[Redis能力介绍](https://github.com/hdget/sdk/tree/main/provider/cache/redis)
 
 - 消息队列能力
-    * RabbitMq: 请参考[RabbitMQ能力介绍](https://github.com/hdget/sdk/tree/main/lib/mq/provider/rabbitmq)
+    * RabbitMq: 请参考[RabbitMQ能力介绍](https://github.com/hdget/sdk/tree/main/provider/mq/rabbitmq)
+    * Kafka: 请参考[Kafka能力介绍](https://github.com/hdget/sdk/tree/main/provider/mq/kafka)
 

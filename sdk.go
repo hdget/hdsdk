@@ -12,11 +12,11 @@
 package sdk
 
 import (
-	"github.com/hdget/sdk/lib/cache/provider/redis"
-	"github.com/hdget/sdk/lib/db/provider/mysql"
-	"github.com/hdget/sdk/lib/log"
-	"github.com/hdget/sdk/lib/mq/provider/kafka"
-	"github.com/hdget/sdk/lib/mq/provider/rabbitmq"
+	redis2 "github.com/hdget/sdk/provider/cache/redis"
+	mysql2 "github.com/hdget/sdk/provider/db/mysql"
+	"github.com/hdget/sdk/provider/log"
+	kafka2 "github.com/hdget/sdk/provider/mq/kafka"
+	rabbitmq2 "github.com/hdget/sdk/provider/mq/rabbitmq"
 	"github.com/hdget/sdk/types"
 	"github.com/pkg/errors"
 )
@@ -48,22 +48,22 @@ var (
 		&SdkProvider{
 			Kind:     types.SdkTypeDbMysql,
 			Name:     "mysql",
-			Instance: &mysql.MysqlProvider{},
+			Instance: &mysql2.MysqlProvider{},
 		},
 		&SdkProvider{
 			Kind:     types.SdkTypeCacheRedis,
 			Name:     "redis",
-			Instance: &redis.RedisProvider{},
+			Instance: &redis2.RedisProvider{},
 		},
 		&SdkProvider{
 			Kind:     types.SdkTypeMqRabbitmq,
 			Name:     "aliyun",
-			Instance: &rabbitmq.RabbitmqProvider{},
+			Instance: &rabbitmq2.RabbitmqProvider{},
 		},
 		&SdkProvider{
 			Kind:     types.SdkTypeMqKafka,
 			Name:     "kafka",
-			Instance: &kafka.KafkaProvider{},
+			Instance: &kafka2.KafkaProvider{},
 		},
 	}
 )
@@ -100,13 +100,13 @@ func setGlobalVars(p *SdkProvider) {
 	// 根据不同的能力类型，将provider Instance转换成具体的provider
 	switch p.Kind {
 	case types.SdkTypeDbMysql:
-		Mysql = p.Instance.(*mysql.MysqlProvider)
+		Mysql = p.Instance.(*mysql2.MysqlProvider)
 	case types.SdkTypeCacheRedis:
-		Redis = p.Instance.(*redis.RedisProvider)
+		Redis = p.Instance.(*redis2.RedisProvider)
 	case types.SdkTypeMqRabbitmq:
-		Rabbitmq = p.Instance.(*rabbitmq.RabbitmqProvider)
+		Rabbitmq = p.Instance.(*rabbitmq2.RabbitmqProvider)
 	case types.SdkTypeMqKafka:
-		Kafka = p.Instance.(*kafka.KafkaProvider)
+		Kafka = p.Instance.(*kafka2.KafkaProvider)
 	}
 }
 

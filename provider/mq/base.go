@@ -1,4 +1,4 @@
-package provider
+package mq
 
 import (
 	"github.com/hdget/sdk/types"

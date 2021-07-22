@@ -1,4 +1,4 @@
-package provider
+package cache
 
 import (
 	"github.com/hdget/sdk/types"

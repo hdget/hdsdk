@@ -1,4 +1,4 @@
-package provider
+package db
 
 import "github.com/jmoiron/sqlx"
 

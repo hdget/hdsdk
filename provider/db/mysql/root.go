@@ -7,13 +7,13 @@ package mysql
 import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/hdget/sdk/lib/db/provider"
+	"github.com/hdget/sdk/provider/db"
 	"github.com/hdget/sdk/types"
 	"github.com/jmoiron/sqlx"
 )
 
 type MysqlProvider struct {
-	provider.BaseDbProvider
+	db.BaseDbProvider
 	Log types.LogProvider
 }
 

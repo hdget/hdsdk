@@ -3,7 +3,7 @@ package sdk
 import (
 	"bytes"
 	"fmt"
-	"github.com/hdget/sdk/lib/mq/provider/rabbitmq"
+	rabbitmq2 "github.com/hdget/sdk/provider/mq/rabbitmq"
 	"github.com/hdget/sdk/types"
 	"github.com/hdget/sdk/utils"
 	"github.com/hdget/sdk/utils/alidts"
@@ -413,7 +413,7 @@ func TestRabbitmqRecv(t *testing.T) {
 
 	mq := Rabbitmq.My()
 	options := mq.GetDefaultOptions()
-	qosOption := options[types.MqOptionQos].(*rabbitmq.QosOption)
+	qosOption := options[types.MqOptionQos].(*rabbitmq2.QosOption)
 	qosOption.PrefetchCount = 2
 	options[types.MqOptionQos] = qosOption
 	c, err := mq.CreateConsumer("consumer1", msgProcess, options)

@@ -1,7 +1,7 @@
 ### RabbitMQ配置
 
 - default: 缺省的RabbitMQ客户端
-- other: 其他的RabbitMQ客户端
+- items: 其他的RabbitMQ客户端
  
  ```
 [sdk.rabbitmq]

@@ -6,12 +6,12 @@ package redis
 
 import (
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/hdget/sdk/lib/cache/provider"
+	"github.com/hdget/sdk/provider/cache"
 	"github.com/hdget/sdk/types"
 )
 
 type RedisProvider struct {
-	provider.BaseCacheProvider
+	cache.BaseCacheProvider
 	Log types.LogProvider
 }
 

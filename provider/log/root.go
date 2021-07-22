@@ -1,8 +1,8 @@
 package log
 
 import (
-	"github.com/hdget/sdk/lib/log/provider"
-	"github.com/hdget/sdk/lib/log/typlog"
+	"github.com/hdget/sdk/provider/log/typlog"
+	"github.com/hdget/sdk/provider/log/zerolog"
 	"github.com/hdget/sdk/types"
 )
 
@@ -44,7 +44,7 @@ func (c *CapImpl) Init(configer types.Configer, logger types.LogProvider, args .
 func getProvider(capType types.SdkType) types.LogProvider {
 	switch capType {
 	case types.LibLogZerolog:
-		return &provider.ZerologProvider{}
+		return &zerolog.ZerologProvider{}
 	}
 	return nil
 }

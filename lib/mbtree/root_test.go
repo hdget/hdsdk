@@ -74,22 +74,18 @@ func TestPaths(t *testing.T) {
 
 func TestSubTree(t *testing.T) {
 	subtree1 := tree.SubTree(2)
-	t.Logf("Subtree rootId now is: %d", subtree1.RootId)
 	assert.ElementsMatch(t, subtree1.AllPaths(), [][]int64{
 		[]int64{2, 6, 12}, []int64{2, 6, 14}, []int64{2, 5}, []int64{2, 6, 13, 16}, []int64{2, 7}, []int64{2, 6, 15}})
 
 	subtree2 := tree.SubTree(0)
-	t.Logf("Subtree rootId now is: %d", subtree2.RootId)
 	assert.ElementsMatch(t, subtree2.AllPaths(), [][]int64{
 		[]int64{0, 2, 6, 12}, []int64{0, 2, 6, 14}, []int64{0, 1}, []int64{0, 3, 8}, []int64{0, 3, 9},
 		[]int64{0, 4, 11}, []int64{0, 2, 5}, []int64{0, 4, 10}, []int64{0, 2, 6, 13, 16}, []int64{0, 2, 7}, []int64{0, 2, 6, 15}})
 
 	subtree3 := tree.SubTree(3)
-	t.Logf("Subtree rootId now is: %d", subtree3.RootId)
 	assert.ElementsMatch(t, subtree3.AllPaths(), [][]int64{[]int64{3, 8}, []int64{3, 9}})
 
 	subtree4 := tree.SubTree(1)
-	t.Logf("Subtree rootId now is: %d", subtree4.RootId)
 	assert.ElementsMatch(t, subtree4.AllPaths(), [][]int64{})
 }
 
@@ -197,7 +193,7 @@ func TestGetRootNode(t *testing.T) {
 
 func TestGetAncestorNode(t *testing.T) {
 	node0 := tree.GetAncestorNode(16, 0)
-	assert.Equal(t, node0.Id, int64(13))
+	assert.Nil(t, node0)
 
 	// 0->2->6->13->16
 	node1 := tree.GetAncestorNode(16, 1)
@@ -213,13 +209,13 @@ func TestGetAncestorNode(t *testing.T) {
 	assert.Equal(t, node4.Id, int64(0))
 
 	node5 := tree.GetAncestorNode(16, 5)
-	assert.Equal(t, node5.Id, int64(0))
+	assert.Nil(t, node5)
 
 	node6 := tree.GetAncestorNode(0, 4)
 	assert.Nil(t, node6)
 
 	node7 := tree.GetAncestorNode(2, 3)
-	assert.Equal(t, node7.Id, int64(0))
+	assert.Nil(t, node7)
 }
 
 func TestGetLeafNodes(t *testing.T) {

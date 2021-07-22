@@ -1,18 +1,19 @@
-// Package kafkago
+// Package kafka
 // @Title  log capability of zerolog
 // @Description  zerolog implementation of log capability
 // @Author  Ryan Fan 2021-06-09
 // @Update  Ryan Fan 2021-06-09
-package kafkago
+package kafka
 
 import (
+	"github.com/Shopify/sarama"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/hdget/sdk/lib/mq/provider"
+	"github.com/hdget/sdk/provider/mq"
 	"github.com/hdget/sdk/types"
 )
 
 type KafkaProvider struct {
-	provider.BaseMqProvider
+	mq.BaseMqProvider
 }
 
 var (
@@ -31,12 +32,15 @@ func (kp *KafkaProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 		return err
 	}
 
+	// 设置sarama日志输出
+	sarama.Logger = logger.GetStdLogger()
+
 	if config.Default != nil {
 		kp.Default, err = NewMq(types.PROVIDER_TYPE_DEFAULT, config.Default, logger)
 		if err != nil {
-			logger.Error("initialize kafkago", "type", types.PROVIDER_TYPE_DEFAULT, "brokers", config.Default.Brokers, "err", err)
+			logger.Error("initialize kafka", "type", types.PROVIDER_TYPE_DEFAULT, "brokers", config.Default.Brokers, "err", err)
 		} else {
-			logger.Debug("initialize kafkago", "type", types.PROVIDER_TYPE_DEFAULT, "brokers", config.Default.Brokers, "err", err)
+			logger.Debug("initialize kafka", "type", types.PROVIDER_TYPE_DEFAULT, "brokers", config.Default.Brokers, "err", err)
 		}
 	}
 

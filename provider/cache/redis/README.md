@@ -56,7 +56,7 @@
 
 - 批量发送命令到Redis并一次性执行
 
-    `func Pipeline(commands []*RedisCommand) (reply interface{}, err error)`
+    `func Pipeline(commands []*CacheCommand) (reply interface{}, err error)`
      
 - 检查redis是否存活
 

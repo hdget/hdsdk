@@ -1,7 +1,7 @@
-package provider
+package zerolog
 
 import (
-	"github.com/hdget/sdk/lib/log/typlog"
+	"github.com/hdget/sdk/provider/log/typlog"
 	"github.com/hdget/sdk/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"

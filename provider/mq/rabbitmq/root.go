@@ -5,12 +5,12 @@
 package rabbitmq
 
 import (
-	"github.com/hdget/sdk/lib/mq/provider"
+	"github.com/hdget/sdk/provider/mq"
 	"github.com/hdget/sdk/types"
 )
 
 type RabbitmqProvider struct {
-	provider.BaseMqProvider
+	mq.BaseMqProvider
 }
 
 var (
