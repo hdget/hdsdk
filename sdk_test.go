@@ -161,6 +161,20 @@ const TEST_CONFIG_ALIYUN_DTS = `
                 topic = "testtopic"
 `
 
+const TEST_CONFIG_MICROSERVICE = `
+[sdk]
+	[sdk.log]
+        filename = "demo.log"
+		[sdk.log.rotate]
+			# 最大保存时间7天(单位hour)
+        	max_age = 168
+        	# 日志切割时间间隔24小时（单位hour)
+        	rotation_time=24
+
+[[services]]
+		
+`
+
 // nolint:errcheck
 func TestLogger(t *testing.T) {
 	v := LoadConfig("test", "local", "")

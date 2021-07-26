@@ -18,7 +18,7 @@ var (
 	_ types.MqProvider = (*RabbitmqProvider)(nil)
 )
 
-// @desc	implements types.Provider interface, used to initialize the capability
+// Init	implements types.Provider interface, used to initialize the capability
 // @author	Ryan Fan	(2021-06-09)
 // @param	baseconf.Configer	root config interface to extract config info
 // @return	error

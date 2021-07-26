@@ -1,9 +1,11 @@
 package sdk
 
-import "github.com/hdget/sdk/types"
+import (
+	"github.com/hdget/sdk/types"
+)
 
 type Config struct {
-	Sdk *types.SdkConfigItem `mapstructure:"sdk"`
+	Sdk *types.SdkConfigItem            `mapstructure:"sdk"`
 }
 
 var _ types.Configer = (*Config)(nil)
