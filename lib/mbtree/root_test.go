@@ -109,7 +109,7 @@ func TestFilterNodes(t *testing.T) {
 	}
 
 	filteredIds := make([]int64, 0)
-	for _, node := range tree.filterNodes(filter) {
+	for _, node := range tree.FilterNodes(filter) {
 		filteredIds = append(filteredIds, node.Id)
 	}
 	assert.ElementsMatch(t, filteredIds, []int64{11, 12, 13, 14, 15, 16})
@@ -123,7 +123,7 @@ func TestFilterNodesWithin(t *testing.T) {
 
 	ids := []int64{1, 5, 10, 13, 15, 16}
 	filteredIds := make([]int64, 0)
-	for _, node := range tree.filterNodesWithin(ids, filter) {
+	for _, node := range tree.FilterNodesWithin(ids, filter) {
 		filteredIds = append(filteredIds, node.Id)
 	}
 	assert.ElementsMatch(t, filteredIds, []int64{13, 15, 16})

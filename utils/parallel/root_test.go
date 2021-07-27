@@ -149,7 +149,7 @@ func TestAddListener(t *testing.T) {
 
 func TestAddSignal(t *testing.T) {
 	ctx, cancle := context.WithCancel(context.Background())
-	go func(){
+	go func() {
 		time.Sleep(time.Second)
 		cancle()
 	}()

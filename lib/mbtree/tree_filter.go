@@ -1,9 +1,9 @@
 package mbtree
 
-// filterNodes traverse all nodes in the tree by using filter function
+// FilterNodes traverse all nodes in the tree by using filter function
 // @param f: is passed one node as an argument and that node is included if function returns true,
 // @return []*Node
-func (t *SafeMultiBranchTree) filterNodes(f FilterFunc) []*Node {
+func (t *SafeMultiBranchTree) FilterNodes(f FilterFunc) []*Node {
 	filtered := make([]*Node, 0)
 	t.Nodes.Range(func(k, v interface{}) bool {
 		node := v.(*Node)
@@ -16,8 +16,8 @@ func (t *SafeMultiBranchTree) filterNodes(f FilterFunc) []*Node {
 	return filtered
 }
 
-// filterNodesWithin filter nodes in specified id slice
-func (t *SafeMultiBranchTree) filterNodesWithin(ids []int64, f FilterFunc) []*Node {
+// FilterNodesWithin filter nodes in specified id slice
+func (t *SafeMultiBranchTree) FilterNodesWithin(ids []int64, f FilterFunc) []*Node {
 	filtered := make([]*Node, 0)
 	for _, id := range ids {
 		node := t.GetNode(id)
