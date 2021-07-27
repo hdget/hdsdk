@@ -23,7 +23,7 @@ const (
 	SdkCategoryDb            // 数据库能力, 例如mysql
 	SdkCategoryCache         // 缓存能力，例如redis
 	SdkCategoryMq            // 消息队列能力，例如rabbitmq, rocketmq, kafka
-	SdkCategoryDts           // 数据同步能力，aliyun alidts
+	SdkCategoryMs            // 微服务能力
 	SdkCategoryNosql         // nosql数据库能力，例如es, monodb
 	SdkCategoryKv            // kv型数据库能力，例如etcd
 )

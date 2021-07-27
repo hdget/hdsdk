@@ -12,6 +12,8 @@ type Configer interface {
 	GetKafkaConfig() interface{}
 	GetNosqlConfig() interface{} // NoSQL服务配置
 	GetKvConfig() interface{}    // kv型服务配置
+
+	GetGokitConfig() interface{} // gokit微服务配置
 }
 
 // items under sdk config
@@ -21,6 +23,7 @@ type SdkConfigItem struct {
 	Redis    interface{} `mapstructure:"redis"`  // 缓存配置
 	RabbitMq interface{} `mapstructure:"aliyun"` // rabbitmq消息队列配置
 	Kafka    interface{} `mapstructure:"kafka"`  // kafka消息队列配置
+	Gokit    interface{} `mapstructure:"gokit"`  // 基于gokit实现的微服务配置
 	Nosql    interface{} `mapstructure:"nosql"`  // NoSQL配置
 	Kv       interface{} `mapstructure:"kv"`     // Key/Value数据库配置
 }

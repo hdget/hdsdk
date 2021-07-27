@@ -12,11 +12,12 @@
 package sdk
 
 import (
-	redis2 "github.com/hdget/sdk/provider/cache/redis"
-	mysql2 "github.com/hdget/sdk/provider/db/mysql"
+	"github.com/hdget/sdk/provider/cache/redis"
+	"github.com/hdget/sdk/provider/db/mysql"
 	"github.com/hdget/sdk/provider/log"
-	kafka2 "github.com/hdget/sdk/provider/mq/kafka"
-	rabbitmq2 "github.com/hdget/sdk/provider/mq/rabbitmq"
+	"github.com/hdget/sdk/provider/mq/kafka"
+	"github.com/hdget/sdk/provider/mq/rabbitmq"
+	"github.com/hdget/sdk/provider/ms/gokit"
 	"github.com/hdget/sdk/types"
 	"github.com/pkg/errors"
 )
@@ -34,6 +35,7 @@ var (
 	Redis    types.CacheProvider // redis缓存能力
 	Rabbitmq types.MqProvider    // rabbitmq能力
 	Kafka    types.MqProvider    // kafka能力
+	MicroService types.MsProvider // 微服务能力
 )
 
 var (
@@ -48,22 +50,27 @@ var (
 		&SdkProvider{
 			Kind:     types.SdkTypeDbMysql,
 			Name:     "mysql",
-			Instance: &mysql2.MysqlProvider{},
+			Instance: &mysql.MysqlProvider{},
 		},
 		&SdkProvider{
 			Kind:     types.SdkTypeCacheRedis,
 			Name:     "redis",
-			Instance: &redis2.RedisProvider{},
+			Instance: &redis.RedisProvider{},
 		},
 		&SdkProvider{
 			Kind:     types.SdkTypeMqRabbitmq,
 			Name:     "aliyun",
-			Instance: &rabbitmq2.RabbitmqProvider{},
+			Instance: &rabbitmq.RabbitmqProvider{},
 		},
 		&SdkProvider{
 			Kind:     types.SdkTypeMqKafka,
 			Name:     "kafka",
-			Instance: &kafka2.KafkaProvider{},
+			Instance: &kafka.KafkaProvider{},
+		},
+		&SdkProvider{
+			Kind:     types.SdkTypeMsGokit,
+			Name:     "gokit",
+			Instance: &gokit.GokitProvider{},
 		},
 	}
 )
@@ -100,13 +107,15 @@ func setGlobalVars(p *SdkProvider) {
 	// 根据不同的能力类型，将provider Instance转换成具体的provider
 	switch p.Kind {
 	case types.SdkTypeDbMysql:
-		Mysql = p.Instance.(*mysql2.MysqlProvider)
+		Mysql = p.Instance.(*mysql.MysqlProvider)
 	case types.SdkTypeCacheRedis:
-		Redis = p.Instance.(*redis2.RedisProvider)
+		Redis = p.Instance.(*redis.RedisProvider)
 	case types.SdkTypeMqRabbitmq:
-		Rabbitmq = p.Instance.(*rabbitmq2.RabbitmqProvider)
+		Rabbitmq = p.Instance.(*rabbitmq.RabbitmqProvider)
 	case types.SdkTypeMqKafka:
-		Kafka = p.Instance.(*kafka2.KafkaProvider)
+		Kafka = p.Instance.(*kafka.KafkaProvider)
+	case types.SdkTypeMsGokit:
+		MicroService = p.Instance.(*gokit.GokitProvider)
 	}
 }
 

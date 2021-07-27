@@ -161,7 +161,7 @@ const TEST_CONFIG_ALIYUN_DTS = `
                 topic = "testtopic"
 `
 
-const TEST_CONFIG_MICROSERVICE = `
+const TEST_CONFIG_GOKIT_MICROSERVICE = `
 [sdk]
 	[sdk.log]
         filename = "demo.log"
@@ -170,8 +170,17 @@ const TEST_CONFIG_MICROSERVICE = `
         	max_age = 168
         	# 日志切割时间间隔24小时（单位hour)
         	rotation_time=24
-
-[[services]]
+	[[sdk.gokit]]
+		name = "testservice"
+		[sdk.trace]
+			url = ""
+			address = ""
+		[sdk.gokit.circuitbreak]
+		[sdk.gokit.ratelimit]
+		[sdk.gokit.server]
+			transports = ["grpc", "http"]
+			middlewares=["trace", "circuitbreak", "ratelimit"]
+		
 		
 `
 
