@@ -15,7 +15,7 @@ import (
 
 // GokitServerConfig 服务端配置
 type GokitServerConfig struct {
-	Url         string   `mapstructure:"url"`
+	Address     string   `mapstructure:"address"`
 	Transports  []string `mapstructure:"transports"`
 	Middlewares []string `mapstructure:"middlewares"`
 }
@@ -83,7 +83,7 @@ func (gs *GokitServer) GetGrpcServer() *grpc.Server {
 func (gs *GokitServer) Run() {
 	var group parallel.Group
 	{
-		listener, err := net.Listen("tcp", gs.Config.Url)
+		listener, err := net.Listen("tcp", gs.Config.Address)
 		if err != nil {
 			gs.Logger.Fatal("new server listener", "err", err)
 		}
@@ -99,7 +99,7 @@ func (gs *GokitServer) Run() {
 		group.Add(parallel.SignalActor(gs.ctx, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT))
 	}
 
-	gs.Logger.Debug("microservice is running", "name", gs.Name, "address", gs.Config.Url)
+	gs.Logger.Debug("microservice is running", "name", gs.Name, "address", gs.Config.Address)
 	err := group.Run()
 	if err != nil {
 		gs.Logger.Debug("microservice exit", "err", err)

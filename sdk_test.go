@@ -174,7 +174,7 @@ const TEST_CONFIG_GOKIT_MICROSERVICE = `
 		[[sdk.service.items]]
 			name = "testservice"
 			[sdk.service.items.server]
-				url = "0.0.0.0:12345"
+				address = "0.0.0.0:12345"
 				middlewares=["circuitbreak", "ratelimit"]
 `
 
