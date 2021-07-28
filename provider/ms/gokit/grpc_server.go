@@ -25,9 +25,10 @@ type GokitServer struct {
 	Logger             types.LogProvider
 	Config             *GokitServerConfig
 	GrpcServer         *grpc.Server
-	Middlewares []endpoint.Middleware
-
+	Middlewares 		[]endpoint.Middleware
+	Tracer             *Tracer
 	Options  	  	   []kitgrpc.ServerOption
+
 	ctx                context.Context
 	cancel             context.CancelFunc
 }
@@ -69,6 +70,7 @@ func (msi MicroServiceImpl) CreateGrpcServer(registerFunc types.RegisterFunc, co
 		GrpcServer: grpcServer,
 		Options: serverOptions,
 		Middlewares: mdws,
+		Tracer: msi.Tracer,
 		ctx: ctx,
 		cancel: cancel,
 	}

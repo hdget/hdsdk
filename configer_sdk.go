@@ -55,13 +55,13 @@ func (c *Config) GetKafkaConfig() interface{} {
 	return c.Sdk.Kafka
 }
 
-// GetGokitConfig 获取Gokit微服务配置
-func (c *Config) GetGokitConfig() interface{} {
+// GetMicroServiceConfig 获取Gokit微服务配置
+func (c *Config) GetMicroServiceConfig() interface{} {
 	if c == nil || c.Sdk == nil {
 		return nil
 	}
 
-	return c.Sdk.Gokit
+	return c.Sdk.MicroService
 }
 
 // GetNosqlConfig 获取非SQL配置

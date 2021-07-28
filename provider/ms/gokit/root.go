@@ -11,7 +11,6 @@ import (
 )
 
 type GokitProviderConfig struct {
-	Default *MicroServiceConfig   `mapstructure:"default"` // 缺省
 	Items   []*MicroServiceConfig `mapstructure:"items"`
 }
 
@@ -53,7 +52,7 @@ func (gp *GokitProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 
 // 解析MicroService配置
 func parseProviderConfig(rootConfiger types.Configer) (*GokitProviderConfig, error) {
-	data := rootConfiger.GetGokitConfig()
+	data := rootConfiger.GetMicroServiceConfig()
 	if data == nil {
 		return nil, types.ErrEmptyConfig
 	}

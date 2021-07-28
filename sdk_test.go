@@ -170,15 +170,14 @@ const TEST_CONFIG_GOKIT_MICROSERVICE = `
         	max_age = 168
         	# 日志切割时间间隔24小时（单位hour)
         	rotation_time=24
-	[[sdk.gokit]]
+	[[sdk.service]]
 		name = "testservice"
-		[sdk.trace]
+		[sdk.service.trace]
 			url = ""
 			address = ""
-		[sdk.gokit.circuitbreak]
-		[sdk.gokit.ratelimit]
-		[sdk.gokit.server]
-			transports = ["grpc", "http"]
+		[sdk.service.circuitbreak]
+		[sdk.service.ratelimit]
+		[sdk.service.server]
 			middlewares=["trace", "circuitbreak", "ratelimit"]
 		
 		

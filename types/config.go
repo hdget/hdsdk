@@ -13,17 +13,17 @@ type Configer interface {
 	GetNosqlConfig() interface{} // NoSQL服务配置
 	GetKvConfig() interface{}    // kv型服务配置
 
-	GetGokitConfig() interface{} // gokit微服务配置
+	GetMicroServiceConfig() interface{} // gokit微服务配置
 }
 
 // items under sdk config
 type SdkConfigItem struct {
-	Log      interface{} `mapstructure:"log"`    // 日志配置
-	Mysql    interface{} `mapstructure:"mysql"`  // 数据库配置
-	Redis    interface{} `mapstructure:"redis"`  // 缓存配置
-	RabbitMq interface{} `mapstructure:"aliyun"` // rabbitmq消息队列配置
-	Kafka    interface{} `mapstructure:"kafka"`  // kafka消息队列配置
-	Gokit    interface{} `mapstructure:"gokit"`  // 基于gokit实现的微服务配置
-	Nosql    interface{} `mapstructure:"nosql"`  // NoSQL配置
-	Kv       interface{} `mapstructure:"kv"`     // Key/Value数据库配置
+	Log          interface{} `mapstructure:"log"`    // 日志配置
+	Mysql        interface{} `mapstructure:"mysql"`  // 数据库配置
+	Redis        interface{} `mapstructure:"redis"`  // 缓存配置
+	RabbitMq     interface{} `mapstructure:"aliyun"` // rabbitmq消息队列配置
+	Kafka        interface{} `mapstructure:"kafka"`  // kafka消息队列配置
+	MicroService interface{} `mapstructure:"service"` // 基于gokit实现的微服务配置
+	Nosql        interface{} `mapstructure:"nosql"`  // NoSQL配置
+	Kv           interface{} `mapstructure:"kv"`     // Key/Value数据库配置
 }

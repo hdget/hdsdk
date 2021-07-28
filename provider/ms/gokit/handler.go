@@ -3,12 +3,13 @@ package gokit
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
+	"github.com/go-kit/kit/tracing/opentracing"
+	kitgrpc "github.com/go-kit/kit/transport/grpc"
 )
 
 type ServiceHandler interface {
 	GetName() string
 	MakeEndpoint(svc interface{}) endpoint.Endpoint
-
 	// Reply message
 	Reply() interface{}
 
@@ -21,22 +22,24 @@ type ServiceHandler interface {
 	EncodeDomainReply(_ context.Context, response interface{}) (interface{}, error)
 }
 
-//func (msi MicroServiceImpl) NewGrpcHandler(genService interface{}, h ServiceHandler) *kitgrpc.Server {
-//	tracerOptions := append(msi.Tracer.Options,
-//		kitgrpc.ServerBefore(
-//			opentracing.GRPCToContext(s.Tracer.OpenTracer, h.GetName(), logger),
-//	),
-//	)
-//	endpoints := h.MakeEndpoint(svc)
-//
-//	for _, m := range s.Middlewares {
-//		endpoints = m(endpoints)
-//	}
-//
-//	return grpctransport.NewServer(
-//		endpoints,
-//		h.DecodeGrpcRequest,
-//		h.EncodeDomainReply,
-//		tracerOptions...,
-//	)
-//}
+func (gs *GokitServer) NewGrpcHandler(concreteService interface{}, h ServiceHandler) *kitgrpc.Server {
+	// 将具体的service和middleware串联起来
+	endpoints := h.MakeEndpoint(concreteService)
+	for _, m := range gs.Middlewares {
+		endpoints = m(endpoints)
+	}
+
+	// 添加tracer到ServerBefore
+	options := append(gs.Options,
+		kitgrpc.ServerBefore(
+			opentracing.GRPCToContext(gs.Tracer.OpenTracer, h.GetName(), gs.Logger),
+		),
+	)
+
+	return kitgrpc.NewServer(
+		endpoints,
+		h.DecodeGrpcRequest,
+		h.EncodeDomainReply,
+		options...,
+	)
+}
