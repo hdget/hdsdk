@@ -11,7 +11,7 @@ import (
 )
 
 type GokitProviderConfig struct {
-	Items   []*MicroServiceConfig `mapstructure:"items"`
+	Items []*MicroServiceConfig `mapstructure:"items"`
 }
 
 type GokitProvider struct {

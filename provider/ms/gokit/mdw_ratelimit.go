@@ -14,25 +14,23 @@ type RateLimitConfig struct {
 
 var (
 	defaultRateLimitConfig = &RateLimitConfig{
-		Limit:  0,
-		Burst: 0,
+		Limit: 30,
+		Burst: 50,
 	}
 )
 
 // NewMdwRateLimit 服务限流, limited to 1 request per second with burst of 100 requests.
 // Note, rate is defined as a number of requests per second.
 func NewMdwRateLimit(config *MicroServiceConfig) endpoint.Middleware {
-	if config.RateLimit == nil {
-		return nil
+	rateLimitConfig := config.RateLimit
+	if rateLimitConfig == nil {
+		rateLimitConfig = defaultRateLimitConfig
 	}
 
 	return ratelimit.NewErroringLimiter(
 		rate.NewLimiter(
-			rate.Limit(config.RateLimit.Limit),
-			config.RateLimit.Burst,
+			rate.Limit(rateLimitConfig.Limit),
+			rateLimitConfig.Burst,
 		),
 	)
 }
-
-
-

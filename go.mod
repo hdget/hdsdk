@@ -6,6 +6,7 @@ require (
 	github.com/Shopify/sarama v1.29.1
 	github.com/go-kit/kit v0.11.0
 	github.com/go-sql-driver/mysql v1.6.0
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gomodule/redigo v1.8.5
 	github.com/hamba/avro v1.5.6
 	github.com/jmoiron/sqlx v1.3.4

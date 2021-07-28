@@ -2,8 +2,6 @@ package types
 
 import "google.golang.org/grpc"
 
-type RegisterFunc func(grpcServer *grpc.Server, concreteService interface{})
-
 // MsProvider MS: microservice
 type MsProvider interface {
 	By(name string) MicroService
@@ -11,11 +9,12 @@ type MsProvider interface {
 
 type MicroService interface {
 	GetName() string
-	CreateGrpcServer(registerFunc RegisterFunc, concreteService interface{}) MsServer
-	CreateGrpcClient() MsClient
+	CreateServer() MsServer
+	CreateClient() MsClient
 }
 
 type MsServer interface {
+	GetGrpcServer() *grpc.Server
 	Run()
 }
 
@@ -24,6 +23,6 @@ type MsClient interface {
 
 // message queue provider
 const (
-	_                 SdkType = SdkCategoryMs + iota
+	_              SdkType = SdkCategoryMs + iota
 	SdkTypeMsGokit         // 基于Gokit的微服务能力
 )

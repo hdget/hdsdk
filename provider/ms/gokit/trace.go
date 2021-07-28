@@ -11,8 +11,8 @@ import (
 
 // TraceConfig 服务跟踪选项
 type TraceConfig struct {
-	Url         string // Zipkin tracing HTTP reporter URL
-	Address     string
+	Url     string // Zipkin tracing HTTP reporter URL
+	Address string
 }
 
 type Tracer struct {
@@ -23,7 +23,7 @@ type Tracer struct {
 
 var (
 	defaultTraceConfig = &TraceConfig{
-		Url: "http://localhost:9411/api/v2/spans",
+		Url:     "http://localhost:9411/api/v2/spans",
 		Address: "",
 	}
 	ErrInvalidTraceConfig = errors.New("invalid trace config")
@@ -33,11 +33,7 @@ func newTracer(config *MicroServiceConfig) (*Tracer, error) {
 	// 如果没有配置tracer不做任何事
 	traceConfig := config.Trace
 	if traceConfig == nil {
-		return nil, nil
-	}
-
-	if traceConfig.Url == "" || traceConfig.Address == "" {
-		return nil, ErrInvalidTraceConfig
+		traceConfig = defaultTraceConfig
 	}
 
 	// set up a span reporter
@@ -67,6 +63,3 @@ func newTracer(config *MicroServiceConfig) (*Tracer, error) {
 		OpenTracer:   openTracer,
 	}, nil
 }
-
-
-

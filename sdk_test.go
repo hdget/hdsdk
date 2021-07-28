@@ -3,7 +3,7 @@ package sdk
 import (
 	"bytes"
 	"fmt"
-	rabbitmq2 "github.com/hdget/sdk/provider/mq/rabbitmq"
+	"github.com/hdget/sdk/provider/mq/rabbitmq"
 	"github.com/hdget/sdk/types"
 	"github.com/hdget/sdk/utils"
 	"github.com/hdget/sdk/utils/alidts"
@@ -170,17 +170,12 @@ const TEST_CONFIG_GOKIT_MICROSERVICE = `
         	max_age = 168
         	# 日志切割时间间隔24小时（单位hour)
         	rotation_time=24
-	[[sdk.service]]
-		name = "testservice"
-		[sdk.service.trace]
-			url = ""
-			address = ""
-		[sdk.service.circuitbreak]
-		[sdk.service.ratelimit]
-		[sdk.service.server]
-			middlewares=["trace", "circuitbreak", "ratelimit"]
-		
-		
+	[sdk.service]
+		[[sdk.service.items]]
+			name = "testservice"
+			[sdk.service.items.server]
+				url = "0.0.0.0:12345"
+				middlewares=["circuitbreak", "ratelimit"]
 `
 
 // nolint:errcheck
@@ -435,7 +430,7 @@ func TestRabbitmqRecv(t *testing.T) {
 
 	mq := Rabbitmq.My()
 	options := mq.GetDefaultOptions()
-	qosOption := options[types.MqOptionQos].(*rabbitmq2.QosOption)
+	qosOption := options[types.MqOptionQos].(*rabbitmq.QosOption)
 	qosOption.PrefetchCount = 2
 	options[types.MqOptionQos] = qosOption
 	c, err := mq.CreateConsumer("consumer1", msgProcess, options)
@@ -607,4 +602,40 @@ func TestDts(t *testing.T) {
 	}
 
 	c.Consume()
+}
+
+//type searchImpl struct {
+//
+//}
+//
+//func (s searchImpl) Search(ctx context.Context, request *autogen.SearchRequest) (*autogen.SearchResponse, error) {
+//	fmt.Println("in search implementation")
+//	return &autogen.SearchResponse{
+//		Response: "xxxx",
+//	}, nil
+//}
+
+// nolint:errcheck
+func TestMicroServiceServer(t *testing.T) {
+	v := LoadConfig("demo", "local", "")
+
+	// merge config from string
+	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_GOKIT_MICROSERVICE)))
+
+	// 将配置信息转换成对应的数据结构
+	var conf TestConf
+	err := v.Unmarshal(&conf)
+	if err != nil {
+		utils.Fatal("unmarshal demo conf", "err", err)
+	}
+
+	err = Initialize(&conf)
+	if err != nil {
+		utils.Fatal("sdk initialize", "err", err)
+	}
+
+	s := MicroService.By("testservice").CreateServer()
+	// 必须手动注册服务实现
+	// autogen.RegisterSearchServiceServer(s.GetGrpcServer(), &searchImpl{})
+	s.Run()
 }

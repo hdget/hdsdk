@@ -18,30 +18,30 @@ type CircuitBreakConfig struct {
 
 var (
 	defaultCircuitBreakConfig = &CircuitBreakConfig{
-		MaxRequests:  0,
+		MaxRequests:  100,
 		Interval:     0,
-		Timeout:      0,
-		Requests:     0,
-		FailureRatio: 0,
+		Timeout:      60,
+		Requests:     10,
+		FailureRatio: 1.0,
 	}
 )
 
 // NewMdwCircuitBreak 服务熔断
 func NewMdwCircuitBreak(config *MicroServiceConfig) endpoint.Middleware {
-	if config.CircuitBreak == nil {
-		return nil
+	circuitBreakConfig := config.CircuitBreak
+	if circuitBreakConfig == nil {
+		circuitBreakConfig = defaultCircuitBreakConfig
 	}
 
 	settings := gobreaker.Settings{
-		MaxRequests: config.CircuitBreak.MaxRequests,
-		Interval:    time.Second * time.Duration(config.CircuitBreak.Interval),
-		Timeout:     time.Second * time.Duration(config.CircuitBreak.Timeout),
+		MaxRequests: circuitBreakConfig.MaxRequests,
+		Interval:    time.Second * time.Duration(circuitBreakConfig.Interval),
+		Timeout:     time.Second * time.Duration(circuitBreakConfig.Timeout),
 		ReadyToTrip: func(counts gobreaker.Counts) bool {
 			failureRatio := float64(counts.TotalFailures) / float64(counts.Requests)
-			return counts.Requests >= config.CircuitBreak.Requests && failureRatio >= config.CircuitBreak.FailureRatio
+			return counts.Requests >= circuitBreakConfig.Requests && failureRatio >= circuitBreakConfig.FailureRatio
 		},
 	}
 
 	return circuitbreaker.Gobreaker(gobreaker.NewCircuitBreaker(settings))
 }
-

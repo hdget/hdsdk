@@ -16,14 +16,14 @@ type GokitClientConfig struct {
 }
 
 type GokitClient struct {
-	Logger        types.LogProvider
-	Options  	  []kitgrpc.ClientOption
+	Logger  types.LogProvider
+	Options []kitgrpc.ClientOption
 }
 
 var _ types.MsClient = (*GokitClient)(nil)
 
 // CreateGrpcClient producer的名字和route中的名字对应
-func (msi *MicroServiceImpl) CreateGrpcClient() types.MsClient {
+func (msi *MicroServiceImpl) CreateClient() types.MsClient {
 	clientOptions := make([]kitgrpc.ClientOption, 0)
 	if msi.Tracer != nil {
 		clientOptions = append(clientOptions, kitzipkin.GRPCClientTrace(msi.Tracer.ZipkinTracer))

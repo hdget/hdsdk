@@ -15,35 +15,31 @@ import (
 
 // GokitServerConfig 服务端配置
 type GokitServerConfig struct {
-	Url string `mapstructure:"url"`
+	Url         string   `mapstructure:"url"`
 	Transports  []string `mapstructure:"transports"`
 	Middlewares []string `mapstructure:"middlewares"`
 }
 
 type GokitServer struct {
-	Name               string
-	Logger             types.LogProvider
-	Config             *GokitServerConfig
-	GrpcServer         *grpc.Server
-	Middlewares 		[]endpoint.Middleware
-	Tracer             *Tracer
-	Options  	  	   []kitgrpc.ServerOption
+	Name        string
+	Logger      types.LogProvider
+	Config      *GokitServerConfig
+	grpcServer  *grpc.Server
+	Middlewares []endpoint.Middleware
+	Tracer      *Tracer
+	Options     []kitgrpc.ServerOption
 
-	ctx                context.Context
-	cancel             context.CancelFunc
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
-
+type RegisterFunc func(grpcServer *grpc.Server, concreteService interface{})
 
 var _ types.MsServer = (*GokitServer)(nil)
 
-// CreateGrpcServer 将具体的服务实现注册到RPC服务中去，然后返回MicroServiceServer
-// registerFunc是从proto文件生成的RegisterXxxServer函数
-// concreteService是具体服务的实现结构
-func (msi MicroServiceImpl) CreateGrpcServer(registerFunc types.RegisterFunc, concreteService interface{}) types.MsServer {
+// CreateGrpcServer 创建
+func (msi MicroServiceImpl) CreateServer() types.MsServer {
 	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(kitgrpc.Interceptor))
-
-	registerFunc(grpcServer, concreteService)
 
 	// set serverOptions
 	serverOptions := []kitgrpc.ServerOption{
@@ -67,13 +63,20 @@ func (msi MicroServiceImpl) CreateGrpcServer(registerFunc types.RegisterFunc, co
 
 	ctx, cancel := context.WithCancel(context.Background())
 	return &GokitServer{
-		GrpcServer: grpcServer,
-		Options: serverOptions,
+		Logger:      msi.Logger,
+		Name:        msi.Name,
+		grpcServer:  grpcServer,
+		Options:     serverOptions,
+		Config:      msi.Config.Server,
 		Middlewares: mdws,
-		Tracer: msi.Tracer,
-		ctx: ctx,
-		cancel: cancel,
+		Tracer:      msi.Tracer,
+		ctx:         ctx,
+		cancel:      cancel,
 	}
+}
+
+func (gs *GokitServer) GetGrpcServer() *grpc.Server {
+	return gs.grpcServer
 }
 
 // Run 运行GrpcServer
@@ -82,13 +85,13 @@ func (gs *GokitServer) Run() {
 	{
 		listener, err := net.Listen("tcp", gs.Config.Url)
 		if err != nil {
-			gs.Logger.Fatal("new server listener" , "err", err)
+			gs.Logger.Fatal("new server listener", "err", err)
 		}
 		group.Add(func() error {
-			return gs.GrpcServer.Serve(listener)
+			return gs.grpcServer.Serve(listener)
 		}, func(error) {
 			listener.Close()
-			gs.GrpcServer.Stop()
+			gs.grpcServer.Stop()
 		})
 	}
 	{
@@ -96,11 +99,11 @@ func (gs *GokitServer) Run() {
 		group.Add(parallel.SignalActor(gs.ctx, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT))
 	}
 
+	gs.Logger.Debug("microservice is running", "name", gs.Name, "address", gs.Config.Url)
 	err := group.Run()
 	if err != nil {
 		gs.Logger.Debug("microservice exit", "err", err)
 	}
-	gs.Logger.Debug("microservice is running", "name", gs.Name)
 }
 
 // Close 关闭GrpcServer

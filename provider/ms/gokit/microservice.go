@@ -7,23 +7,22 @@ import (
 
 // MicroServiceConfig 微服务配置
 type MicroServiceConfig struct {
-	Name       string             `mapstructure:"name"`
-	Client     *GokitClientConfig `mapstructure:"client"`
-	Server     *GokitServerConfig `mapstructure:"server"`
+	Name   string             `mapstructure:"name"`
+	Client *GokitClientConfig `mapstructure:"client"`
+	Server *GokitServerConfig `mapstructure:"server"`
 
 	// middleware
-	Trace     	 *TraceConfig         `mapstructure:"trace"` // 链路追踪
-	CircuitBreak *CircuitBreakConfig  `mapstructure:"circuitbreak"`  // 熔断
-	RateLimit    *RateLimitConfig  `mapstructure:"ratelimit"`  // 限流
+	Trace        *TraceConfig        `mapstructure:"trace"`        // 链路追踪
+	CircuitBreak *CircuitBreakConfig `mapstructure:"circuitbreak"` // 熔断
+	RateLimit    *RateLimitConfig    `mapstructure:"ratelimit"`    // 限流
 }
 
 type MicroServiceImpl struct {
-	Name string
+	Name   string
 	Logger types.LogProvider
 	Config *MicroServiceConfig
 	Tracer *Tracer
 }
-
 
 var _ types.MicroService = (*MicroServiceImpl)(nil)
 
@@ -38,11 +37,10 @@ func NewMicroService(logger types.LogProvider, config *MicroServiceConfig) (type
 		return nil, err
 	}
 
-
 	return &MicroServiceImpl{
 		Logger: logger,
 		Tracer: tracer,
-		Name: config.Name,
+		Name:   config.Name,
 		Config: config,
 	}, nil
 }
@@ -61,4 +59,3 @@ func validateConfig(config *MicroServiceConfig) error {
 	}
 	return nil
 }
-

@@ -30,12 +30,12 @@ type SdkProvider struct {
 }
 
 var (
-	Logger   types.LogProvider   // 日志能力
-	Mysql    types.DbProvider    // mysql数据库能力
-	Redis    types.CacheProvider // redis缓存能力
-	Rabbitmq types.MqProvider    // rabbitmq能力
-	Kafka    types.MqProvider    // kafka能力
-	MicroService types.MsProvider // 微服务能力
+	Logger       types.LogProvider   // 日志能力
+	Mysql        types.DbProvider    // mysql数据库能力
+	Redis        types.CacheProvider // redis缓存能力
+	Rabbitmq     types.MqProvider    // rabbitmq能力
+	Kafka        types.MqProvider    // kafka能力
+	MicroService types.MsProvider    // 微服务能力
 )
 
 var (
