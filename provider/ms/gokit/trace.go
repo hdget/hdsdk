@@ -1,6 +1,7 @@
 package gokit
 
 import (
+	"fmt"
 	"github.com/opentracing/opentracing-go"
 	"github.com/openzipkin-contrib/zipkin-go-opentracing"
 	"github.com/openzipkin/zipkin-go"
@@ -24,7 +25,7 @@ type Tracer struct {
 var (
 	defaultTraceConfig = &TraceConfig{
 		Url:     "http://localhost:9411/api/v2/spans",
-		Address: "",
+		Address: "localhost:80",
 	}
 	ErrInvalidTraceConfig = errors.New("invalid trace config")
 )
@@ -36,6 +37,7 @@ func newTracer(config *MicroServiceConfig) (*Tracer, error) {
 		traceConfig = defaultTraceConfig
 	}
 
+	fmt.Println(traceConfig)
 	// set up a span reporter
 	reporter := zipkinhttp.NewReporter(traceConfig.Url)
 

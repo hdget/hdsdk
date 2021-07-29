@@ -37,7 +37,7 @@ type RegisterFunc func(grpcServer *grpc.Server, concreteService interface{})
 
 var _ types.MsServer = (*GokitServer)(nil)
 
-// CreateGrpcServer 创建
+// CreateServer 创建微服务server
 func (msi MicroServiceImpl) CreateServer() types.MsServer {
 	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(kitgrpc.Interceptor))
 

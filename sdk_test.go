@@ -173,6 +173,8 @@ const TEST_CONFIG_GOKIT_MICROSERVICE = `
 	[sdk.service]
 		[[sdk.service.items]]
 			name = "testservice"
+			[sdk.service.items.trace]
+                url = "http://192.168.0.114:9411/api/v2/spans"
 			[sdk.service.items.server]
 				address = "0.0.0.0:12345"
 				middlewares=["circuitbreak", "ratelimit"]
@@ -604,17 +606,6 @@ func TestDts(t *testing.T) {
 	c.Consume()
 }
 
-//type searchImpl struct {
-//
-//}
-//
-//func (s searchImpl) Search(ctx context.Context, request *autogen.SearchRequest) (*autogen.SearchResponse, error) {
-//	fmt.Println("in search implementation")
-//	return &autogen.SearchResponse{
-//		Response: "xxxx",
-//	}, nil
-//}
-
 // nolint:errcheck
 func TestMicroServiceServer(t *testing.T) {
 	v := LoadConfig("demo", "local", "")
@@ -635,7 +626,6 @@ func TestMicroServiceServer(t *testing.T) {
 	}
 
 	s := MicroService.By("testservice").CreateServer()
-	// 必须手动注册服务实现
-	// autogen.RegisterSearchServiceServer(s.GetGrpcServer(), &searchImpl{})
+	// autogen.RegisterSearchServiceServer(s.GetGrpcServer(), impl)
 	s.Run()
 }
