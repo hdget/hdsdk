@@ -161,25 +161,6 @@ const TEST_CONFIG_ALIYUN_DTS = `
                 topic = "testtopic"
 `
 
-const TEST_CONFIG_GOKIT_MICROSERVICE = `
-[sdk]
-	[sdk.log]
-        filename = "demo.log"
-		[sdk.log.rotate]
-			# 最大保存时间7天(单位hour)
-        	max_age = 168
-        	# 日志切割时间间隔24小时（单位hour)
-        	rotation_time=24
-	[sdk.service]
-		[[sdk.service.items]]
-			name = "testservice"
-			[sdk.service.items.trace]
-                url = "http://192.168.0.114:9411/api/v2/spans"
-			[sdk.service.items.server]
-				address = "0.0.0.0:12345"
-				middlewares=["circuitbreak", "ratelimit"]
-`
-
 // nolint:errcheck
 func TestLogger(t *testing.T) {
 	v := LoadConfig("test", "local", "")
@@ -604,28 +585,4 @@ func TestDts(t *testing.T) {
 	}
 
 	c.Consume()
-}
-
-// nolint:errcheck
-func TestMicroServiceServer(t *testing.T) {
-	v := LoadConfig("demo", "local", "")
-
-	// merge config from string
-	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_GOKIT_MICROSERVICE)))
-
-	// 将配置信息转换成对应的数据结构
-	var conf TestConf
-	err := v.Unmarshal(&conf)
-	if err != nil {
-		utils.Fatal("unmarshal demo conf", "err", err)
-	}
-
-	err = Initialize(&conf)
-	if err != nil {
-		utils.Fatal("sdk initialize", "err", err)
-	}
-
-	s := MicroService.By("testservice").CreateServer()
-	// autogen.RegisterSearchServiceServer(s.GetGrpcServer(), impl)
-	s.Run()
 }

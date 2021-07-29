@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
+	kithttp "github.com/go-kit/kit/transport/http"
 	"google.golang.org/grpc"
+	"net/http"
 )
 
 // MsProvider MS: microservice
@@ -14,17 +16,24 @@ type MsProvider interface {
 
 type MicroService interface {
 	GetName() string
-	CreateServer() MsServer
-	CreateClient() MsClient
+	CreateGrpcServer() MsGrpcServer
+	CreateHttpServer() MsHttpServer
 }
 
-type MsServer interface {
-	GetGrpcServer() *grpc.Server
-	CreateEndpointServer(concreteService interface{}, eh EndpointHandler) *kitgrpc.Server
-	Run()
+type MsGrpcServer interface {
+	GetServer() *grpc.Server
+	CreateHandler(concreteService interface{}, ge GrpcEndpoint) *kitgrpc.Server
+	Run() error
+	Close()
 }
 
-type MsClient interface {
+type MsGrpcClient interface {
+}
+
+type MsHttpServer interface {
+	CreateHandler(concreteService interface{}, he HttpEndpoint) *kithttp.Server
+	Run(handlers map[string]*kithttp.Server) error
+	Close()
 }
 
 //type EndpointHandler interface {
@@ -43,14 +52,26 @@ type MsClient interface {
 //	ServerEncodeResponse(ctx context.Context, response interface{}) (interface{}, error)
 //}
 
-type EndpointHandler interface {
+// GrpcEndpoint Grpc端点的实现
+type GrpcEndpoint interface {
 	GetName() string
 	// MakeEndpoint 解析request, 调用服务函数, 封装成endpoint
 	MakeEndpoint(svc interface{}) endpoint.Endpoint
 	// ServerDecodeRequest server side convert grpc request to domain request
-	ServerDecodeRequest(ctx context.Context, grpcReq interface{}) (interface{}, error)
+	ServerDecodeRequest(ctx context.Context, request interface{}) (interface{}, error)
 	// ServerEncodeResponse server side encode response to domain response
 	ServerEncodeResponse(ctx context.Context, response interface{}) (interface{}, error)
+}
+
+// HttpEndpoint HttpEndpoint
+type HttpEndpoint interface {
+	GetName() string
+	// MakeEndpoint 解析request, 调用服务函数, 封装成endpoint
+	MakeEndpoint(svc interface{}) endpoint.Endpoint
+	// ServerDecodeRequest server side convert grpc request to domain request
+	ServerDecodeRequest(context.Context, *http.Request) (interface{}, error)
+	// ServerEncodeResponse server side encode response to domain response
+	ServerEncodeResponse(context.Context, http.ResponseWriter, interface{}) error
 }
 
 // message queue provider
