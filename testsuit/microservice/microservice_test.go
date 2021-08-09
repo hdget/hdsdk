@@ -76,8 +76,8 @@ func getGrpcTransport() types.MsGrpcServer {
 	svc := &grpc.SearchServiceImpl{}
 	grpcTransport := sdk.MicroService.By("testservice").CreateGrpcServer()
 	endpoints := &grpc.GrpcEndpoints{
-		grpcTransport.CreateHandler(svc, &grpc.SearchHandler{}),
-		grpcTransport.CreateHandler(svc, &grpc.HelloHandler{}),
+		SearchEndpoint: grpcTransport.CreateHandler(svc, &grpc.SearchHandler{}),
+		HelloEndpoint:  grpcTransport.CreateHandler(svc, &grpc.HelloHandler{}),
 	}
 	pb.RegisterSearchServiceServer(grpcTransport.GetServer(), endpoints)
 	return grpcTransport

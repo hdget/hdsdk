@@ -9,7 +9,7 @@ import (
 // put into handler file
 type SearchHandler struct{}
 
-func (s SearchHandler) GetName() string {
+func (h SearchHandler) GetName() string {
 	return "search"
 }
 

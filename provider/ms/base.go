@@ -6,7 +6,12 @@ import (
 )
 
 type BaseMsProvider struct {
-	Items map[string]types.MicroService // 指定的微服务
+	Default types.MicroService
+	Items   map[string]types.MicroService // 指定的微服务
+}
+
+func (p *BaseMsProvider) My() types.MicroService {
+	return p.Default
 }
 
 func (p *BaseMsProvider) By(name string) types.MicroService {

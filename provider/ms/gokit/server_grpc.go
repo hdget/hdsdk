@@ -98,9 +98,9 @@ func (ggs *GokitGrpcServer) Run() error {
 }
 
 // CreateHandler 创建Grpc Transport的handler
-func (ggs *GokitGrpcServer) CreateHandler(concreteService interface{}, eh types.GrpcEndpoint) *kitgrpc.Server {
+func (ggs *GokitGrpcServer) CreateHandler(concreteService interface{}, ge types.GrpcEndpoint) *kitgrpc.Server {
 	// 将具体的service和middleware串联起来
-	endpoints := eh.MakeEndpoint(concreteService)
+	endpoints := ge.MakeEndpoint(concreteService)
 	for _, m := range ggs.Middlewares {
 		endpoints = m(endpoints)
 	}
@@ -108,14 +108,14 @@ func (ggs *GokitGrpcServer) CreateHandler(concreteService interface{}, eh types.
 	// 添加tracer到ServerBefore
 	options := append(ggs.Options,
 		kitgrpc.ServerBefore(
-			opentracing.GRPCToContext(ggs.Tracer.OpenTracer, eh.GetName(), ggs.Logger),
+			opentracing.GRPCToContext(ggs.Tracer.OpenTracer, ge.GetName(), ggs.Logger),
 		),
 	)
 
 	return kitgrpc.NewServer(
 		endpoints,
-		eh.ServerDecodeRequest,
-		eh.ServerEncodeResponse,
+		ge.ServerDecodeRequest,
+		ge.ServerEncodeResponse,
 		options...,
 	)
 }

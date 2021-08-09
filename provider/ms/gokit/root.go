@@ -11,7 +11,8 @@ import (
 )
 
 type GokitProviderConfig struct {
-	Items []*MicroServiceConfig `mapstructure:"items"`
+	Default *MicroServiceConfig   `mapstructure:"default"`
+	Items   []*MicroServiceConfig `mapstructure:"items"`
 }
 
 type GokitProvider struct {
@@ -34,6 +35,13 @@ func (gp *GokitProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 		return err
 	}
 
+	gp.Default, err = NewMicroService(logger, config.Default)
+	if err != nil {
+		logger.Error("initialize microservice", "type", config.Default, "err", err)
+	} else {
+		logger.Debug("initialize microservice", "type", config.Default)
+	}
+
 	// 额外的microservice
 	gp.Items = make(map[string]types.MicroService)
 	for _, otherConf := range config.Items {
@@ -44,7 +52,7 @@ func (gp *GokitProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 		}
 
 		gp.Items[otherConf.Name] = instance
-		logger.Debug("initialize microservice", "type", otherConf.Name, "err", err)
+		logger.Debug("initialize microservice", "type", otherConf.Name)
 	}
 
 	return nil
