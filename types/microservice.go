@@ -11,6 +11,7 @@ import (
 
 // MsProvider MS: microservice
 type MsProvider interface {
+	My() MicroService
 	By(name string) MicroService
 }
 
