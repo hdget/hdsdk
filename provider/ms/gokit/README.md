@@ -25,15 +25,17 @@ Please refer to [hdkit](https://github.com/hdget/hdkit) to create project boiler
 [sdk.service]
     [sdk.service.default]
         name = "testservice"
-        [sdk.service.default.server]
+        [[sdk.service.default.servers]]
             type = "grpc"
             address = "0.0.0.0:12345"
             middlewares=["circuitbreak", "ratelimit"]
+        [[sdk.service.default.servers]]
+            type = "http"
+            address = "0.0.0.0:23456"
             ...
     [[sdk.service.items]]
         name = "httpservice"
-        [sdk.service.items.server]
-            type = "http"
+        [[sdk.service.items.servers]]
             address = "0.0.0.0:12345"
             middlewares=["circuitbreak", "ratelimit"]
             ...        
@@ -45,6 +47,9 @@ There are two kinds of service config here:
 - type:  
   - grpc: specify server is Grpc server, if not specified `type`, then `grpc` taken as default
   - http: specify server is Http server
+  
+> One service could have multiple server, like: grpc, http, please make sure `s` exists in `servers`
+> Except `default` config, other `items` config must be `[[` and `]]` wrapped
 
 ### Grpc server
 please set `type=grpc` under `sdk.service.items.server`, now there are two middlewares supported:
