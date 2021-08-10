@@ -70,7 +70,7 @@ func validateConfig(config *MicroServiceConfig) error {
 	if config == nil {
 		return types.ErrEmptyConfig
 	}
-	if config.Name == "" {
+	if config.Name == "" || len(config.Servers) == 0 {
 		return types.ErrInvalidConfig
 	}
 	return nil
