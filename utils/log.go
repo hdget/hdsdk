@@ -82,6 +82,8 @@ func ParseArgsWithError(keyvals ...interface{}) (error, map[string]interface{}) 
 				if v, ok := keyvals[i+1].(error); ok {
 					errValue = v
 				}
+				// if next value is not an error, still need add to args
+				fallthrough
 			default:
 				args[k] = keyvals[i+1]
 			}
