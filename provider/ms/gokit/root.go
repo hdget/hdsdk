@@ -37,9 +37,9 @@ func (gp *GokitProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 
 	gp.Default, err = NewMicroService(logger, config.Default)
 	if err != nil {
-		logger.Error("initialize microservice", "type", config.Default, "err", err)
+		logger.Error("initialize microservice", "type", "default", "err", err)
 	} else {
-		logger.Debug("initialize microservice", "type", config.Default)
+		logger.Debug("initialize microservice", "type", "default")
 	}
 
 	// 额外的microservice
