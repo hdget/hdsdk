@@ -1,9 +1,9 @@
-package sdk
+package hdsdk
 
 import (
 	"fmt"
-	"github.com/hdget/sdk/types"
-	"github.com/hdget/sdk/utils"
+	"github.com/hdget/hdsdk/types"
+	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"

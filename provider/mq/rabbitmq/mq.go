@@ -18,7 +18,7 @@
 package rabbitmq
 
 import (
-	"github.com/hdget/sdk/types"
+	"github.com/hdget/hdsdk/types"
 )
 
 type RabbitMq struct {

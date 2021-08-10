@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
-	"github.com/hdget/sdk/testsuit/microservice/pb"
+	"github.com/hdget/hdsdk/testsuit/microservice/pb"
 )
 
 type GrpcEndpoints struct {

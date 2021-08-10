@@ -1,4 +1,4 @@
-module github.com/hdget/sdk
+module github.com/hdget/hdsdk
 
 go 1.15
 

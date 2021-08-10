@@ -6,8 +6,8 @@ package redis
 
 import (
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/hdget/sdk/provider/cache"
-	"github.com/hdget/sdk/types"
+	"github.com/hdget/hdsdk/provider/cache"
+	"github.com/hdget/hdsdk/types"
 )
 
 type RedisProvider struct {

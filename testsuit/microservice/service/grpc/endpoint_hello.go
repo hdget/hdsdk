@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/hdget/sdk/testsuit/microservice/pb"
+	"github.com/hdget/hdsdk/testsuit/microservice/pb"
 )
 
 type HelloHandler struct{}

@@ -1,8 +1,8 @@
 package zerolog
 
 import (
-	"github.com/hdget/sdk/provider/log/typlog"
-	"github.com/hdget/sdk/types"
+	"github.com/hdget/hdsdk/provider/log/typlog"
+	"github.com/hdget/hdsdk/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 )

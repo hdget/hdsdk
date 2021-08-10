@@ -1,7 +1,7 @@
 package kafka
 
 import (
-	"github.com/hdget/sdk/types"
+	"github.com/hdget/hdsdk/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 )

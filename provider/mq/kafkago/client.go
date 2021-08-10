@@ -2,7 +2,7 @@ package kafkago
 
 import (
 	"context"
-	"github.com/hdget/sdk/types"
+	"github.com/hdget/hdsdk/types"
 )
 
 // 消息队列客户端维护connection和channel

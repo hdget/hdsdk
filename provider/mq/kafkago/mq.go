@@ -2,7 +2,7 @@
 package kafkago
 
 import (
-	"github.com/hdget/sdk/types"
+	"github.com/hdget/hdsdk/types"
 )
 
 type Kafka struct {

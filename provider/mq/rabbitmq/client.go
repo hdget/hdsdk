@@ -2,8 +2,8 @@ package rabbitmq
 
 import (
 	"fmt"
-	"github.com/hdget/sdk/types"
-	"github.com/hdget/sdk/utils"
+	"github.com/hdget/hdsdk/types"
+	"github.com/hdget/hdsdk/utils"
 	"github.com/streadway/amqp"
 	"strings"
 	"sync/atomic"

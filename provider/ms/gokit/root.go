@@ -4,8 +4,8 @@
 package gokit
 
 import (
-	"github.com/hdget/sdk/provider/ms"
-	"github.com/hdget/sdk/types"
+	"github.com/hdget/hdsdk/provider/ms"
+	"github.com/hdget/hdsdk/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 )

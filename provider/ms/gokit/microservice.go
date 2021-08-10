@@ -2,7 +2,7 @@
 package gokit
 
 import (
-	"github.com/hdget/sdk/types"
+	"github.com/hdget/hdsdk/types"
 )
 
 // MicroServiceConfig 微服务配置
@@ -49,10 +49,19 @@ func (msi MicroServiceImpl) GetName() string {
 
 func (msi MicroServiceImpl) GetServerConfig(serverType string) *ServerConfig {
 	for _, serverConfig := range msi.Config.Servers {
-		if serverConfig.ServerType == serverType {
+		configServerType := serverConfig.ServerType
+
+		// if we don't specify the `type` in config file
+		// if set to be `GRPC_SERVER` by default
+		if configServerType == "" {
+			configServerType = GRPC_SERVER
+		}
+
+		if configServerType == serverType {
 			return serverConfig
 		}
 	}
+
 	return nil
 }
 

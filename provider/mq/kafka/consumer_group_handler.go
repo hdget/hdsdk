@@ -2,7 +2,7 @@ package kafka
 
 import (
 	"github.com/Shopify/sarama"
-	"github.com/hdget/sdk/types"
+	"github.com/hdget/hdsdk/types"
 )
 
 type ConsumerGroupHandler struct {

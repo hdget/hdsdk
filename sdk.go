@@ -9,16 +9,16 @@
 //      }
 //
 //
-package sdk
+package hdsdk
 
 import (
-	"github.com/hdget/sdk/provider/cache/redis"
-	"github.com/hdget/sdk/provider/db/mysql"
-	"github.com/hdget/sdk/provider/log"
-	"github.com/hdget/sdk/provider/mq/kafka"
-	"github.com/hdget/sdk/provider/mq/rabbitmq"
-	"github.com/hdget/sdk/provider/ms/gokit"
-	"github.com/hdget/sdk/types"
+	"github.com/hdget/hdsdk/provider/cache/redis"
+	"github.com/hdget/hdsdk/provider/db/mysql"
+	"github.com/hdget/hdsdk/provider/log"
+	"github.com/hdget/hdsdk/provider/mq/kafka"
+	"github.com/hdget/hdsdk/provider/mq/rabbitmq"
+	"github.com/hdget/hdsdk/provider/ms/gokit"
+	"github.com/hdget/hdsdk/types"
 	"github.com/pkg/errors"
 )
 

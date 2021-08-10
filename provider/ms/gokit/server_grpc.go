@@ -7,8 +7,8 @@ import (
 	kitzipkin "github.com/go-kit/kit/tracing/zipkin"
 	"github.com/go-kit/kit/transport"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
-	"github.com/hdget/sdk/types"
-	"github.com/hdget/sdk/utils/parallel"
+	"github.com/hdget/hdsdk/types"
+	"github.com/hdget/hdsdk/utils/parallel"
 	"google.golang.org/grpc"
 	"net"
 	"syscall"
@@ -40,7 +40,7 @@ func (msi MicroServiceImpl) CreateGrpcServer() types.MsGrpcServer {
 	// 添加中间件
 	// 添加中间件
 	mdws := make([]endpoint.Middleware, 0)
-	serverConfig := msi.GetServerConfig("grpc")
+	serverConfig := msi.GetServerConfig(GRPC_SERVER)
 	for _, mdwName := range serverConfig.Middlewares {
 		f := NewMdwFunctions[mdwName]
 		if f != nil {
@@ -51,7 +51,7 @@ func (msi MicroServiceImpl) CreateGrpcServer() types.MsGrpcServer {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &GokitGrpcServer{
 		BaseGokitServer: BaseGokitServer{
-			Config:      msi.GetServerConfig("grpc"),
+			Config:      serverConfig,
 			Logger:      msi.Logger,
 			Name:        msi.Name,
 			Middlewares: mdws,

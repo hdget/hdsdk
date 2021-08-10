@@ -3,7 +3,7 @@ package gokit
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
-	"github.com/hdget/sdk/types"
+	"github.com/hdget/hdsdk/types"
 )
 
 // ServerConfig 服务端配置
@@ -22,6 +22,11 @@ type BaseGokitServer struct {
 	ctx         context.Context
 	cancel      context.CancelFunc
 }
+
+const (
+	GRPC_SERVER = "grpc"
+	HTTP_SERVER = "http"
+)
 
 // Close 关闭GrpcServer
 func (bgs *BaseGokitServer) Close() {

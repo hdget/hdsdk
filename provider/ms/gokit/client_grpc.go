@@ -3,7 +3,7 @@ package gokit
 import (
 	kitzipkin "github.com/go-kit/kit/tracing/zipkin"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
-	"github.com/hdget/sdk/types"
+	"github.com/hdget/hdsdk/types"
 )
 
 // GokitClientConfig 客户端配置

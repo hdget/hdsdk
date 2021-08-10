@@ -1,9 +1,9 @@
 package log
 
 import (
-	"github.com/hdget/sdk/provider/log/typlog"
-	"github.com/hdget/sdk/provider/log/zerolog"
-	"github.com/hdget/sdk/types"
+	"github.com/hdget/hdsdk/provider/log/typlog"
+	"github.com/hdget/hdsdk/provider/log/zerolog"
+	"github.com/hdget/hdsdk/types"
 )
 
 type CapImpl struct {

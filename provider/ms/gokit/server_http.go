@@ -7,8 +7,8 @@ import (
 	kitzipkin "github.com/go-kit/kit/tracing/zipkin"
 	"github.com/go-kit/kit/transport"
 	kithttp "github.com/go-kit/kit/transport/http"
-	"github.com/hdget/sdk/types"
-	"github.com/hdget/sdk/utils/parallel"
+	"github.com/hdget/hdsdk/types"
+	"github.com/hdget/hdsdk/utils/parallel"
 	"net"
 	"net/http"
 	"syscall"
@@ -21,7 +21,7 @@ type GokitHttpServer struct {
 
 var _ types.MsHttpServer = (*GokitHttpServer)(nil)
 
-// CreateServer 创建微服务server
+// CreateHttpServer 创建微服务server
 func (msi MicroServiceImpl) CreateHttpServer() types.MsHttpServer {
 	// set serverOptions
 	serverOptions := []kithttp.ServerOption{
@@ -36,7 +36,7 @@ func (msi MicroServiceImpl) CreateHttpServer() types.MsHttpServer {
 
 	// 添加中间件
 	mdws := make([]endpoint.Middleware, 0)
-	serverConfig := msi.GetServerConfig("http")
+	serverConfig := msi.GetServerConfig(HTTP_SERVER)
 	for _, mdwName := range serverConfig.Middlewares {
 		f := NewMdwFunctions[mdwName]
 		if f != nil {

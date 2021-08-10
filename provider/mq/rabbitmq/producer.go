@@ -2,7 +2,7 @@ package rabbitmq
 
 import (
 	"errors"
-	"github.com/hdget/sdk/types"
+	"github.com/hdget/hdsdk/types"
 	"github.com/streadway/amqp"
 	"time"
 )
