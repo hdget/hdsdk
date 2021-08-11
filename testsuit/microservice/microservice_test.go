@@ -5,7 +5,6 @@ import (
 	"github.com/hdget/hdsdk"
 	"github.com/hdget/hdsdk/testsuit/microservice/pb"
 	"github.com/hdget/hdsdk/testsuit/microservice/service/grpc"
-	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdsdk/utils"
 	"github.com/hdget/hdsdk/utils/parallel"
 	"testing"
@@ -20,19 +19,13 @@ const TEST_CONFIG_GOKIT_MICROSERVICE = `
         	max_age = 168
         	# 日志切割时间间隔24小时（单位hour)
         	rotation_time=24
-	[sdk.ms]
-		[[sdk.ms.items]]
+	[sdk.service]
+		[[sdk.service.items]]
 			name = "testservice"
-			[sdk.ms.items.trace]
-				url = "http://192.168.0.114:9411/api/v2/spans"
-			[[sdk.ms.items.servers]]
+			[[sdk.service.items.servers]]
 				type = "grpc"
 				address = "0.0.0.0:12345"
-				middlewares=["circuitbreak"]
-			[[sdk.ms.items.servers]]
-				type = "http"
-				address = "0.0.0.0:23456"
-				middlewares=["ratelimit"]
+				middlewares=["trace", "circuitbreak", "ratelimit"]
 `
 
 type MicroServiceTestConf struct {
@@ -58,27 +51,36 @@ func TestMicroService(t *testing.T) {
 		utils.Fatal("sdk initialize", "err", err)
 	}
 
-	var group parallel.Group
-	grpcTransport := getGrpcTransport()
-	group.Add(
-		func() error {
-			return grpcTransport.Run()
-		},
-		func(err error) {
-			grpcTransport.Close()
-		},
-	)
-	group.Run()
-}
+	ms := hdsdk.MicroService.By("testservice")
+	if ms == nil {
+		utils.Fatal("get microservice instance", "err", err)
+	}
 
-func getGrpcTransport() types.MsGrpcServer {
+	server := ms.CreateGrpcServer()
+	if ms == nil {
+		utils.Fatal("get grpc server", "err", err)
+	}
+
 	// 必须手动注册服务实现
 	svc := &grpc.SearchServiceImpl{}
-	grpcTransport := hdsdk.MicroService.By("testservice").CreateGrpcServer()
 	endpoints := &grpc.GrpcEndpoints{
-		SearchEndpoint: grpcTransport.CreateHandler(svc, &grpc.SearchHandler{}),
-		HelloEndpoint:  grpcTransport.CreateHandler(svc, &grpc.HelloHandler{}),
+		SearchEndpoint: server.CreateHandler(svc, &grpc.SearchHandler{}),
+		HelloEndpoint:  server.CreateHandler(svc, &grpc.HelloHandler{}),
 	}
-	pb.RegisterSearchServiceServer(grpcTransport.GetServer(), endpoints)
-	return grpcTransport
+
+	pb.RegisterSearchServiceServer(server.GetServer(), endpoints)
+
+	var group parallel.Group
+	group.Add(
+		func() error {
+			return server.Run()
+		},
+		func(err error) {
+			server.Close()
+		},
+	)
+	err = group.Run()
+	if err != nil {
+		utils.Fatal("microservice exit", "err", err)
+	}
 }

@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"github.com/hdget/hdsdk/testsuit/microservice/pb"
 )
 
@@ -14,6 +15,7 @@ func (s SearchServiceImpl) Hello(ctx context.Context, request *pb.HelloRequest) 
 	}, nil
 }
 func (s SearchServiceImpl) Search(ctx context.Context, request *pb.SearchRequest) (*pb.SearchResponse, error) {
+	fmt.Println("in search")
 	return &pb.SearchResponse{
 		Response: "search response",
 	}, nil

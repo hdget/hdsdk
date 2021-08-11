@@ -8,6 +8,10 @@ It provides out-of-the-box `GRPC` and `HTTP` functionality with only small piece
 - [Usage](#usage)
     - [use hdkit create project](#use-hdkit-create-project-boilerplate)
 - [Config](#config)
+    - [middleware trace config](#middleware-trace-config)
+    - [middleware circuit break config](#middleware-circuit-break-config)
+    - [middleware rate limit config](#middleware-rate-limit-config)
+    - [server config](#server-config)
 - [Example](#example)
 - [FAQ](#faq)
 
@@ -44,20 +48,80 @@ Please refer to [hdkit](https://github.com/hdget/hdkit) to create project boiler
 There are two kinds of service config here:
 - default: default service, it can be get by `sdk.MicroService.My()`
 - items:   service identified by `name`, it can be get by `sdk.MicroService.By(name)`
-- type:  
-  - grpc: specify server is Grpc server, if not specified `type`, then `grpc` taken as default
-  - http: specify server is Http server
   
 > One service could have multiple server, like: grpc, http, please make sure `s` exists in `servers`
 > Except `default` config, other `items` config must be `[[` and `]]` wrapped
 
-### Grpc server
-please set `type=grpc` under `sdk.service.items.server`, now there are two middlewares supported:
-- circuitbreak
-- ratelimit
+### middleware trace config
+trace config can be ignored, which will be used default trace config instead
 
-### Http server
-still under development
+```
+[sdk.service]
+	[[sdk.service.items]]
+		name = "testservice"
+	    [sdk.service.items.trace]
+	      url = "http://localhost:9411/api/v2/spans"
+	      address = "localhost:80"	
+```
+
+- url: zipkin http report url
+- address: open tracer address
+
+### middleware circuit break config
+circuitbreak config can be ignored, which will be used default circuit break config instead
+
+```
+[sdk.service]
+	[[sdk.service.items]]
+		name = "testservice"
+	    [sdk.service.items.circuitbreak]
+	        requests = 10,
+	        interval = 0
+		    timeout = 60
+		    max_requests =  100
+		    failure_ratio = 1.0
+```
+
+- requests: successive requests
+- interval: what's the period it reset timeout counter when in shutdown status
+- timeout: time between half open status to open status
+- max_requests: when in half open status, if max requests is 0, only one request can be allowed
+- failure_ratio: request failure rate
+
+### middleware rate limit config
+ratelimit config can be ignored, which will be used default rate limit config instead
+
+```
+[sdk.service]
+	[[sdk.service.items]]
+		name = "testservice"
+	    [sdk.service.items.ratelimit]
+	        limit = 30
+		    burst = 50
+```
+
+- limit: how many requests allowed in one second
+- burst: max burst requests 
+
+### server config
+```
+[sdk.service]
+	[[sdk.service.items]]
+		name = "testservice"
+    [[sdk.service.items.servers]]
+	    type = "http"
+	    address = "0.0.0.0:12345"
+		middlewares=["trace", "circuitbreak", "ratelimit"]
+```
+
+- type: what's the server type to serve the service, now supports: `grpc` and `http`. If not specified this item, then `grpc` taken as default
+- address: what's the server listen address
+- middlewares: service middlewares, now it supports:
+  - trace
+  - circuitbreak
+  - ratelimit
+
+  > Note: if specified middleware type here, then it inherits the config from above 
 
 ## Example
 ```
@@ -85,7 +149,11 @@ group.Add(
         grpcServer.Close()
     },
 )
-group.Run()
+
+err := group.Run()
+if err != nil {
+  utils.Fatal("grpc server exist", "err", err)
+}
 ```
 
 More details please refer to [microservice example](https://github.com/hdget/hdsdk-examples/tree/main/microservice)

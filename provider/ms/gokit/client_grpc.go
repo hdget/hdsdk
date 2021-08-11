@@ -1,7 +1,6 @@
 package gokit
 
 import (
-	kitzipkin "github.com/go-kit/kit/tracing/zipkin"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
 	"github.com/hdget/hdsdk/types"
 )
@@ -22,15 +21,16 @@ type GokitClient struct {
 
 var _ types.MsGrpcClient = (*GokitClient)(nil)
 
-// CreateGrpcClient producer的名字和route中的名字对应
-func (msi *MicroServiceImpl) CreateGrpcClient() types.MsGrpcClient {
-	clientOptions := make([]kitgrpc.ClientOption, 0)
-	if msi.Tracer != nil {
-		clientOptions = append(clientOptions, kitzipkin.GRPCClientTrace(msi.Tracer.ZipkinTracer))
-	}
-
-	return &GokitClient{
-		Logger:  msi.Logger,
-		Options: clientOptions,
-	}
-}
+//
+//// CreateGrpcClient producer的名字和route中的名字对应
+//func (msi *MicroServiceImpl) CreateGrpcClient() types.MsGrpcClient {
+//	clientOptions := make([]kitgrpc.ClientOption, 0)
+//	if msi.Tracer != nil {
+//		clientOptions = append(clientOptions, kitzipkin.GRPCClientTrace(msi.Tracer.ZipkinTracer))
+//	}
+//
+//	return &GokitClient{
+//		Logger:  msi.Logger,
+//		Options: clientOptions,
+//	}
+//}

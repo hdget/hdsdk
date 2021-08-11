@@ -7,19 +7,19 @@ import (
 
 // MicroServiceConfig 微服务配置
 type MicroServiceConfig struct {
-	Name    string          `mapstructure:"name"`
-	Servers []*ServerConfig `mapstructure:"servers"`
-	// middleware
+	Name string `mapstructure:"name"`
+	// middlewares
 	Trace        *TraceConfig        `mapstructure:"trace"`        // 链路追踪
 	CircuitBreak *CircuitBreakConfig `mapstructure:"circuitbreak"` // 熔断
 	RateLimit    *RateLimitConfig    `mapstructure:"ratelimit"`    // 限流
+	// servers
+	Servers []*ServerConfig `mapstructure:"servers"`
 }
 
 type MicroServiceImpl struct {
 	Name   string
 	Logger types.LogProvider
 	Config *MicroServiceConfig
-	Tracer *Tracer
 }
 
 var _ types.MicroService = (*MicroServiceImpl)(nil)
@@ -30,14 +30,8 @@ func NewMicroService(logger types.LogProvider, config *MicroServiceConfig) (type
 		return nil, err
 	}
 
-	tracer, err := newTracer(config)
-	if err != nil {
-		return nil, err
-	}
-
 	return &MicroServiceImpl{
 		Logger: logger,
-		Tracer: tracer,
 		Name:   config.Name,
 		Config: config,
 	}, nil

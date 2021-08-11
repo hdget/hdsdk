@@ -2,9 +2,6 @@ package gokit
 
 import (
 	"context"
-	"github.com/go-kit/kit/endpoint"
-	"github.com/go-kit/kit/tracing/opentracing"
-	kitzipkin "github.com/go-kit/kit/tracing/zipkin"
 	"github.com/go-kit/kit/transport"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/hdget/hdsdk/types"
@@ -26,21 +23,15 @@ func (msi MicroServiceImpl) CreateHttpServer() types.MsHttpServer {
 	// set serverOptions
 	serverOptions := []kithttp.ServerOption{
 		kithttp.ServerErrorHandler(transport.NewLogErrorHandler(msi.Logger)),
-		// Zipkin GRPC Trace can either be instantiated per gRPC method with a
-		// provided operation name or a global tracing service can be instantiated
-		// without an operation name and fed to each Go kit gRPC server as a GrpcServiceServerConfig.
-		// In the latter case, the operation name will be the endpoint's grpc method
-		// path if used in combination with the Go kit gRPC Interceptor.
-		kitzipkin.HTTPServerTrace(msi.Tracer.ZipkinTracer),
 	}
 
 	// 添加中间件
-	mdws := make([]endpoint.Middleware, 0)
+	mdws := make([]*MsMiddleware, 0)
 	serverConfig := msi.GetServerConfig(HTTP_SERVER)
 	for _, mdwName := range serverConfig.Middlewares {
-		f := NewMdwFunctions[mdwName]
-		if f != nil {
-			mdws = append(mdws, f(msi.Config))
+		newFunc := NewMdwFunctions[mdwName]
+		if newFunc != nil {
+			mdws = append(mdws, newFunc(msi.Config))
 		}
 	}
 
@@ -51,7 +42,6 @@ func (msi MicroServiceImpl) CreateHttpServer() types.MsHttpServer {
 			Logger:      msi.Logger,
 			Name:        msi.Name,
 			Middlewares: mdws,
-			Tracer:      msi.Tracer,
 			ctx:         ctx,
 			cancel:      cancel,
 		},
@@ -60,11 +50,11 @@ func (msi MicroServiceImpl) CreateHttpServer() types.MsHttpServer {
 }
 
 // Run 运行GrpcServer
-func (ghs *GokitHttpServer) Run(handlers map[string]*kithttp.Server) error {
+func (s *GokitHttpServer) Run(handlers map[string]*kithttp.Server) error {
 	var group parallel.Group
 	{
 		// The HTTP listener mounts the Go kit HTTP handler we created.
-		httpListener, err := net.Listen("tcp", ghs.Config.Address)
+		httpListener, err := net.Listen("tcp", s.Config.Address)
 		if err != nil {
 			return err
 		}
@@ -83,36 +73,44 @@ func (ghs *GokitHttpServer) Run(handlers map[string]*kithttp.Server) error {
 	}
 	{
 		// 添加信用监听
-		group.Add(parallel.SignalActor(ghs.ctx, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT))
+		group.Add(parallel.SignalActor(s.ctx, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT))
 	}
 
-	ghs.Logger.Debug("microservice is running", "name", ghs.Name, "address", ghs.Config.Address)
+	s.Logger.Debug("microservice is running", "name", s.Name, "address", s.Config.Address)
 	err := group.Run()
 	if err != nil {
-		ghs.Logger.Debug("microservice exit", "err", err)
+		s.Logger.Debug("microservice exit", "err", err)
 	}
 	return err
 }
 
 // CreateHandler 创建Http Transport的Handler
-func (ghs *GokitHttpServer) CreateHandler(concreteService interface{}, h types.HttpEndpoint) *kithttp.Server {
+func (s *GokitHttpServer) CreateHandler(concreteService interface{}, ep types.HttpEndpoint) *kithttp.Server {
 	// 将具体的service和middleware串联起来
-	endpoints := h.MakeEndpoint(concreteService)
-	for _, m := range ghs.Middlewares {
-		endpoints = m(endpoints)
-	}
+	endpoints := ep.MakeEndpoint(concreteService)
+	for _, m := range s.Middlewares {
+		if m.Middleware != nil {
+			endpoints = m.Middleware(endpoints)
+		}
 
-	// 添加tracer到ServerBefore
-	options := append(ghs.Options,
-		kithttp.ServerBefore(
-			opentracing.HTTPToContext(ghs.Tracer.OpenTracer, h.GetName(), ghs.Logger),
-		),
-	)
+		if len(m.InjectFunctions) > 0 {
+			injectFunc := m.InjectFunctions[HTTP_SERVER]
+			if injectFunc != nil {
+				_, serverOptions := injectFunc(s.Logger, ep.GetName())
+				for _, option := range serverOptions {
+					svrOption, ok := option.(kithttp.ServerOption)
+					if ok {
+						s.Options = append(s.Options, svrOption)
+					}
+				}
+			}
+		}
+	}
 
 	return kithttp.NewServer(
 		endpoints,
-		h.ServerDecodeRequest,
-		h.ServerEncodeResponse,
-		options...,
+		ep.ServerDecodeRequest,
+		ep.ServerEncodeResponse,
+		s.Options...,
 	)
 }

@@ -2,7 +2,6 @@ package gokit
 
 import (
 	"context"
-	"github.com/go-kit/kit/endpoint"
 	"github.com/hdget/hdsdk/types"
 )
 
@@ -17,8 +16,7 @@ type BaseGokitServer struct {
 	Name        string
 	Config      *ServerConfig
 	Logger      types.LogProvider
-	Middlewares []endpoint.Middleware
-	Tracer      *Tracer
+	Middlewares []*MsMiddleware
 	ctx         context.Context
 	cancel      context.CancelFunc
 }
