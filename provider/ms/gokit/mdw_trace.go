@@ -46,8 +46,8 @@ func NewMdwTrace(config *MicroServiceConfig) *MsMiddleware {
 
 	return &MsMiddleware{
 		InjectFunctions: map[string]InjectFunction{
-			GRPC_SERVER: tracer.getGrpcOptions,
-			HTTP_SERVER: tracer.getHttpOptions,
+			GRPC: tracer.getGrpcOptions,
+			HTTP: tracer.getHttpOptions,
 		},
 	}
 }
@@ -103,6 +103,13 @@ func (m MicroServiceConfig) getTraceConfig() *TraceConfig {
 }
 
 func (t *Tracer) getGrpcOptions(logger types.LogProvider, endpointName string) ([]interface{}, []interface{}) {
+	clientOptions := []interface{}{
+		kitzipkin.GRPCClientTrace(t.ZipkinTracer),
+		kitgrpc.ClientBefore(
+			kitot.ContextToGRPC(t.OpenTracer, logger),
+		),
+	}
+
 	serverOptions := []interface{}{
 		// Zipkin GRPC Trace can either be instantiated per gRPC method with a
 		// provided operation name or a global tracing service can be instantiated
@@ -114,10 +121,17 @@ func (t *Tracer) getGrpcOptions(logger types.LogProvider, endpointName string) (
 			kitot.GRPCToContext(t.OpenTracer, endpointName, logger),
 		),
 	}
-	return nil, serverOptions
+	return clientOptions, serverOptions
 }
 
 func (t *Tracer) getHttpOptions(logger types.LogProvider, endpointName string) ([]interface{}, []interface{}) {
+	clientOptions := []interface{}{
+		kitzipkin.HTTPClientTrace(t.ZipkinTracer),
+		kithttp.ClientBefore(
+			kitot.HTTPToContext(t.OpenTracer, endpointName, logger),
+		),
+	}
+
 	serverOptions := []interface{}{
 		// Zipkin GRPC Trace can either be instantiated per gRPC method with a
 		// provided operation name or a global tracing service can be instantiated
@@ -129,5 +143,5 @@ func (t *Tracer) getHttpOptions(logger types.LogProvider, endpointName string) (
 			kitot.HTTPToContext(t.OpenTracer, endpointName, logger),
 		),
 	}
-	return nil, serverOptions
+	return clientOptions, serverOptions
 }

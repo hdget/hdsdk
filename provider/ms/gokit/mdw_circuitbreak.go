@@ -1,7 +1,6 @@
 package gokit
 
 import (
-	"fmt"
 	"github.com/go-kit/kit/circuitbreaker"
 	"github.com/go-kit/kit/endpoint"
 	"github.com/sony/gobreaker"
@@ -37,9 +36,6 @@ func NewMdwCircuitBreak(config *MicroServiceConfig) *MsMiddleware {
 // newCircuitBreakMiddleware
 func newCircuitBreakMiddleware(config *MicroServiceConfig) endpoint.Middleware {
 	circuitBreakConfig := config.getCircuitBreakConfig()
-
-	fmt.Println(circuitBreakConfig)
-
 	settings := gobreaker.Settings{
 		MaxRequests: circuitBreakConfig.MaxRequests,
 		Interval:    time.Second * time.Duration(circuitBreakConfig.Interval),

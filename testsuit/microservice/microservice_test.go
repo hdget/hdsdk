@@ -2,11 +2,15 @@ package microservice
 
 import (
 	"bytes"
+	"context"
+	"fmt"
 	"github.com/hdget/hdsdk"
-	"github.com/hdget/hdsdk/testsuit/microservice/pb"
-	"github.com/hdget/hdsdk/testsuit/microservice/service/grpc"
+	gengrpc "github.com/hdget/hdsdk/testsuit/microservice/autogen/grpc"
+	"github.com/hdget/hdsdk/testsuit/microservice/autogen/pb"
+	"github.com/hdget/hdsdk/testsuit/microservice/service"
 	"github.com/hdget/hdsdk/utils"
 	"github.com/hdget/hdsdk/utils/parallel"
+	"google.golang.org/grpc"
 	"testing"
 )
 
@@ -22,6 +26,10 @@ const TEST_CONFIG_GOKIT_MICROSERVICE = `
 	[sdk.service]
 		[[sdk.service.items]]
 			name = "testservice"
+			[[sdk.service.items.clients]]
+				type = "grpc"
+				address = "0.0.0.0:12345"
+				middlewares=["trace", "circuitbreak", "ratelimit"]
 			[[sdk.service.items.servers]]
 				type = "grpc"
 				address = "0.0.0.0:12345"
@@ -33,7 +41,7 @@ type MicroServiceTestConf struct {
 }
 
 // nolint:errcheck
-func TestMicroService(t *testing.T) {
+func TestMsServer(t *testing.T) {
 	v := hdsdk.LoadConfig("demo", "local", "")
 
 	// merge config from string
@@ -56,31 +64,68 @@ func TestMicroService(t *testing.T) {
 		utils.Fatal("get microservice instance", "err", err)
 	}
 
-	server := ms.CreateGrpcServer()
-	if ms == nil {
-		utils.Fatal("get grpc server", "err", err)
+	manager := ms.NewGrpcServerManager()
+	if manager == nil {
+		utils.Fatal("new grpc server manager", "err", err)
 	}
 
 	// 必须手动注册服务实现
-	svc := &grpc.SearchServiceImpl{}
-	endpoints := &grpc.GrpcEndpoints{
-		SearchEndpoint: server.CreateHandler(svc, &grpc.SearchHandler{}),
-		HelloEndpoint:  server.CreateHandler(svc, &grpc.HelloHandler{}),
+	svc := &service.SearchServiceImpl{}
+	handlers := &gengrpc.Handlers{
+		SearchHandler: manager.CreateHandler(svc, &gengrpc.SearchAspect{}),
+		HelloHandler:  manager.CreateHandler(svc, &gengrpc.HelloAspect{}),
 	}
 
-	pb.RegisterSearchServiceServer(server.GetServer(), endpoints)
+	pb.RegisterSearchServiceServer(manager.GetServer(), handlers)
 
 	var group parallel.Group
 	group.Add(
 		func() error {
-			return server.Run()
+			return manager.RunServer()
 		},
 		func(err error) {
-			server.Close()
+			manager.Close()
 		},
 	)
 	err = group.Run()
 	if err != nil {
 		utils.Fatal("microservice exit", "err", err)
 	}
+}
+
+// nolint:errcheck
+func TestMsClient(t *testing.T) {
+	v := hdsdk.LoadConfig("demo", "local", "")
+
+	// merge config from string
+	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_GOKIT_MICROSERVICE)))
+
+	// 将配置信息转换成对应的数据结构
+	var conf MicroServiceTestConf
+	err := v.Unmarshal(&conf)
+	if err != nil {
+		utils.Fatal("unmarshal demo conf", "err", err)
+	}
+
+	err = hdsdk.Initialize(&conf)
+	if err != nil {
+		utils.Fatal("sdk initialize", "err", err)
+	}
+
+	conn, err := grpc.DialContext(context.Background(), "0.0.0.0:12345", grpc.WithInsecure())
+	if err != nil {
+		utils.Fatal("create grpc connection", "err", err)
+	}
+	defer conn.Close()
+
+	client, err := gengrpc.NewClient(conn, "testservice")
+	if err != nil {
+		utils.Fatal("create grpc client", "err", err)
+	}
+
+	result, err := client.Search(context.Background(), &pb.SearchRequest{Request: "ddd"})
+	if err != nil {
+		utils.Fatal("call method", "method", "Search", "err", err)
+	}
+	fmt.Println(result)
 }

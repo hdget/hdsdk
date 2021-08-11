@@ -7,7 +7,7 @@ import (
 
 // ServerConfig 服务端配置
 type ServerConfig struct {
-	ServerType  string   `mapstructure:"type"`
+	Transport   string   `mapstructure:"transport"`
 	Address     string   `mapstructure:"address"`
 	Middlewares []string `mapstructure:"middlewares"`
 }
@@ -21,12 +21,7 @@ type BaseGokitServer struct {
 	cancel      context.CancelFunc
 }
 
-const (
-	GRPC_SERVER = "grpc"
-	HTTP_SERVER = "http"
-)
-
 // Close 关闭GrpcServer
-func (bgs *BaseGokitServer) Close() {
-	bgs.cancel()
+func (s *BaseGokitServer) Close() {
+	s.cancel()
 }

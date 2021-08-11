@@ -16,56 +16,52 @@ type MsProvider interface {
 }
 
 type MicroService interface {
-	GetName() string
-	CreateGrpcServer() MsGrpcServer
-	CreateHttpServer() MsHttpServer
+	NewGrpcServerManager() GrpcServerManager
+	NewGrpcClientManager() GrpcClientManager
+
+	NewHttpServerManager() HttpServerManager
 }
 
-type MsGrpcServer interface {
+type GrpcServerManager interface {
 	GetServer() *grpc.Server
-	CreateHandler(concreteService interface{}, ge GrpcEndpoint) *kitgrpc.Server
-	Run() error
+	CreateHandler(concreteService interface{}, ap GrpcAspect) *kitgrpc.Server
+	RunServer() error // 运行服务
 	Close()
 }
 
-type MsGrpcClient interface {
-}
-
-type MsHttpServer interface {
-	CreateHandler(concreteService interface{}, he HttpEndpoint) *kithttp.Server
-	Run(handlers map[string]*kithttp.Server) error
+type HttpServerManager interface {
+	CreateHandler(concreteService interface{}, ap HttpAspect) *kithttp.Server
+	RunServer(handlers map[string]*kithttp.Server) error
 	Close()
 }
 
-//type EndpointHandler interface {
-//	GetName() string
-//
-//	// MakeEndpoint 解析request, 调用服务函数, 封装成endpoint
-//	MakeEndpoint(svc interface{}) endpoint.Endpoint
-//
-//	// ClientEncodeRequest client side convert domain request to grpc request
-//	ClientEncodeRequest(ctx context.Context, request interface{}) (interface{}, error)
-//	// ClientDecodeResponse client side decode grpc response to domain response
-//	ClientDecodeResponse(ctx context.Context, grpcReply interface{}) (interface{}, error)
-//	// ServerDecodeRequest server side convert grpc request to domain request
-//	ServerDecodeRequest(ctx context.Context, grpcReq interface{}) (interface{}, error)
-//	// ServerEncodeResponse server side encode response to domain response
-//	ServerEncodeResponse(ctx context.Context, response interface{}) (interface{}, error)
-//}
+type GrpcClientManager interface {
+	CreateConnection(args ...grpc.DialOption) (*grpc.ClientConn, error)
+	CreateEndpoint(conn *grpc.ClientConn, ap GrpcAspect) endpoint.Endpoint
+}
 
-// GrpcEndpoint Grpc端点的实现
-type GrpcEndpoint interface {
-	GetName() string
+// GrpcAspect Grpc切面
+type GrpcAspect interface {
+	GetServiceName() string
+	GetMethodName() string
+
 	// MakeEndpoint 解析request, 调用服务函数, 封装成endpoint
 	MakeEndpoint(svc interface{}) endpoint.Endpoint
 	// ServerDecodeRequest server side convert grpc request to domain request
 	ServerDecodeRequest(ctx context.Context, request interface{}) (interface{}, error)
 	// ServerEncodeResponse server side encode response to domain response
 	ServerEncodeResponse(ctx context.Context, response interface{}) (interface{}, error)
+
+	// GetGrpcReplyType 获取Grpc返回类型
+	GetGrpcReplyType() interface{}
+	// ClientEncodeRequest server side convert grpc request to domain request
+	ClientEncodeRequest(ctx context.Context, request interface{}) (interface{}, error)
+	// ClientDecodeResponse server side convert grpc request to domain request
+	ClientDecodeResponse(ctx context.Context, request interface{}) (interface{}, error)
 }
 
-// HttpEndpoint HttpEndpoint
-type HttpEndpoint interface {
+// HttpAspect HttpAspect
+type HttpAspect interface {
 	GetName() string
 	// MakeEndpoint 解析request, 调用服务函数, 封装成endpoint
 	MakeEndpoint(svc interface{}) endpoint.Endpoint

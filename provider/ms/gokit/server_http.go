@@ -16,10 +16,10 @@ type GokitHttpServer struct {
 	Options []kithttp.ServerOption
 }
 
-var _ types.MsHttpServer = (*GokitHttpServer)(nil)
+var _ types.HttpServerManager = (*GokitHttpServer)(nil)
 
-// CreateHttpServer 创建微服务server
-func (msi MicroServiceImpl) CreateHttpServer() types.MsHttpServer {
+// NewHttpServerManager 创建微服务server
+func (msi MicroServiceImpl) NewHttpServerManager() types.HttpServerManager {
 	// set serverOptions
 	serverOptions := []kithttp.ServerOption{
 		kithttp.ServerErrorHandler(transport.NewLogErrorHandler(msi.Logger)),
@@ -27,7 +27,7 @@ func (msi MicroServiceImpl) CreateHttpServer() types.MsHttpServer {
 
 	// 添加中间件
 	mdws := make([]*MsMiddleware, 0)
-	serverConfig := msi.GetServerConfig(HTTP_SERVER)
+	serverConfig := msi.GetServerConfig(HTTP)
 	for _, mdwName := range serverConfig.Middlewares {
 		newFunc := NewMdwFunctions[mdwName]
 		if newFunc != nil {
@@ -49,8 +49,8 @@ func (msi MicroServiceImpl) CreateHttpServer() types.MsHttpServer {
 	}
 }
 
-// Run 运行GrpcServer
-func (s *GokitHttpServer) Run(handlers map[string]*kithttp.Server) error {
+// RunServer 运行GrpcServer
+func (s *GokitHttpServer) RunServer(handlers map[string]*kithttp.Server) error {
 	var group parallel.Group
 	{
 		// The HTTP listener mounts the Go kit HTTP handler we created.
@@ -85,7 +85,7 @@ func (s *GokitHttpServer) Run(handlers map[string]*kithttp.Server) error {
 }
 
 // CreateHandler 创建Http Transport的Handler
-func (s *GokitHttpServer) CreateHandler(concreteService interface{}, ep types.HttpEndpoint) *kithttp.Server {
+func (s *GokitHttpServer) CreateHandler(concreteService interface{}, ep types.HttpAspect) *kithttp.Server {
 	// 将具体的service和middleware串联起来
 	endpoints := ep.MakeEndpoint(concreteService)
 	for _, m := range s.Middlewares {
@@ -94,7 +94,7 @@ func (s *GokitHttpServer) CreateHandler(concreteService interface{}, ep types.Ht
 		}
 
 		if len(m.InjectFunctions) > 0 {
-			injectFunc := m.InjectFunctions[HTTP_SERVER]
+			injectFunc := m.InjectFunctions[HTTP]
 			if injectFunc != nil {
 				_, serverOptions := injectFunc(s.Logger, ep.GetName())
 				for _, option := range serverOptions {

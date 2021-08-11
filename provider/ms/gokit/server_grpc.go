@@ -17,10 +17,10 @@ type GokitGrpcServer struct {
 	Options    []kitgrpc.ServerOption
 }
 
-var _ types.MsGrpcServer = (*GokitGrpcServer)(nil)
+var _ types.GrpcServerManager = (*GokitGrpcServer)(nil)
 
 // CreateGrpcServer 创建微服务server
-func (msi MicroServiceImpl) CreateGrpcServer() types.MsGrpcServer {
+func (msi MicroServiceImpl) NewGrpcServerManager() types.GrpcServerManager {
 	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(kitgrpc.Interceptor))
 
 	// global serverOptions
@@ -30,7 +30,7 @@ func (msi MicroServiceImpl) CreateGrpcServer() types.MsGrpcServer {
 
 	// 添加中间件
 	mdws := make([]*MsMiddleware, 0)
-	serverConfig := msi.GetServerConfig(GRPC_SERVER)
+	serverConfig := msi.GetServerConfig(GRPC)
 	for _, mdwName := range serverConfig.Middlewares {
 		newFunc := NewMdwFunctions[mdwName]
 		if newFunc != nil {
@@ -59,7 +59,7 @@ func (s *GokitGrpcServer) GetServer() *grpc.Server {
 }
 
 // Run 运行GrpcServer
-func (s *GokitGrpcServer) Run() error {
+func (s *GokitGrpcServer) RunServer() error {
 	var group parallel.Group
 	{
 		listener, err := net.Listen("tcp", s.Config.Address)
@@ -87,7 +87,7 @@ func (s *GokitGrpcServer) Run() error {
 }
 
 // CreateHandler 创建Grpc Transport的handler
-func (s *GokitGrpcServer) CreateHandler(concreteService interface{}, ep types.GrpcEndpoint) *kitgrpc.Server {
+func (s *GokitGrpcServer) CreateHandler(concreteService interface{}, ep types.GrpcAspect) *kitgrpc.Server {
 	// 将具体的service和middleware串联起来
 	endpoints := ep.MakeEndpoint(concreteService)
 	for _, m := range s.Middlewares {
@@ -96,9 +96,9 @@ func (s *GokitGrpcServer) CreateHandler(concreteService interface{}, ep types.Gr
 		}
 
 		if len(m.InjectFunctions) > 0 {
-			injectFunc := m.InjectFunctions[GRPC_SERVER]
+			injectFunc := m.InjectFunctions[GRPC]
 			if injectFunc != nil {
-				_, serverOptions := injectFunc(s.Logger, ep.GetName())
+				_, serverOptions := injectFunc(s.Logger, ep.GetServiceName())
 				for _, option := range serverOptions {
 					svrOption, ok := option.(kitgrpc.ServerOption)
 					if ok {

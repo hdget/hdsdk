@@ -12,7 +12,8 @@ type MicroServiceConfig struct {
 	Trace        *TraceConfig        `mapstructure:"trace"`        // 链路追踪
 	CircuitBreak *CircuitBreakConfig `mapstructure:"circuitbreak"` // 熔断
 	RateLimit    *RateLimitConfig    `mapstructure:"ratelimit"`    // 限流
-	// servers
+	// clients and servers
+	Clients []*ClientConfig `mapstructure:"clients"`
 	Servers []*ServerConfig `mapstructure:"servers"`
 }
 
@@ -21,6 +22,12 @@ type MicroServiceImpl struct {
 	Logger types.LogProvider
 	Config *MicroServiceConfig
 }
+
+// transport type
+const (
+	GRPC = "grpc"
+	HTTP = "http"
+)
 
 var _ types.MicroService = (*MicroServiceImpl)(nil)
 
@@ -37,22 +44,36 @@ func NewMicroService(logger types.LogProvider, config *MicroServiceConfig) (type
 	}, nil
 }
 
-func (msi MicroServiceImpl) GetName() string {
-	return msi.Name
-}
-
-func (msi MicroServiceImpl) GetServerConfig(serverType string) *ServerConfig {
+func (msi MicroServiceImpl) GetServerConfig(transport string) *ServerConfig {
 	for _, serverConfig := range msi.Config.Servers {
-		configServerType := serverConfig.ServerType
+		configTransport := serverConfig.Transport
 
 		// if we don't specify the `type` in config file
-		// if set to be `GRPC_SERVER` by default
-		if configServerType == "" {
-			configServerType = GRPC_SERVER
+		// if set to be `GRPC` by default
+		if configTransport == "" {
+			configTransport = GRPC
 		}
 
-		if configServerType == serverType {
+		if configTransport == transport {
 			return serverConfig
+		}
+	}
+
+	return nil
+}
+
+func (msi MicroServiceImpl) GetClientConfig(transport string) *ClientConfig {
+	for _, clientConfig := range msi.Config.Clients {
+		configTransport := clientConfig.Transport
+
+		// if we don't specify the `type` in config file
+		// if set to be `GRPC` by default
+		if configTransport == "" {
+			configTransport = GRPC
+		}
+
+		if configTransport == transport {
+			return clientConfig
 		}
 	}
 

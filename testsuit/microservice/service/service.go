@@ -1,9 +1,9 @@
-package grpc
+package service
 
 import (
 	"context"
 	"fmt"
-	"github.com/hdget/hdsdk/testsuit/microservice/pb"
+	"github.com/hdget/hdsdk/testsuit/microservice/autogen/pb"
 )
 
 type SearchServiceImpl struct {
@@ -14,8 +14,9 @@ func (s SearchServiceImpl) Hello(ctx context.Context, request *pb.HelloRequest) 
 		Response: "hello world",
 	}, nil
 }
+
 func (s SearchServiceImpl) Search(ctx context.Context, request *pb.SearchRequest) (*pb.SearchResponse, error) {
-	fmt.Println("in search")
+	fmt.Println("receive:", request)
 	return &pb.SearchResponse{
 		Response: "search response",
 	}, nil
