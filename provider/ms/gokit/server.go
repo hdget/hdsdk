@@ -12,7 +12,7 @@ type ServerConfig struct {
 	Middlewares []string `mapstructure:"middlewares"`
 }
 
-type BaseGokitServer struct {
+type BaseServerManager struct {
 	Name        string
 	Config      *ServerConfig
 	Logger      types.LogProvider
@@ -22,6 +22,6 @@ type BaseGokitServer struct {
 }
 
 // Close 关闭GrpcServer
-func (s *BaseGokitServer) Close() {
+func (s *BaseServerManager) Close() {
 	s.cancel()
 }

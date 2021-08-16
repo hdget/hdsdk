@@ -41,15 +41,15 @@ func Print(level, msg string, keyvals ...interface{}) {
 
 	if len(outputs) > 0 {
 		if errValue != nil {
-			log.Printf("ERR msg=\"%s\" %s error=\"%v\"", msg, strings.Join(outputs, " "), errValue)
+			log.Printf("%s msg=\"%s\" %s error=\"%v\"", level, msg, strings.Join(outputs, " "), errValue)
 		} else {
-			log.Printf("DBG msg=\"%s\" %s", msg, strings.Join(outputs, " "))
+			log.Printf("%s msg=\"%s\" %s", level, msg, strings.Join(outputs, " "))
 		}
 	} else {
 		if errValue != nil {
-			log.Printf("ERR msg=\"%s\" error=\"%v\"", msg, errValue)
+			log.Printf("%s msg=\"%s\" error=\"%v\"", level, msg, errValue)
 		} else {
-			log.Printf("DBG msg=\"%s\"", msg)
+			log.Printf("%s msg=\"%s\"", level, msg)
 		}
 	}
 }

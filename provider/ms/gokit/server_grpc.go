@@ -11,15 +11,15 @@ import (
 	"syscall"
 )
 
-type GokitGrpcServer struct {
-	BaseGokitServer
+type GokitGrpcServerManager struct {
+	BaseServerManager
 	grpcServer *grpc.Server
 	Options    []kitgrpc.ServerOption
 }
 
-var _ types.GrpcServerManager = (*GokitGrpcServer)(nil)
+var _ types.GrpcServerManager = (*GokitGrpcServerManager)(nil)
 
-// CreateGrpcServer 创建微服务server
+// NewGrpcServerManager 创建微服务server manager
 func (msi MicroServiceImpl) NewGrpcServerManager() types.GrpcServerManager {
 	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(kitgrpc.Interceptor))
 
@@ -39,8 +39,8 @@ func (msi MicroServiceImpl) NewGrpcServerManager() types.GrpcServerManager {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	return &GokitGrpcServer{
-		BaseGokitServer: BaseGokitServer{
+	return &GokitGrpcServerManager{
+		BaseServerManager: BaseServerManager{
 			Config:      serverConfig,
 			Logger:      msi.Logger,
 			Name:        msi.Name,
@@ -54,12 +54,12 @@ func (msi MicroServiceImpl) NewGrpcServerManager() types.GrpcServerManager {
 
 }
 
-func (s *GokitGrpcServer) GetServer() *grpc.Server {
+func (s *GokitGrpcServerManager) GetServer() *grpc.Server {
 	return s.grpcServer
 }
 
-// Run 运行GrpcServer
-func (s *GokitGrpcServer) RunServer() error {
+// RunServer 运行GrpcServer
+func (s *GokitGrpcServerManager) RunServer() error {
 	var group parallel.Group
 	{
 		listener, err := net.Listen("tcp", s.Config.Address)
@@ -87,7 +87,7 @@ func (s *GokitGrpcServer) RunServer() error {
 }
 
 // CreateHandler 创建Grpc Transport的handler
-func (s *GokitGrpcServer) CreateHandler(concreteService interface{}, ep types.GrpcAspect) *kitgrpc.Server {
+func (s *GokitGrpcServerManager) CreateHandler(concreteService interface{}, ep types.GrpcAspect) *kitgrpc.Server {
 	// 将具体的service和middleware串联起来
 	endpoints := ep.MakeEndpoint(concreteService)
 	for _, m := range s.Middlewares {
@@ -95,15 +95,15 @@ func (s *GokitGrpcServer) CreateHandler(concreteService interface{}, ep types.Gr
 			endpoints = m.Middleware(endpoints)
 		}
 
-		if len(m.InjectFunctions) > 0 {
-			injectFunc := m.InjectFunctions[GRPC]
-			if injectFunc != nil {
-				_, serverOptions := injectFunc(s.Logger, ep.GetServiceName())
-				for _, option := range serverOptions {
-					svrOption, ok := option.(kitgrpc.ServerOption)
-					if ok {
-						s.Options = append(s.Options, svrOption)
-					}
+		if len(m.InjectFunctions) == 0 {
+			continue
+		}
+
+		if injectFunc := m.InjectFunctions[GRPC]; injectFunc != nil {
+			_, serverOptions := injectFunc(s.Logger, ep.GetServiceName())
+			for _, option := range serverOptions {
+				if svrOption, ok := option.(kitgrpc.ServerOption); ok {
+					s.Options = append(s.Options, svrOption)
 				}
 			}
 		}

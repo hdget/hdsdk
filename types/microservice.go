@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
-	kithttp "github.com/go-kit/kit/transport/http"
 	"google.golang.org/grpc"
 	"net/http"
 )
@@ -25,14 +24,14 @@ type MicroService interface {
 type GrpcServerManager interface {
 	GetServer() *grpc.Server
 	CreateHandler(concreteService interface{}, ap GrpcAspect) *kitgrpc.Server
-	RunServer() error // 运行服务
-	Close()
+	RunServer() error // run server
+	Close()           // shutdown server
 }
 
 type HttpServerManager interface {
-	CreateHandler(concreteService interface{}, ap HttpAspect) *kithttp.Server
-	RunServer(handlers map[string]*kithttp.Server) error
-	Close()
+	CreateHandler(concreteService interface{}, ap HttpAspect) http.Handler
+	RunServer(handlers map[string]http.Handler) error // run server
+	Close()                                           // shutdown server
 }
 
 type GrpcClientManager interface {

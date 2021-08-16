@@ -25,6 +25,10 @@ type MySqlConf struct {
 
 ///////////////////////////////////////////////////////////////////
 func parseConfig(rootConfiger types.Configer) (*ConfigMysql, error) {
+	if rootConfiger == nil {
+		return nil, types.ErrEmptyConfig
+	}
+
 	data := rootConfiger.GetMysqlConfig()
 	if data == nil {
 		return nil, types.ErrEmptyConfig

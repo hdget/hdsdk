@@ -60,6 +60,10 @@ func (gp *GokitProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 
 // 解析MicroService配置
 func parseProviderConfig(rootConfiger types.Configer) (*GokitProviderConfig, error) {
+	if rootConfiger == nil {
+		return nil, types.ErrEmptyConfig
+	}
+
 	data := rootConfiger.GetMicroServiceConfig()
 	if data == nil {
 		return nil, types.ErrEmptyConfig

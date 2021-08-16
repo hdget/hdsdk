@@ -2,6 +2,7 @@ package gokit
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/go-kit/kit/transport"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/hdget/hdsdk/types"
@@ -12,8 +13,12 @@ import (
 )
 
 type GokitHttpServer struct {
-	BaseGokitServer
+	BaseServerManager
 	Options []kithttp.ServerOption
+}
+
+type errorWrapper struct {
+	Error string `json:"error"`
 }
 
 var _ types.HttpServerManager = (*GokitHttpServer)(nil)
@@ -22,6 +27,7 @@ var _ types.HttpServerManager = (*GokitHttpServer)(nil)
 func (msi MicroServiceImpl) NewHttpServerManager() types.HttpServerManager {
 	// set serverOptions
 	serverOptions := []kithttp.ServerOption{
+		kithttp.ServerErrorEncoder(httpErrorEncoder),
 		kithttp.ServerErrorHandler(transport.NewLogErrorHandler(msi.Logger)),
 	}
 
@@ -37,7 +43,7 @@ func (msi MicroServiceImpl) NewHttpServerManager() types.HttpServerManager {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	return &GokitHttpServer{
-		BaseGokitServer: BaseGokitServer{
+		BaseServerManager: BaseServerManager{
 			Config:      serverConfig,
 			Logger:      msi.Logger,
 			Name:        msi.Name,
@@ -50,7 +56,7 @@ func (msi MicroServiceImpl) NewHttpServerManager() types.HttpServerManager {
 }
 
 // RunServer 运行GrpcServer
-func (s *GokitHttpServer) RunServer(handlers map[string]*kithttp.Server) error {
+func (s *GokitHttpServer) RunServer(handlers map[string]http.Handler) error {
 	var group parallel.Group
 	{
 		// The HTTP listener mounts the Go kit HTTP handler we created.
@@ -85,23 +91,23 @@ func (s *GokitHttpServer) RunServer(handlers map[string]*kithttp.Server) error {
 }
 
 // CreateHandler 创建Http Transport的Handler
-func (s *GokitHttpServer) CreateHandler(concreteService interface{}, ep types.HttpAspect) *kithttp.Server {
+func (s *GokitHttpServer) CreateHandler(concreteService interface{}, ap types.HttpAspect) http.Handler {
 	// 将具体的service和middleware串联起来
-	endpoints := ep.MakeEndpoint(concreteService)
+	endpoints := ap.MakeEndpoint(concreteService)
 	for _, m := range s.Middlewares {
 		if m.Middleware != nil {
 			endpoints = m.Middleware(endpoints)
 		}
 
-		if len(m.InjectFunctions) > 0 {
-			injectFunc := m.InjectFunctions[HTTP]
-			if injectFunc != nil {
-				_, serverOptions := injectFunc(s.Logger, ep.GetName())
-				for _, option := range serverOptions {
-					svrOption, ok := option.(kithttp.ServerOption)
-					if ok {
-						s.Options = append(s.Options, svrOption)
-					}
+		if len(m.InjectFunctions) == 0 {
+			continue
+		}
+
+		if injectFunc := m.InjectFunctions[HTTP]; injectFunc != nil {
+			_, serverOptions := injectFunc(s.Logger, ap.GetName())
+			for _, option := range serverOptions {
+				if svrOption, ok := option.(kithttp.ServerOption); ok {
+					s.Options = append(s.Options, svrOption)
 				}
 			}
 		}
@@ -109,8 +115,13 @@ func (s *GokitHttpServer) CreateHandler(concreteService interface{}, ep types.Ht
 
 	return kithttp.NewServer(
 		endpoints,
-		ep.ServerDecodeRequest,
-		ep.ServerEncodeResponse,
+		ap.ServerDecodeRequest,
+		ap.ServerEncodeResponse,
 		s.Options...,
 	)
+}
+
+func httpErrorEncoder(_ context.Context, err error, w http.ResponseWriter) {
+	w.WriteHeader(http.StatusInternalServerError)
+	json.NewEncoder(w).Encode(errorWrapper{Error: err.Error()})
 }

@@ -15,9 +15,7 @@ import (
 	"strings"
 )
 
-type ZerologProvider struct {
-	BaseLogProvider
-}
+type ZerologProvider struct{}
 
 // 缺省的忽略帧数目
 const (
@@ -75,7 +73,7 @@ func (c *ZerologProvider) Init(rootConfiger types.Configer, logger types.LogProv
 
 	// 给zerorlogger和stdlogger实例赋值
 	zeroLogger = zerolog.New(multi).With().Timestamp().Logger()
-	stdLogger = stdlog.New(zeroLogger, "sarama: ", stdlog.Lshortfile|stdlog.Ldate|stdlog.Ltime)
+	stdLogger = stdlog.New(zeroLogger, "stdlog: ", stdlog.Lshortfile|stdlog.Ldate|stdlog.Ltime)
 	return nil
 }
 

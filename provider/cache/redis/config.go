@@ -37,6 +37,10 @@ func validateConf(providerType string, conf *RedisConf) error {
 }
 
 func parseConfig(rootConfiger types.Configer) (*ConfigRedis, error) {
+	if rootConfiger == nil {
+		return nil, types.ErrEmptyConfig
+	}
+
 	data := rootConfiger.GetRedisConfig()
 	if data == nil {
 		return nil, types.ErrEmptyConfig

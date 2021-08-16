@@ -9,13 +9,6 @@ import (
 	"time"
 )
 
-type RotateLogConf struct {
-	MaxAge       int    `mapstructure:"max_age"`
-	RotationTime int    `mapstructure:"rotation_time"`
-	Dirname      string `mapstructure:"dirname"` // 日志文件的保存目录名
-	BaseDir      string `mapstructure:"basedir"` // 在linux环境下日志实际保存在<basedir>/<app>/<dirname>中,然后以link的方式创建dirname
-}
-
 const (
 	DEFAULT_BASE_DIR = "/var/log"
 	DEFAULT_DIRNAME  = "logs"

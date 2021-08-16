@@ -162,6 +162,56 @@ const TEST_CONFIG_ALIYUN_DTS = `
 `
 
 // nolint:errcheck
+func TestEmptyLogger(t *testing.T) {
+	err := Initialize(nil)
+	if err != nil {
+		log.Fatalf("msg=\"sdk initialize\" error=\"%v\"", err)
+	}
+
+	e1 := errors.New("e1")
+	e2 := errors.Wrap(e1, "e2")
+
+	Logger.Info("msg content")
+	Logger.Info("msg content", "err")
+	Logger.Info("msg content", "err", nil)
+	Logger.Info("msg content", "err", errors.New("new error"))
+	Logger.Info("msg content", "err", e2)
+	Logger.Info("msg content", "err", errors.New("new error"), "key1 ")
+	Logger.Info("msg content", "err", errors.New("new error"), "key1 ", 123)
+	Logger.Info("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+
+	Logger.Warn("msg content")
+	Logger.Warn("msg content", "err")
+	Logger.Warn("msg content", "err", nil)
+	Logger.Warn("msg content", "err", errors.New("new error"))
+	Logger.Warn("msg content", "err", e2)
+	Logger.Warn("msg content", "err", errors.New("new error"), "key1 ")
+	Logger.Warn("msg content", "err", errors.New("new error"), "key1 ", 123)
+	Logger.Warn("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+
+	Logger.Debug("msg content")
+	Logger.Debug("msg content", "err")
+	Logger.Debug("msg content", "err", nil)
+	Logger.Debug("msg content", "err", errors.New("new error"))
+	Logger.Debug("msg content", "err", e2)
+	Logger.Debug("msg content", "err", errors.New("new error"), "key1 ")
+	Logger.Debug("msg content", "err", errors.New("new error"), "key1 ", 123)
+	Logger.Debug("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+
+	Logger.Error("msg content")
+	Logger.Error("msg content", "err")
+	Logger.Error("msg content", "err", nil)
+	Logger.Error("msg content", "err", errors.New("new error"))
+	Logger.Error("msg content", "err", e2)
+	Logger.Error("msg content", "err", errors.New("new error"), "key1 ")
+	Logger.Error("msg content", "err", errors.New("new error"), "key1 ", 123)
+	Logger.Error("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+
+	// Logger.Fatal("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+	Logger.Panic("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+}
+
+// nolint:errcheck
 func TestLogger(t *testing.T) {
 	v := LoadConfig("test", "local", "")
 

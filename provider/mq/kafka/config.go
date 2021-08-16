@@ -48,6 +48,10 @@ func validateMqConfig(providerType string, conf *MqConfig) error {
 
 // 解析Mq配置
 func parseConfig(rootConfiger types.Configer) (*MqProviderConfig, error) {
+	if rootConfiger == nil {
+		return nil, types.ErrEmptyConfig
+	}
+
 	data := rootConfiger.GetKafkaConfig()
 	if data == nil {
 		return nil, types.ErrEmptyConfig
