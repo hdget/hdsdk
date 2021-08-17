@@ -104,7 +104,7 @@ func (s *GokitHttpServer) CreateHandler(concreteService interface{}, ap types.Ht
 		}
 
 		if injectFunc := m.InjectFunctions[HTTP]; injectFunc != nil {
-			_, serverOptions := injectFunc(s.Logger, ap.GetName())
+			_, serverOptions := injectFunc(s.Logger, ap.GetMethodName())
 			for _, option := range serverOptions {
 				if svrOption, ok := option.(kithttp.ServerOption); ok {
 					s.Options = append(s.Options, svrOption)

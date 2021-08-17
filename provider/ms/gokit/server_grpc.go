@@ -100,7 +100,7 @@ func (s *GokitGrpcServerManager) CreateHandler(concreteService interface{}, ep t
 		}
 
 		if injectFunc := m.InjectFunctions[GRPC]; injectFunc != nil {
-			_, serverOptions := injectFunc(s.Logger, ep.GetServiceName())
+			_, serverOptions := injectFunc(s.Logger, ep.GetMethodName())
 			for _, option := range serverOptions {
 				if svrOption, ok := option.(kitgrpc.ServerOption); ok {
 					s.Options = append(s.Options, svrOption)

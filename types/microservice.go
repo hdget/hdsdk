@@ -61,11 +61,11 @@ type GrpcAspect interface {
 
 // HttpAspect HttpAspect
 type HttpAspect interface {
-	GetName() string
+	GetMethodName() string
 	// MakeEndpoint 解析request, 调用服务函数, 封装成endpoint
 	MakeEndpoint(svc interface{}) endpoint.Endpoint
 	// ServerDecodeRequest server side convert grpc request to domain request
-	ServerDecodeRequest(context.Context, *http.Request) (interface{}, error)
+	ServerDecodeRequest(ctx context.Context, request *http.Request) (interface{}, error)
 	// ServerEncodeResponse server side encode response to domain response
 	ServerEncodeResponse(context.Context, http.ResponseWriter, interface{}) error
 }
