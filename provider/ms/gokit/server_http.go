@@ -34,12 +34,14 @@ func (msi MicroServiceImpl) NewHttpServerManager() types.HttpServerManager {
 	// 添加中间件
 	mdws := make([]*MsMiddleware, 0)
 	serverConfig := msi.GetServerConfig(HTTP)
-	if serverConfig != nil {
-		for _, mdwName := range serverConfig.Middlewares {
-			newFunc := NewMdwFunctions[mdwName]
-			if newFunc != nil {
-				mdws = append(mdws, newFunc(msi.Config))
-			}
+	if serverConfig == nil {
+		return nil
+	}
+
+	for _, mdwName := range serverConfig.Middlewares {
+		newFunc := NewMdwFunctions[mdwName]
+		if newFunc != nil {
+			mdws = append(mdws, newFunc(msi.Config))
 		}
 	}
 

@@ -31,12 +31,14 @@ func (msi MicroServiceImpl) NewGrpcServerManager() types.GrpcServerManager {
 	// 添加中间件
 	mdws := make([]*MsMiddleware, 0)
 	serverConfig := msi.GetServerConfig(GRPC)
-	if serverConfig != nil {
-		for _, mdwName := range serverConfig.Middlewares {
-			newFunc := NewMdwFunctions[mdwName]
-			if newFunc != nil {
-				mdws = append(mdws, newFunc(msi.Config))
-			}
+	if serverConfig == nil {
+		return nil
+	}
+
+	for _, mdwName := range serverConfig.Middlewares {
+		newFunc := NewMdwFunctions[mdwName]
+		if newFunc != nil {
+			mdws = append(mdws, newFunc(msi.Config))
 		}
 	}
 
