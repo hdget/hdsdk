@@ -3,7 +3,6 @@ package gokit
 import (
 	"context"
 	"encoding/json"
-	"github.com/go-kit/kit/transport"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdsdk/utils/parallel"
@@ -27,8 +26,8 @@ var _ types.HttpServerManager = (*GokitHttpServer)(nil)
 func (msi MicroServiceImpl) NewHttpServerManager() types.HttpServerManager {
 	// set serverOptions
 	serverOptions := []kithttp.ServerOption{
-		kithttp.ServerErrorEncoder(HttpErrorEncoder),
-		kithttp.ServerErrorHandler(transport.NewLogErrorHandler(msi.Logger)),
+		kithttp.ServerErrorEncoder(httpErrorEncoder),
+		kithttp.ServerErrorHandler(&errorHandler{Logger: msi.Logger}),
 	}
 
 	// 添加中间件
@@ -126,7 +125,7 @@ func (s *GokitHttpServer) CreateHandler(concreteService interface{}, ap types.Ht
 }
 
 //nolint:errcheck
-func HttpErrorEncoder(_ context.Context, err error, w http.ResponseWriter) {
+func httpErrorEncoder(_ context.Context, err error, w http.ResponseWriter) {
 	w.WriteHeader(http.StatusInternalServerError)
 	json.NewEncoder(w).Encode(errorWrapper{Error: err.Error()})
 }

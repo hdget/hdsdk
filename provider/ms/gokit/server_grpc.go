@@ -2,7 +2,6 @@ package gokit
 
 import (
 	"context"
-	"github.com/go-kit/kit/transport"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
 	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdsdk/utils/parallel"
@@ -25,7 +24,7 @@ func (msi MicroServiceImpl) NewGrpcServerManager() types.GrpcServerManager {
 
 	// global serverOptions
 	serverOptions := []kitgrpc.ServerOption{
-		kitgrpc.ServerErrorHandler(transport.NewLogErrorHandler(msi.Logger)),
+		kitgrpc.ServerErrorHandler(&errorHandler{Logger: msi.Logger}),
 	}
 
 	// 添加中间件

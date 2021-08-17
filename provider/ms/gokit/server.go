@@ -21,7 +21,15 @@ type BaseServerManager struct {
 	cancel      context.CancelFunc
 }
 
+type errorHandler struct {
+	Logger types.LogProvider
+}
+
 // Close 关闭GrpcServer
 func (s *BaseServerManager) Close() {
 	s.cancel()
+}
+
+func (h errorHandler) Handle(ctx context.Context, err error) {
+	h.Logger.Error("encounter error", "error", err)
 }
