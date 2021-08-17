@@ -29,13 +29,18 @@ Please refer to [hdkit](https://github.com/hdget/hdkit) to create project boiler
 [sdk.service]
     [sdk.service.default]
         name = "testservice"
-        [[sdk.service.default.servers]]
-            type = "grpc"
+        [[sdk.service.default.clients]]
+            transport = "grpc"
             address = "0.0.0.0:12345"
             middlewares=["circuitbreak", "ratelimit"]
         [[sdk.service.default.servers]]
-            type = "http"
+            transport = "grpc"
+            address = "0.0.0.0:12345"
+            middlewares=["circuitbreak", "ratelimit"]
+        [[sdk.service.default.servers]]
+            transport = "http"
             address = "0.0.0.0:23456"
+            middlewares=["trace", "circuitbreak", "ratelimit"]
             ...
     [[sdk.service.items]]
         name = "httpservice"
@@ -123,17 +128,25 @@ ratelimit config can be ignored, which will be used default rate limit config in
 
   > Note: if specified middleware type here, then it inherits the config from above 
 
+## http client
+
+It can access http transport by using following url:
+
+`/<service name>/<method name>` all use snake case format
+
+The parameters sent by json body, it supports `GET` and `POST`
+
 ## Example
 ```
 svc := &grpc.SearchServiceImpl{}
-grpcServer := hdsdk.MicroService.By("testservice").CreateGrpcServer()
+manager := hdsdk.MicroService.By("testservice").NewGrpcServerManager()
 
 endpoints := &grpc.GrpcEndpoints{
-	SearchEndpoint: grpcTransport.CreateHandler(svc, &grpc.SearchHandler{}),
-	HelloEndpoint:  grpcTransport.CreateHandler(svc, &grpc.HelloHandler{}),
+	SearchEndpoint: manager.CreateHandler(svc, &grpc.SearchHandler{}),
+	HelloEndpoint:  manager.CreateHandler(svc, &grpc.HelloHandler{}),
 }
 
-pb.RegisterSearchServiceServer(grpcServer.GetServer(), endpoints)
+pb.RegisterSearchServiceServer(manager.GetServer(), endpoints)
 
 err = hdsdk.Initialize(&conf)
 if err != nil {
@@ -143,10 +156,10 @@ if err != nil {
 var group parallel.Group
 group.Add(
     func() error {
-        return grpcServer.Run()
+        return manager.RunServer()
     },
     func(err error) {
-        grpcServer.Close()
+        manager.Close()
     },
 )
 
