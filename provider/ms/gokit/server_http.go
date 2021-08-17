@@ -27,17 +27,19 @@ var _ types.HttpServerManager = (*GokitHttpServer)(nil)
 func (msi MicroServiceImpl) NewHttpServerManager() types.HttpServerManager {
 	// set serverOptions
 	serverOptions := []kithttp.ServerOption{
-		kithttp.ServerErrorEncoder(httpErrorEncoder),
+		kithttp.ServerErrorEncoder(HttpErrorEncoder),
 		kithttp.ServerErrorHandler(transport.NewLogErrorHandler(msi.Logger)),
 	}
 
 	// 添加中间件
 	mdws := make([]*MsMiddleware, 0)
 	serverConfig := msi.GetServerConfig(HTTP)
-	for _, mdwName := range serverConfig.Middlewares {
-		newFunc := NewMdwFunctions[mdwName]
-		if newFunc != nil {
-			mdws = append(mdws, newFunc(msi.Config))
+	if serverConfig != nil {
+		for _, mdwName := range serverConfig.Middlewares {
+			newFunc := NewMdwFunctions[mdwName]
+			if newFunc != nil {
+				mdws = append(mdws, newFunc(msi.Config))
+			}
 		}
 	}
 
@@ -121,7 +123,8 @@ func (s *GokitHttpServer) CreateHandler(concreteService interface{}, ap types.Ht
 	)
 }
 
-func httpErrorEncoder(_ context.Context, err error, w http.ResponseWriter) {
+//nolint:errcheck
+func HttpErrorEncoder(_ context.Context, err error, w http.ResponseWriter) {
 	w.WriteHeader(http.StatusInternalServerError)
 	json.NewEncoder(w).Encode(errorWrapper{Error: err.Error()})
 }
