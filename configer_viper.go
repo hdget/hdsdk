@@ -25,6 +25,7 @@ type EnvOption struct {
 
 type FileOption struct {
 	RootDir string // 配置文件所在的根目录
+	BaseDir string // 配置文件的上级目录
 	Suffix  string // .toml
 }
 
@@ -42,6 +43,7 @@ var (
 
 	defaultFileOption = FileOption{
 		RootDir: "setting",
+		BaseDir: "app",
 		Suffix:  "toml",
 	}
 
@@ -134,10 +136,10 @@ func setupEnv(v *viper.Viper, cliEnv string, option ConfigOption) (string, error
 	return envValue, nil
 }
 
-// getDefaultConfigFile 缺省的配置文件路径: <rootdir>/setting/<app>/<app>.<env>.toml
+// getDefaultConfigFile 缺省的配置文件路径: <rootdir>/setting/app/<app>.<env>.toml
 func getDefaultConfigFile(app, envValue string) string {
 	configFile := fmt.Sprintf("%s.%s.%s", app, envValue, defaultFileOption.Suffix)
-	return path.Join(defaultFileOption.RootDir, app, configFile)
+	return path.Join(defaultFileOption.RootDir, defaultFileOption.BaseDir, configFile)
 }
 
 // 从配置文件中读取配置信息

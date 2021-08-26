@@ -81,11 +81,11 @@ LoadConfig的时候可以通过自定义`ConfigOption`来进行默认配置的�
 
 默认加载选项：
 - env:     如果不指定cliEnv或者指定无效的cliEnv, 默认的env会设置为"prod", 我们也可以通过环境变量`HDGET_RUNTIME`来设置env
-- rootdir: 配置信息的根目录，默认为"settings", 在LoadConfig的时候通过自定义`ConfigOption`可以进行自定义
+- rootdir: 配置信息的根目录，默认为"setting", 在LoadConfig的时候通过自定义`ConfigOption`可以进行自定义
 
 sdk的底层能力配置支持从不同的源进行定义，当前支持:
 - etcd:    配置信息读取路径: `<rootdir>/<app>/<env>`
-- 文件系统: 配置信息读取路径: `<rootdir>/<app>/<app>.<env>.toml`
+- 文件系统: 配置信息读取路径: `<rootdir>/app/<app>.<env>.toml`
 
 #### 三、 嵌入SDK配置项到应用的配置结构中
 
