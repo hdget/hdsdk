@@ -25,7 +25,7 @@ type EnvOption struct {
 
 type FileOption struct {
 	RootDir string // 配置文件所在的根目录
-	Suffix  string // 配置文件后缀
+	Suffix  string // .toml
 }
 
 type EtcdOption struct {
@@ -41,7 +41,7 @@ var (
 	}
 
 	defaultFileOption = FileOption{
-		RootDir: "settings",
+		RootDir: "setting",
 		Suffix:  "toml",
 	}
 
@@ -91,7 +91,7 @@ func LoadConfig(app, cliEnv, cliFile string, args ...ConfigOption) *viper.Viper 
 	}
 
 	// 尝试从配置中读取配置信息
-	absPath, err := loadFromFile(v, app, envValue, cliFile, option)
+	absPath, err := loadFromFile(v, app, envValue, cliFile)
 	if err != nil {
 		utils.Print("ERR", "load config from file", "file", absPath, "err", err)
 	}
@@ -134,16 +134,17 @@ func setupEnv(v *viper.Viper, cliEnv string, option ConfigOption) (string, error
 	return envValue, nil
 }
 
+// getDefaultConfigFile 缺省的配置文件路径: <rootdir>/setting/<app>/<app>.<env>.toml
+func getDefaultConfigFile(app, envValue string) string {
+	configFile := fmt.Sprintf("%s.%s.%s", app, envValue, defaultFileOption.Suffix)
+	return path.Join(defaultFileOption.RootDir, app, configFile)
+}
+
 // 从配置文件中读取配置信息
-func loadFromFile(v *viper.Viper, app, envValue, cliFile string, option ConfigOption) (string, error) {
+func loadFromFile(v *viper.Viper, app, envValue, cliFile string) (string, error) {
 	configFile := cliFile
 	if configFile == "" {
-		// 缺省的配置文件路径: <rootdir>/<app>/<app>.<env>.toml
-		configFile = path.Join(
-			option.File.RootDir,
-			app,
-			fmt.Sprintf("%s.%s.%s", app, envValue, option.File.Suffix),
-		)
+		configFile = getDefaultConfigFile(app, envValue)
 	}
 
 	// optionally look for config in the working directory

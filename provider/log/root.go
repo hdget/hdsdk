@@ -6,14 +6,14 @@ import (
 	"github.com/hdget/hdsdk/types"
 )
 
-type CapImpl struct {
+type LoggerImpl struct {
 	types.LogProvider
 }
 
 // 缺省的日志能力提供者
 const DEFAULT_PROVIDER_TYPE = types.LibLogZerolog
 
-func (c *CapImpl) Init(configer types.Configer, logger types.LogProvider, args ...interface{}) error {
+func (impl *LoggerImpl) Init(configer types.Configer, logger types.LogProvider, args ...interface{}) error {
 	var p types.LogProvider
 	switch len(args) {
 	case 0:
@@ -36,7 +36,7 @@ func (c *CapImpl) Init(configer types.Configer, logger types.LogProvider, args .
 	}
 
 	// if initialize ok, set anonymous interface to concrete provider
-	c.LogProvider = p
+	impl.LogProvider = p
 
 	return nil
 }

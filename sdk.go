@@ -1,11 +1,12 @@
-// Package sdk 提供各类底层能力的直接访问方式，SDK包在使用前必须要初始化
+// Package hdsdk
+// 提供各类底层能力的直接访问方式，SDK包在使用前必须要初始化
 //
 // 首先必须创建一个继承自sdk.BaseConfig的配置struct
 // e,g:
 //    import hdget
 //
 //		type XXXConfig struct {
-//			*baseconf.Config `mapstructure:",squash"`
+//			*sdk.Config `mapstructure:",squash"`
 //      }
 //
 //
@@ -42,7 +43,7 @@ var (
 	LogProvider = &SdkProvider{
 		Kind:     types.SdkCategoryLog,
 		Name:     "log",
-		Instance: &log.CapImpl{},
+		Instance: &log.LoggerImpl{},
 	}
 
 	// 除去日志外其他能力能力提供者实例
@@ -75,7 +76,7 @@ var (
 	}
 )
 
-// 初始化SDK, 指定的配置文件里面有什么配置就配置什么能力
+// Initialize 初始化SDK, 指定的配置文件里面有什么配置就配置什么能力
 func Initialize(configer types.Configer) error {
 	var err error
 	Logger, err = newLogger(configer)
@@ -126,9 +127,9 @@ func newLogger(configer types.Configer) (types.LogProvider, error) {
 		return nil, err
 	}
 
-	logger, ok := LogProvider.Instance.(*log.CapImpl)
+	logger, ok := LogProvider.Instance.(*log.LoggerImpl)
 	if !ok {
-		return nil, errors.New("error convert to *caplog.CapImpl")
+		return nil, errors.New("error convert to LoggerImpl")
 	}
 
 	return logger, nil
