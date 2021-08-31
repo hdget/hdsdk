@@ -174,6 +174,7 @@ func TestEmptyLogger(t *testing.T) {
 	Logger.Info("msg content")
 	Logger.Info("msg content", "err")
 	Logger.Info("msg content", "err", nil)
+	Logger.Info("msg content", "err", "error message")
 	Logger.Info("msg content", "err", errors.New("new error"))
 	Logger.Info("msg content", "err", e2)
 	Logger.Info("msg content", "err", errors.New("new error"), "key1 ")

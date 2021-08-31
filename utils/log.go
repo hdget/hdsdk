@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"log"
 	"strings"
 )
@@ -78,12 +79,14 @@ func ParseArgsWithError(keyvals ...interface{}) (error, map[string]interface{}) 
 			}
 
 			switch k {
-			case "err":
-				if v, ok := keyvals[i+1].(error); ok {
+			case "err","error":
+				v, ok := keyvals[i+1].(error)
+				if ok {
 					errValue = v
+				}else {
+					// if next value is not an error, try convert it's string representation to error
+					errValue = errors.New(fmt.Sprintf("%v", keyvals[i+1]))
 				}
-				// if next value is not an error, still need add to args
-				fallthrough
 			default:
 				args[k] = keyvals[i+1]
 			}
