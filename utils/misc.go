@@ -39,16 +39,3 @@ func ReverseInt64Slice(numbers []int64) []int64 {
 	}
 	return numbers
 }
-
-// GetRealIP 获取真实IP
-func GetRealIP(c *gin.Context) string {
-	xForwardInfo := c.GetHeader("X-Forwarded-For")
-	if xForwardInfo != "" {
-		ips := strings.Split(xForwardInfo, ",")
-		// 返回第一个真实IP
-		if len(ips) >= 1 {
-			return ips[0]
-		}
-	}
-	return c.ClientIP()
-}
