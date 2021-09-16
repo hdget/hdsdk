@@ -41,6 +41,16 @@ func SetReleaseMode() {
 	gin.SetMode(gin.ReleaseMode)
 }
 
+// SetDebugMode set gin to debug mode
+func SetDebugMode() {
+	gin.SetMode(gin.DebugMode)
+}
+
+// SetTestMode set gin to test mode
+func SetTestMode() {
+	gin.SetMode(gin.TestMode)
+}
+
 // Run http server
 func (srv *HttpServer) Run() {
 	var group parallel.Group
