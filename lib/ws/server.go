@@ -7,7 +7,6 @@ import (
 	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdsdk/utils/parallel"
 	"net/http"
-	"strings"
 	"syscall"
 	"time"
 )
@@ -37,16 +36,9 @@ func NewHttpServer(logger types.LogProvider, address string) HttpServer {
 	}
 }
 
-// SetMode set http server running mode
-// it is debug mode by default
-func (srv *HttpServer) SetMode(mode string) {
-	// set gin debug mode
-	switch strings.ToLower(mode) {
-	case "release":
-		gin.SetMode(gin.ReleaseMode)
-	case "test":
-		gin.SetMode(gin.TestMode)
-	}
+// SetReleaseMode set gin to release mode
+func SetReleaseMode() {
+	gin.SetMode(gin.ReleaseMode)
 }
 
 // Run http server
