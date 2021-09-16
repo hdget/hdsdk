@@ -79,11 +79,11 @@ func ParseArgsWithError(keyvals ...interface{}) (error, map[string]interface{}) 
 			}
 
 			switch k {
-			case "err","error":
+			case "err", "error":
 				v, ok := keyvals[i+1].(error)
 				if ok {
 					errValue = v
-				}else {
+				} else {
 					// if next value is not an error, try convert it's string representation to error
 					errValue = errors.New(fmt.Sprintf("%v", keyvals[i+1]))
 				}
