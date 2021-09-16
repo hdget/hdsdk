@@ -25,9 +25,9 @@ const (
 )
 const waitTime = 3 * time.Second
 
-func NewHttpServer(logger types.LogProvider, address string) HttpServer {
+func NewHttpServer(logger types.LogProvider, address string) *HttpServer {
 	router := NewRouter(logger)
-	return HttpServer{
+	return &HttpServer{
 		Server: &http.Server{
 			Addr:    address,
 			Handler: router,
