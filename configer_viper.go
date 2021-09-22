@@ -130,7 +130,6 @@ func setupEnv(v *viper.Viper, cliEnv string, option ConfigOption) (string, error
 		return "", errors.Errorf("invalid env: %s, supported envs is: %v", envValue, types.SupportedEnvs)
 	}
 
-	v.Set("ENV", envValue)
 	return envValue, nil
 }
 
