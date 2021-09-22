@@ -20,22 +20,22 @@ const (
 )
 
 // New an error support error code
-func New(msg string, args ...int) *CodeError {
+func New(msg string, args ...int) CodeError {
 	code := ErrCodeUnknown
 	if len(args) > 0 {
 		code = args[0]
 	}
 
-	return &CodeError{
+	return CodeError{
 		code: code,
 		msg:  msg,
 	}
 }
 
-func (ce *CodeError) Code() int {
+func (ce CodeError) Code() int {
 	return ce.code
 }
 
-func (ce *CodeError) Error() string {
+func (ce CodeError) Error() string {
 	return ce.msg
 }
