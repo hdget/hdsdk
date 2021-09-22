@@ -86,6 +86,13 @@ func (srv *HttpServer) AddRoute(method HttpMethod, path string, handler gin.Hand
 	}
 }
 
+// SetupRoutes setup routes from Route slice
+func (srv *HttpServer) SetupRoutes(routes []Route) {
+	for _, r := range routes {
+		srv.AddRoute(r.Method, r.Path, r.Handler)
+	}
+}
+
 func (srv *HttpServer) shutdown(err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), waitTime)
 	defer cancel()

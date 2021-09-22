@@ -6,6 +6,12 @@ import (
 	"io"
 )
 
+type Route struct {
+	Method  HttpMethod
+	Path    string
+	Handler gin.HandlerFunc
+}
+
 // NewRouter create a gin router
 func NewRouter(logger types.LogProvider) *gin.Engine {
 	// new router
