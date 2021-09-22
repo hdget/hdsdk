@@ -45,14 +45,14 @@ var (
 // getLogConfig 解析Config
 func getLogConfig(configer types.Configer) (*ConfigLog, error) {
 	if configer == nil {
-		utils.Print("WRN", "empty configer")
+		utils.LogWarn("empty configer")
 		return getDefaultLogConfig(), nil
 	}
 
 	// if log config not found, use default one
 	v := configer.GetLogConfig()
 	if v == nil {
-		utils.Print("WRN", "log config not found")
+		utils.LogWarn("log config not found")
 		return getDefaultLogConfig(), nil
 	}
 

@@ -7,52 +7,29 @@ import (
 	"strings"
 )
 
-// Fatal 结构化的Fatal
-func Fatal(msg string, keyvals ...interface{}) {
-	errValue, fields := ParseArgsWithError(keyvals...)
+type LogLevel string
 
-	outputs := make([]string, 0)
-	for k, v := range fields {
-		outputs = append(outputs, fmt.Sprintf("%s=\"%v\"", k, v))
-	}
+const (
+	LogLevelDebug LogLevel = "DBG"
+	LogLevelWarn  LogLevel = "WRN"
+	LogLevelError LogLevel = "ERR"
+	LogLevelFatal LogLevel = "FTL"
+)
 
-	if len(outputs) > 0 {
-		if errValue != nil {
-			log.Fatalf("FTL msg=\"%s\" %s error=\"%v\"", msg, strings.Join(outputs, " "), errValue)
-		} else {
-			log.Fatalf("FTL msg=\"%s\" %s", msg, strings.Join(outputs, " "))
-		}
-	} else {
-		if errValue != nil {
-			log.Fatalf("FTL msg=\"%s\" error=\"%v\"", msg, errValue)
-		} else {
-			log.Fatalf("FTL msg=\"%s\"", msg)
-		}
-	}
+func LogDebug(msg string, keyvals ...interface{}) {
+	logPrint(LogLevelDebug, msg, keyvals...)
 }
 
-// Print 结构化的log
-func Print(level, msg string, keyvals ...interface{}) {
-	errValue, fields := ParseArgsWithError(keyvals...)
+func LogWarn(msg string, keyvals ...interface{}) {
+	logPrint(LogLevelWarn, msg, keyvals...)
+}
 
-	outputs := make([]string, 0)
-	for k, v := range fields {
-		outputs = append(outputs, fmt.Sprintf("%s=\"%v\"", k, v))
-	}
+func LogError(msg string, keyvals ...interface{}) {
+	logPrint(LogLevelError, msg, keyvals...)
+}
 
-	if len(outputs) > 0 {
-		if errValue != nil {
-			log.Printf("%s msg=\"%s\" %s error=\"%v\"", level, msg, strings.Join(outputs, " "), errValue)
-		} else {
-			log.Printf("%s msg=\"%s\" %s", level, msg, strings.Join(outputs, " "))
-		}
-	} else {
-		if errValue != nil {
-			log.Printf("%s msg=\"%s\" error=\"%v\"", level, msg, errValue)
-		} else {
-			log.Printf("%s msg=\"%s\"", level, msg)
-		}
-	}
+func LogFatal(msg string, keyvals ...interface{}) {
+	logPrint(LogLevelFatal, msg, keyvals...)
 }
 
 // ParseArgsWithError  将可变参数转换成map, 其中有err关键字返回error
@@ -135,4 +112,33 @@ func ParseArgsWithMsgError(keyvals ...interface{}) (string, error, map[string]in
 		}
 	}
 	return msgValue, errValue, args
+}
+
+// logPrint log structure message and key values
+func logPrint(level LogLevel, msg string, keyvals ...interface{}) {
+	errValue, fields := ParseArgsWithError(keyvals...)
+
+	outputs := make([]string, 0)
+	for k, v := range fields {
+		outputs = append(outputs, fmt.Sprintf("%s=\"%v\"", k, v))
+	}
+
+	logFn := log.Printf
+	if level == LogLevelFatal {
+		logFn = log.Fatalf
+	}
+
+	if len(outputs) > 0 {
+		if errValue != nil {
+			logFn("%s msg=\"%s\" %s error=\"%v\"", level, msg, strings.Join(outputs, " "), errValue)
+		} else {
+			logFn("%s msg=\"%s\" %s", level, msg, strings.Join(outputs, " "))
+		}
+	} else {
+		if errValue != nil {
+			logFn("%s msg=\"%s\" error=\"%v\"", level, msg, errValue)
+		} else {
+			logFn("%s msg=\"%s\"", level, msg)
+		}
+	}
 }

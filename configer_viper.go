@@ -83,19 +83,19 @@ func LoadConfig(app, cliEnv, cliFile string, args ...ConfigOption) *viper.Viper 
 	// 设置有效的环境变量
 	envValue, err := setupEnv(v, cliEnv, option)
 	if err != nil {
-		utils.Fatal("setup env value", "err", err)
+		utils.LogFatal("setup env value", "err", err)
 	}
 
 	// 尝试从远程KV store，例如etcd加载配置信息
 	err = loadFromRemote(v, app, envValue, option)
 	if err != nil {
-		utils.Print("ERR", "load config from etcd", "err", err)
+		utils.LogError("load config from etcd", "err", err)
 	}
 
 	// 尝试从配置中读取配置信息
 	absPath, err := loadFromFile(v, app, envValue, cliFile)
 	if err != nil {
-		utils.Print("ERR", "load config from file", "file", absPath, "err", err)
+		utils.LogError("load config from file", "file", absPath, "err", err)
 	}
 
 	return v
@@ -105,8 +105,6 @@ func LoadConfig(app, cliEnv, cliFile string, args ...ConfigOption) *viper.Viper 
 // private functions
 ////////////////////////////////////////////////////////////////
 func loadFromDefault(v *viper.Viper) {
-	v.SetDefault("env", defaultEnvOption.Value)
-	v.SetDefault("config_url", defaultEtcdOption.Url)
 }
 
 // loadFromEnv 从环境文件中读取配置信息

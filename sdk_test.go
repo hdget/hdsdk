@@ -208,7 +208,7 @@ func TestEmptyLogger(t *testing.T) {
 	Logger.Error("msg content", "err", errors.New("new error"), "key1 ", 123)
 	Logger.Error("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 
-	// Logger.Fatal("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+	// Logger.LogFatal("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 	Logger.Panic("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 }
 
@@ -270,7 +270,7 @@ func TestLogger(t *testing.T) {
 	Logger.Error("msg content", "err", errors.New("new error"), "key1 ", 123)
 	Logger.Error("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 
-	// Logger.Fatal("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+	// Logger.LogFatal("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 	Logger.Panic("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 }
 
@@ -285,12 +285,12 @@ func TestMysql(t *testing.T) {
 	var conf TestConf
 	err := v.Unmarshal(&conf)
 	if err != nil {
-		utils.Fatal("unmarshal democonf", "err", err)
+		utils.LogFatal("unmarshal democonf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.Fatal("sdk initialize", "err", err)
+		utils.LogFatal("sdk initialize", "err", err)
 	}
 
 	var total1 int
@@ -321,12 +321,12 @@ func TestRedis(t *testing.T) {
 	var conf TestConf
 	err := v.Unmarshal(&conf)
 	if err != nil {
-		utils.Fatal("unmarshal democonf", "err", err)
+		utils.LogFatal("unmarshal democonf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.Fatal("sdk initialize", "err", err)
+		utils.LogFatal("sdk initialize", "err", err)
 	}
 
 	Redis.My().Set("key1", 1)
@@ -415,12 +415,12 @@ func TestRabbitmqSend(t *testing.T) {
 	var conf TestConf
 	err := v.Unmarshal(&conf)
 	if err != nil {
-		utils.Fatal("unmarshal democonf", "err", err)
+		utils.LogFatal("unmarshal democonf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.Fatal("sdk initialize", "err", err)
+		utils.LogFatal("sdk initialize", "err", err)
 	}
 
 	p, err := Rabbitmq.My().CreateProducer("producer1")
@@ -454,12 +454,12 @@ func TestRabbitmqRecv(t *testing.T) {
 	var conf TestConf
 	err := v.Unmarshal(&conf)
 	if err != nil {
-		utils.Fatal("unmarshal democonf", "err", err)
+		utils.LogFatal("unmarshal democonf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.Fatal("sdk initialize", "err", err)
+		utils.LogFatal("sdk initialize", "err", err)
 	}
 
 	mq := Rabbitmq.My()
@@ -491,17 +491,17 @@ func TestKafkaSend(t *testing.T) {
 	var conf TestConf
 	err := v.Unmarshal(&conf)
 	if err != nil {
-		utils.Fatal("unmarshal democonf", "err", err)
+		utils.LogFatal("unmarshal democonf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.Fatal("sdk initialize", "err", err)
+		utils.LogFatal("sdk initialize", "err", err)
 	}
 
 	p, err := Kafka.My().CreateProducer("producer1")
 	if err != nil {
-		utils.Fatal("kafka create producer", "err", err)
+		utils.LogFatal("kafka create producer", "err", err)
 	}
 	defer p.Close()
 
@@ -509,7 +509,7 @@ func TestKafkaSend(t *testing.T) {
 		s := fmt.Sprintf("%d", i)
 		err = p.Publish([]byte(s))
 		if err != nil {
-			utils.Fatal("kafka producer publish", "err", err)
+			utils.LogFatal("kafka producer publish", "err", err)
 		}
 	}
 }
@@ -525,17 +525,17 @@ func TestKafkaRecv(t *testing.T) {
 	var conf TestConf
 	err := v.Unmarshal(&conf)
 	if err != nil {
-		utils.Fatal("unmarshal democonf", "err", err)
+		utils.LogFatal("unmarshal democonf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.Fatal("sdk initialize", "err", err)
+		utils.LogFatal("sdk initialize", "err", err)
 	}
 
 	c, err := Kafka.My().CreateConsumer("consumer1", msgProcess)
 	if err != nil {
-		utils.Fatal("kafka create consumer", "err", err)
+		utils.LogFatal("kafka create consumer", "err", err)
 	}
 	defer c.Close()
 
@@ -551,34 +551,34 @@ func BenchmarkHamba(b *testing.B) {
 func parseByHamba() {
 	dts, err := alidts.New()
 	if err != nil {
-		utils.Fatal("new alidts", "err", err)
+		utils.LogFatal("new alidts", "err", err)
 	}
 
 	data, err := ioutil.ReadFile("alidts.dump")
 	if err != nil {
-		utils.Fatal("open alidts data", "err", err)
+		utils.LogFatal("open alidts data", "err", err)
 	}
 
 	_, err = dts.Parse(data)
 	if err != nil {
-		utils.Fatal("alidts getrecord", "err", err)
+		utils.LogFatal("alidts getrecord", "err", err)
 	}
 }
 
 func TestUtilsAlidts(t *testing.T) {
 	dts, err := alidts.New()
 	if err != nil {
-		utils.Fatal("new alidts", "err", err)
+		utils.LogFatal("new alidts", "err", err)
 	}
 
 	data, err := ioutil.ReadFile("alidts.dump")
 	if err != nil {
-		utils.Fatal("open alidts data", "err", err)
+		utils.LogFatal("open alidts data", "err", err)
 	}
 
 	r, err := dts.Parse(data)
 	if err != nil {
-		utils.Fatal("alidts getrecord", "err", err)
+		utils.LogFatal("alidts getrecord", "err", err)
 	}
 
 	fmt.Println(r)
@@ -599,13 +599,13 @@ func dtsHandler(data []byte) types.MqMsgAction {
 func parseDtsData(data []byte) *alidts.DtsRecord {
 	dts, err := alidts.New()
 	if err != nil {
-		utils.Print("error", "err new alidts")
+		utils.LogError("err new alidts")
 		return nil
 	}
 
 	r, err := dts.Parse(data)
 	if err != nil {
-		utils.Print("error", "err parse alidts data")
+		utils.LogError("err parse alidts data")
 		return nil
 	}
 	return r
@@ -622,17 +622,17 @@ func TestDts(t *testing.T) {
 	var conf TestConf
 	err := v.Unmarshal(&conf)
 	if err != nil {
-		utils.Fatal("unmarshal demo conf", "err", err)
+		utils.LogFatal("unmarshal demo conf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.Fatal("sdk initialize", "err", err)
+		utils.LogFatal("sdk initialize", "err", err)
 	}
 
 	c, err := Kafka.By("xxx").CreateConsumer("syncdata", dtsHandler)
 	if err != nil {
-		utils.Fatal("create consumer", "err", err)
+		utils.LogFatal("create consumer", "err", err)
 	}
 
 	c.Consume()
