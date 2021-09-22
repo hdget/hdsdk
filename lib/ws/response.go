@@ -19,14 +19,17 @@ type PageResponse struct {
 
 const (
 	_                     = err.ErrCodeModuleRoot + iota
-	ErrCodeInvalidRequest // 非法请求
 	ErrCodeInternalError  // 内部错误
 	ErrCodeUnauthorized   // 未授权
+	ErrCodeInvalidRequest // 非法请求
+	ErrCodeForbidden      // 拒绝访问
+
 )
 
 var (
 	ErrInvalidRequest = err.New("invalid request", ErrCodeInvalidRequest)
-	ErrForbidden      = err.New("unauthorized request", ErrCodeUnauthorized)
+	ErrForbidden      = err.New("forbidden", ErrCodeForbidden)
+	ErrUnauthorized   = err.New("unauthorized", ErrCodeUnauthorized)
 )
 
 // RespondSuccess respond with data
@@ -57,12 +60,16 @@ func RespondError(c *gin.Context, err error) {
 	c.PureJSON(http.StatusOK, err2response(err))
 }
 
-func RespondInvalidRequest(c *gin.Context) {
+func InvalidRequest(c *gin.Context) {
 	c.PureJSON(http.StatusOK, err2response(ErrInvalidRequest))
 }
 
 func Forbidden(c *gin.Context) {
 	c.PureJSON(http.StatusForbidden, err2response(ErrForbidden))
+}
+
+func Unauthorized(c *gin.Context) {
+	c.PureJSON(http.StatusUnauthorized, err2response(ErrUnauthorized))
 }
 
 func err2response(e error) *Response {
