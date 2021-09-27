@@ -60,6 +60,14 @@ func Failure(c *gin.Context, err error) {
 	c.PureJSON(http.StatusInternalServerError, err2response(err))
 }
 
+func Redirect(c *gin.Context, location string) {
+	c.Redirect(http.StatusFound, location)
+}
+
+func PermanentRedirect(c *gin.Context, location string) {
+	c.Redirect(http.StatusMovedPermanently, location)
+}
+
 func InvalidRequest(c *gin.Context) {
 	c.PureJSON(http.StatusBadRequest, err2response(errInvalidRequest))
 }
