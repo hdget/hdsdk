@@ -19,7 +19,7 @@ type PageResponse struct {
 
 const (
 	_                     = err.ErrCodeModuleRoot + iota
-	ErrCodeInternalError  // 内部错误
+	ErrCodeServerInternal // 内部错误
 	ErrCodeUnauthorized   // 未授权
 	ErrCodeInvalidRequest // 非法请求
 	ErrCodeForbidden      // 拒绝访问
@@ -27,15 +27,15 @@ const (
 )
 
 var (
-	ErrInvalidRequest = err.New("invalid request", ErrCodeInvalidRequest)
-	ErrForbidden      = err.New("forbidden", ErrCodeForbidden)
-	ErrUnauthorized   = err.New("unauthorized", ErrCodeUnauthorized)
+	errInvalidRequest = err.New("invalid request", ErrCodeInvalidRequest)
+	errForbidden      = err.New("forbidden", ErrCodeForbidden)
+	errUnauthorized   = err.New("unauthorized", ErrCodeUnauthorized)
 )
 
-// RespondSuccess respond with data
+// Success respond with data
 // empty args respond with 'ok' message
 // args[0] is the response data
-func RespondSuccess(c *gin.Context, args ...interface{}) {
+func Success(c *gin.Context, args ...interface{}) {
 	var ret Response
 	switch len(args) {
 	case 0:
@@ -46,8 +46,8 @@ func RespondSuccess(c *gin.Context, args ...interface{}) {
 	c.PureJSON(http.StatusOK, ret)
 }
 
-// RespondPages respond with pagination data
-func RespondPages(c *gin.Context, total int64, pages interface{}) {
+// SuccessPages respond with pagination data
+func SuccessPages(c *gin.Context, total int64, pages interface{}) {
 	c.PureJSON(http.StatusOK, PageResponse{
 		Response: Response{
 			Data: pages,
@@ -56,24 +56,24 @@ func RespondPages(c *gin.Context, total int64, pages interface{}) {
 	})
 }
 
-func RespondError(c *gin.Context, err error) {
-	c.PureJSON(http.StatusOK, err2response(err))
+func Failure(c *gin.Context, err error) {
+	c.PureJSON(http.StatusInternalServerError, err2response(err))
 }
 
 func InvalidRequest(c *gin.Context) {
-	c.PureJSON(http.StatusOK, err2response(ErrInvalidRequest))
+	c.PureJSON(http.StatusBadRequest, err2response(errInvalidRequest))
 }
 
 func Forbidden(c *gin.Context) {
-	c.PureJSON(http.StatusForbidden, err2response(ErrForbidden))
+	c.PureJSON(http.StatusForbidden, err2response(errForbidden))
 }
 
 func Unauthorized(c *gin.Context) {
-	c.PureJSON(http.StatusUnauthorized, err2response(ErrUnauthorized))
+	c.PureJSON(http.StatusUnauthorized, err2response(errUnauthorized))
 }
 
 func err2response(e error) *Response {
-	code := ErrCodeInternalError
+	code := ErrCodeServerInternal
 	codeErr, ok := e.(*err.CodeError)
 	if ok {
 		code = codeErr.Code()
