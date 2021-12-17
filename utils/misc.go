@@ -39,3 +39,51 @@ func ReverseInt64Slice(numbers []int64) []int64 {
 	}
 	return numbers
 }
+
+
+// GetSliceData 将传过来的数据转换成[]interface{}
+func GetSliceData(data interface{}) []interface{} {
+  v := reflect.ValueOf(data)
+  if v.Kind() != reflect.Slice {
+    return nil
+  }
+
+  sliceLenth := v.Len()
+  sliceData := make([]interface{}, sliceLenth)
+  for i := 0; i < sliceLenth; i++ {
+    sliceData[i] = v.Index(i).Interface()
+  }
+
+  return sliceData
+}
+
+// GetPagePositions 获取分页的起始值列表
+// @return 返回一个二维数组， 第一维是多少页，第二维是每页[]int{start, end}
+// e,g: 假设11个数的列表，分页pageSize是5，那么返回的是：
+// []int{
+//    []int{0, 5},
+//    []int{5, 10},
+//    []int{10, 11},
+// }
+func GetPagePositions(data interface{}, pageSize int) [][]int {
+  listData := GetSliceData(data)
+  if listData == nil {
+    return nil
+  }
+
+  total := len(listData)
+  totalPage := int(math.Ceil(float64(total) / float64(pageSize)))
+
+  pages := make([][]int, 0)
+  for i := 0; i < totalPage; i++ {
+    start := i * pageSize
+    end := (i + 1) * pageSize
+    if end > total {
+      end = total
+    }
+
+    p := []int{start, end}
+    pages = append(pages, p)
+  }
+  return pages
+}
