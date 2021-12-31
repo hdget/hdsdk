@@ -98,13 +98,13 @@ func (srv *HttpServer) GetRouterGroup(groupName string) *gin.RouterGroup {
 }
 
 // AddRoutes add routes from Route slice
-func (srv *HttpServer) AddRoutes(routes []Route) {
+func (srv *HttpServer) AddRoutes(routes []*Route) {
 	for _, r := range routes {
 		addToRouter(srv.router, r.Method, r.Path, r.Handler)
 	}
 }
 
-func (srv *HttpServer) AddGroupRoutes(groupName string, routes []Route) error {
+func (srv *HttpServer) AddGroupRoutes(groupName string, routes []*Route) error {
 	routerGroup := srv.GetRouterGroup(groupName)
 	if routerGroup == nil {
 		return ErrRouterGroupNotFound
