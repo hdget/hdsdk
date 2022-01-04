@@ -44,3 +44,13 @@ func StringSliceContains(list []string, checkItem string) bool {
 
 	return false
 }
+
+// IsAlphanumeric check if the string contains only letters and numbers. Empty string is valid.
+func IsAlphanumeric(s string) bool {
+	for _, v := range s {
+		if ('Z' < v || v < 'A') && ('z' < v || v < 'a') && ('9' < v || v < '0') {
+			return false
+		}
+	}
+	return true
+}
