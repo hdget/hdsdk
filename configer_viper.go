@@ -133,10 +133,10 @@ func setupEnv(v *viper.Viper, cliEnv string, option ConfigOption) (string, error
 	return envValue, nil
 }
 
-// getDefaultConfigFile 缺省的配置文件路径: <rootdir>/setting/<app>/<app>.<env>.toml
+// getDefaultConfigFile 缺省的配置文件路径: <rootdir>/setting/app/<app>/<app>.<env>.toml
 func getDefaultConfigFile(app, envValue string) string {
 	configFile := fmt.Sprintf("%s.%s.%s", app, envValue, defaultFileOption.Suffix)
-	return path.Join(defaultFileOption.RootDir, app, configFile)
+	return path.Join(defaultFileOption.RootDir, defaultFileOption.BaseDir, app, configFile)
 }
 
 // 从配置文件中读取配置信息
