@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/hdget/hdsdk"
+	"github.com/hdget/hdsdk/lib/wx/typwx"
 	"github.com/pkg/errors"
 )
 
@@ -52,18 +53,20 @@ func (w *implWxoa) requestTicket(accessToken string) (*WxoaTicket, error) {
 	}
 
 	// var ticket WxoaTicket
-	var ticket WxoaTicket
-	err = json.Unmarshal(resp.Body(), &ticket)
-	if err != nil {
-		var errResp struct {
-			ErrMsg string `json:"errmsg"`
+	ticket := &WxoaTicket{}
+	err = json.Unmarshal(resp.Body(), ticket)
+	if ticket.Value == "" {
+		if err != nil {
+			return nil, errors.Wrap(err, "unmarshal to WxoaTicket")
 		}
+
 		// 如果unmarshal请求消息错误,尝试获取错误信息
+		var errResp typwx.WxErrResponse
 		if err := json.Unmarshal(resp.Body(), &errResp); err != nil {
 			hdsdk.Logger.Error("unmarshal wx err response", "err", err)
 		}
 		return nil, errors.New(errResp.ErrMsg)
 	}
 
-	return &ticket, nil
+	return ticket, nil
 }

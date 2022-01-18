@@ -3,6 +3,7 @@ package wxmp
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hdget/hdsdk"
 	"github.com/hdget/hdsdk/lib/wx/typwx"
 	"github.com/hdget/hdsdk/lib/wx/wxmp/cache"
 	"github.com/pkg/errors"
@@ -50,10 +51,19 @@ func (w *implWxmp) Auth(appId, appSecret, code string) (*typwx.WxmpSession, erro
 		return nil, fmt.Errorf("error auth with wechat server, status_code: %d", resp.StatusCode())
 	}
 
-	var session typwx.WxmpSession
-	err = json.Unmarshal(resp.Body(), &session)
-	if err != nil {
-		return nil, err
+	session := &typwx.WxmpSession{}
+	err = json.Unmarshal(resp.Body(), session)
+	if session.SessionKey == "" {
+		if err != nil {
+			return nil, errors.Wrap(err, "unmarshal to WxmpSession")
+		}
+
+		// 如果unmarshal请求消息错误,尝试获取错误信息
+		var errResp typwx.WxErrResponse
+		if err := json.Unmarshal(resp.Body(), &errResp); err != nil {
+			hdsdk.Logger.Error("unmarshal wx err response", "err", err)
+		}
+		return nil, errors.New(errResp.ErrMsg)
 	}
 
 	// 保存到缓存中
@@ -62,7 +72,7 @@ func (w *implWxmp) Auth(appId, appSecret, code string) (*typwx.WxmpSession, erro
 		return nil, err
 	}
 
-	return &session, nil
+	return session, nil
 }
 
 func (w *implWxmp) Decrypt(appId, wxId, encryptedData, iv string) (*typwx.WxmpUserInfo, error) {

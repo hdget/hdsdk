@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hdget/hdsdk"
+	"github.com/hdget/hdsdk/lib/wx/typwx"
 	"github.com/pkg/errors"
 	"gopkg.in/resty.v1"
 )
@@ -16,11 +17,6 @@ const (
 type WxoaAccessToken struct {
 	Value     string `json:"access_token"`
 	ExpiresIn int    `json:"expires_in"`
-}
-
-// WxoaResponse 生成微信的AccessToken
-type WxoaResponse struct {
-	ErrMsg string `json:"errmsg"`
 }
 
 // nolint:errcheck
@@ -58,20 +54,20 @@ func (w *implWxoa) requestAccessToken(appId, appSecret string) (*WxoaAccessToken
 		return nil, err
 	}
 
-	var token WxoaAccessToken
-	err = json.Unmarshal(resp.Body(), &token)
-	if err != nil {
-		var errResp WxoaResponse
+	token := &WxoaAccessToken{}
+	err = json.Unmarshal(resp.Body(), token)
+	if token.Value == "" {
+		if err != nil {
+			return nil, errors.Wrap(err, "unmarshal to WxoaAccessToken")
+		}
+
 		// 如果unmarshal请求消息错误,尝试获取错误信息
+		var errResp typwx.WxErrResponse
 		if err := json.Unmarshal(resp.Body(), &errResp); err != nil {
 			hdsdk.Logger.Error("unmarshal wx err response", "err", err)
 		}
-		return nil, errors.New(errResp.ErrMsg)
-	}
-
-	if token.Value == "" {
 		return nil, fmt.Errorf("empty access token, url: %s, resp: %s", wxUserAccessTokenURL, string(resp.Body()))
 	}
 
-	return &token, nil
+	return token, nil
 }
