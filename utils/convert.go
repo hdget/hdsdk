@@ -2,6 +2,8 @@ package utils
 
 import (
 	jsoniter "github.com/json-iterator/go"
+	"strconv"
+	"strings"
 	"unsafe"
 )
 
@@ -20,7 +22,7 @@ func BytesToString(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 
-// 尝试将值转换成字符串
+// String 尝试将值转换成字符串
 func String(value interface{}) (string, error) {
 	switch reply := value.(type) {
 	case string:
@@ -32,4 +34,52 @@ func String(value interface{}) (string, error) {
 		return "", err
 	}
 	return BytesToString(bs), nil
+}
+
+// CsvToInt64s 将逗号分隔的string尝试转换成[1,2,3...]的int64 slice
+// Csv means Comma Separated Value
+func CsvToInt64s(strValue string) []int64 {
+	if len(strValue) == 0 {
+		return nil
+	}
+
+	tokens := strings.Split(strValue, ",")
+	if len(tokens) == 0 {
+		return nil
+	}
+
+	return ToInt64Slice(tokens)
+}
+
+// Int64sToCsv 将int64 slice转换成用逗号分隔的字符串: 1,2,3
+func Int64sToCsv(int64s []int64) string {
+	return strings.Join(ToStringSlice(int64s), ",")
+}
+
+// ToStringSlice 将int64 slice转换成["1", "2", "3"...]字符串slice
+func ToStringSlice(int64Slice []int64) []string {
+	if len(int64Slice) == 0 {
+		return nil
+	}
+
+	stringList := make([]string, 0)
+	for _, item := range int64Slice {
+		stringList = append(stringList, strconv.FormatInt(item, 10))
+	}
+
+	return stringList
+}
+
+// ToInt64Slice 将string slice转换成[1,2,3...]的int64 slice
+func ToInt64Slice(strSlice []string) []int64 {
+	if len(strSlice) == 0 {
+		return nil
+	}
+	stringList := make([]int64, 0)
+	for _, item := range strSlice {
+		parseInt, _ := strconv.ParseInt(item, 10, 64)
+		stringList = append(stringList, parseInt)
+	}
+
+	return stringList
 }

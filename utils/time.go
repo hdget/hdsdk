@@ -12,8 +12,10 @@ var localBeijing = time.FixedZone("CST", 8*3600)
 func ParseStrTime(value string) (*time.Time, error) {
 	tokens := strings.Split(value, " ")
 
-	layout := "2006-01-02 15:04:05"
+	var layout string
 	switch len(tokens) {
+	case 0:
+		layout = "2006-01-02 15:04:05"
 	case 1:
 		layout = "2006-01-02"
 	default:

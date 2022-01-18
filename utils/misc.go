@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"math"
+	"math/rand"
 	"os"
+	"reflect"
 	"runtime/debug"
 	"time"
-	"math"
-	"reflect"
 )
 
 // RecordErrorStack 将错误信息保存到错误日志文件中
@@ -42,21 +43,20 @@ func ReverseInt64Slice(numbers []int64) []int64 {
 	return numbers
 }
 
-
 // GetSliceData 将传过来的数据转换成[]interface{}
 func GetSliceData(data interface{}) []interface{} {
-  v := reflect.ValueOf(data)
-  if v.Kind() != reflect.Slice {
-    return nil
-  }
+	v := reflect.ValueOf(data)
+	if v.Kind() != reflect.Slice {
+		return nil
+	}
 
-  sliceLenth := v.Len()
-  sliceData := make([]interface{}, sliceLenth)
-  for i := 0; i < sliceLenth; i++ {
-    sliceData[i] = v.Index(i).Interface()
-  }
+	sliceLenth := v.Len()
+	sliceData := make([]interface{}, sliceLenth)
+	for i := 0; i < sliceLenth; i++ {
+		sliceData[i] = v.Index(i).Interface()
+	}
 
-  return sliceData
+	return sliceData
 }
 
 // GetPagePositions 获取分页的起始值列表
@@ -68,24 +68,35 @@ func GetSliceData(data interface{}) []interface{} {
 //    []int{10, 11},
 // }
 func GetPagePositions(data interface{}, pageSize int) [][]int {
-  listData := GetSliceData(data)
-  if listData == nil {
-    return nil
-  }
+	listData := GetSliceData(data)
+	if listData == nil {
+		return nil
+	}
 
-  total := len(listData)
-  totalPage := int(math.Ceil(float64(total) / float64(pageSize)))
+	total := len(listData)
+	totalPage := int(math.Ceil(float64(total) / float64(pageSize)))
 
-  pages := make([][]int, 0)
-  for i := 0; i < totalPage; i++ {
-    start := i * pageSize
-    end := (i + 1) * pageSize
-    if end > total {
-      end = total
-    }
+	pages := make([][]int, 0)
+	for i := 0; i < totalPage; i++ {
+		start := i * pageSize
+		end := (i + 1) * pageSize
+		if end > total {
+			end = total
+		}
 
-    p := []int{start, end}
-    pages = append(pages, p)
-  }
-  return pages
+		p := []int{start, end}
+		pages = append(pages, p)
+	}
+	return pages
+}
+
+// GenerateRandString 生成随机字符串
+func GenerateRandString(n int) string {
+	letterRunes := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	rand.Seed(time.Now().UnixNano())
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }
