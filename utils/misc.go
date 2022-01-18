@@ -9,7 +9,9 @@ import (
 	"os"
 	"reflect"
 	"runtime/debug"
+	"strings"
 	"time"
+	"unicode"
 )
 
 // RecordErrorStack 将错误信息保存到错误日志文件中
@@ -99,4 +101,14 @@ func GenerateRandString(n int) string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 	return string(b)
+}
+
+//RemoveInvisibleCharacter 去除掉不能显示的字符
+func RemoveInvisibleCharacter(origStr string) string {
+	return strings.Map(func(r rune) rune {
+		if unicode.IsGraphic(r) {
+			return r
+		}
+		return -1
+	}, origStr)
 }
