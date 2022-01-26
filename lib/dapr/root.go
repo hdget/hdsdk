@@ -14,6 +14,8 @@ func InvokeOnce(appId, methodName string, data interface{}) ([]byte, error) {
 	switch t := data.(type) {
 	case string:
 		value = utils.StringToBytes(t)
+	case []byte:
+		value = t
 	default:
 		v, err := json.Marshal(data)
 		if err != nil {
@@ -47,6 +49,8 @@ func Invoke(daprClient client.Client, appId, methodName string, data interface{}
 	switch t := data.(type) {
 	case string:
 		value = utils.StringToBytes(t)
+	case []byte:
+		value = t
 	default:
 		v, err := json.Marshal(data)
 		if err != nil {
