@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/dapr/go-sdk/client"
+	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
 )
+
+const ContentTypeJson = "application/json"
 
 // InvokeOnce 调用一次
 func InvokeOnce(appId, methodName string, data interface{}) ([]byte, error) {
@@ -70,4 +73,18 @@ func Invoke(daprClient client.Client, appId, methodName string, data interface{}
 	}
 
 	return ret, nil
+}
+
+// Reply dapr reply
+func Reply(event *common.InvocationEvent, resp interface{}) *common.Content {
+	data, err := json.Marshal(resp)
+	if err != nil {
+		return nil
+	}
+
+	return &common.Content{
+		ContentType: ContentTypeJson,
+		Data:        data,
+		DataTypeURL: event.DataTypeURL,
+	}
 }
