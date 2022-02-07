@@ -17,6 +17,7 @@ type PaginationParam struct {
 const DefaultPageSize = 10
 
 // GetPagination get *Pagination
+// args[0] is default page size
 // then you can use pagination.Paging
 // or pagination.GetSQLClause(total) 去获取分页的limit子句
 func GetPagination(c *gin.Context, args ...int64) *pagination.Pagination {

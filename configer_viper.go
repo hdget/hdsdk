@@ -89,7 +89,7 @@ func LoadConfig(app, cliEnv, cliFile string, args ...ConfigOption) *viper.Viper 
 	// 尝试从远程KV store，例如etcd加载配置信息
 	err = loadFromRemote(v, app, envValue, option)
 	if err != nil {
-		utils.LogError("load config from etcd", "err", err)
+		utils.LogWarn("load config from etcd", "err", err)
 	}
 
 	// 尝试从配置中读取配置信息
