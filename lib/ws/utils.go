@@ -25,5 +25,10 @@ func IsPrivateIp(ipStr string) bool {
 	if address == nil {
 		return false
 	}
+
+	if address.IsLoopback() || address.IsLinkLocalUnicast() || address.IsLinkLocalMulticast() {
+		return true
+	}
+
 	return address.IsPrivate()
 }
