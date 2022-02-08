@@ -31,7 +31,8 @@ func InvokeOnce(appId, methodName string, data interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "new dapr client")
 	}
-	defer daprClient.Close()
+	// IMPORTANT: daprClient是全局的连接, 不能关闭
+	//defer daprClient.Close()
 
 	content := &client.DataContent{
 		ContentType: "application/json",
