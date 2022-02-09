@@ -11,6 +11,7 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gomodule/redigo v1.8.5
 	github.com/hamba/avro v1.5.6
+	github.com/hdget/hdkit v0.0.0-20211215080452-fdad1466680b // indirect
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/json-iterator/go v1.1.12
