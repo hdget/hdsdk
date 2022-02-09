@@ -31,6 +31,10 @@ func InvokeOnce(appId, methodName string, data interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "new dapr client")
 	}
+	if daprClient == nil {
+		return nil, errors.New("dapr client is null, name resolution service may not started, please check it")
+	}
+
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
 	//defer daprClient.Close()
 
@@ -49,6 +53,10 @@ func InvokeOnce(appId, methodName string, data interface{}) ([]byte, error) {
 
 // Invoke 需要传入daprClient去调用
 func Invoke(daprClient client.Client, appId, methodName string, data interface{}) ([]byte, error) {
+	if daprClient == nil {
+		return nil, errors.New("dapr client is null, name resolution service may not started, please check it")
+	}
+
 	var value []byte
 	switch t := data.(type) {
 	case string:
