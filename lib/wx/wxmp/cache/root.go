@@ -7,7 +7,7 @@ import (
 
 const (
 	WXMP_SESSION_KEY         = `wxmp:%s:session`
-	WXMP_SESSION_KEY_EXPIRES = 60 // session key过期时间60秒
+	WXMP_SESSION_KEY_EXPIRES = 3600 // session key过期时间3600秒
 )
 
 type Cache interface {
