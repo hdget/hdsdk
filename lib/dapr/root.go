@@ -11,8 +11,8 @@ import (
 
 const ContentTypeJson = "application/json"
 
-// InvokeOnce 调用一次
-func InvokeOnce(appId, methodName string, data interface{}) ([]byte, error) {
+// InvokeService 调用dapr服务
+func InvokeService(appId, methodName string, data interface{}) ([]byte, error) {
 	var value []byte
 	switch t := data.(type) {
 	case string:
@@ -51,8 +51,8 @@ func InvokeOnce(appId, methodName string, data interface{}) ([]byte, error) {
 	return resp, nil
 }
 
-// Invoke 需要传入daprClient去调用
-func Invoke(daprClient client.Client, appId, methodName string, data interface{}) ([]byte, error) {
+// InvokeServiceWithClient 需要传入daprClient去调用
+func InvokeServiceWithClient(daprClient client.Client, appId, methodName string, data interface{}) ([]byte, error) {
 	if daprClient == nil {
 		return nil, errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
