@@ -6,14 +6,13 @@ import (
 )
 
 const (
-	WXMP_SESSION_KEY = `wxmp:%s:session:%s`
-	// session key过期时间60秒
-	WXMP_SESSION_KEY_EXPIRES = 60
+	WXMP_SESSION_KEY         = `wxmp:%s:session`
+	WXMP_SESSION_KEY_EXPIRES = 60 // session key过期时间60秒
 )
 
 type Cache interface {
-	GetSessKey(appId, wxId string) (string, error)
-	SetSessKey(appId, wxId, sessKey string) error
+	GetSessKey(appId string) (string, error)
+	SetSessKey(appId, sessKey string) error
 }
 
 type implCache struct{}
@@ -24,14 +23,14 @@ func New() Cache {
 	return &implCache{}
 }
 
-func (impl *implCache) GetSessKey(appId, wxId string) (string, error) {
-	return hdsdk.Redis.My().GetString(getSessionKey(appId, wxId))
+func (impl *implCache) GetSessKey(appId string) (string, error) {
+	return hdsdk.Redis.My().GetString(getSessionKey(appId))
 }
 
-func (impl *implCache) SetSessKey(appId, wxId, sessKey string) error {
-	return hdsdk.Redis.My().SetEx(getSessionKey(appId, wxId), sessKey, WXMP_SESSION_KEY_EXPIRES)
+func (impl *implCache) SetSessKey(appId, sessKey string) error {
+	return hdsdk.Redis.My().SetEx(getSessionKey(appId), sessKey, WXMP_SESSION_KEY_EXPIRES)
 }
 
-func getSessionKey(appId, wxId string) string {
-	return fmt.Sprintf(WXMP_SESSION_KEY, appId, wxId)
+func getSessionKey(appId string) string {
+	return fmt.Sprintf(WXMP_SESSION_KEY, appId)
 }

@@ -4,9 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
-	"github.com/hdget/hdsdk/lib/wx/typwx"
 )
 
 var (
@@ -17,7 +15,7 @@ var (
 )
 
 // 解密加密信息获取微信用户信息
-func decrypt(appId, sessionKey, encryptedData, iv string) (*typwx.WxmpUserInfo, error) {
+func decrypt(appId, sessionKey, encryptedData, iv string) ([]byte, error) {
 	aesKey, err := base64.StdEncoding.DecodeString(sessionKey)
 	if err != nil {
 		return nil, err
@@ -40,15 +38,7 @@ func decrypt(appId, sessionKey, encryptedData, iv string) (*typwx.WxmpUserInfo, 
 	if err != nil {
 		return nil, err
 	}
-	var userInfo typwx.WxmpUserInfo
-	err = json.Unmarshal(cipherText, &userInfo)
-	if err != nil {
-		return nil, err
-	}
-	if userInfo.Watermark.AppID != appId {
-		return nil, ErrAppIDNotMatch
-	}
-	return &userInfo, nil
+	return cipherText, nil
 }
 
 // pkcs7Unpad returns slice of the original data without padding

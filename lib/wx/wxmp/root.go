@@ -13,7 +13,8 @@ import (
 type Wxmp interface {
 	// 校验凭证
 	Auth(appId, appSecret, code string) (*typwx.WxmpSession, error)
-	Decrypt(appId, sessionKey, encryptedData, iv string) (*typwx.WxmpUserInfo, error)
+	DecryptUserInfo(appId, encryptedData, iv string) (*typwx.WxmpUserInfo, error)
+	DecryptMobileInfo(appId, encryptedData, iv string) (*typwx.WxmpMobileInfo, error)
 }
 
 type implWxmp struct{}
@@ -67,7 +68,7 @@ func (w *implWxmp) Auth(appId, appSecret, code string) (*typwx.WxmpSession, erro
 	}
 
 	// 保存到缓存中
-	err = _cache.SetSessKey(appId, session.UnionId, session.SessionKey)
+	err = _cache.SetSessKey(appId, session.SessionKey)
 	if err != nil {
 		return nil, err
 	}
@@ -75,11 +76,46 @@ func (w *implWxmp) Auth(appId, appSecret, code string) (*typwx.WxmpSession, erro
 	return session, nil
 }
 
-func (w *implWxmp) Decrypt(appId, wxId, encryptedData, iv string) (*typwx.WxmpUserInfo, error) {
-	sessKey, err := _cache.GetSessKey(appId, wxId)
+func (w *implWxmp) DecryptUserInfo(appId, encryptedData, iv string) (*typwx.WxmpUserInfo, error) {
+	sessKey, err := _cache.GetSessKey(appId)
 	if err != nil {
 		return nil, errors.Wrap(err, "session key not found, you should invoke wx.login() firstly")
 	}
 
-	return decrypt(appId, sessKey, encryptedData, iv)
+	cipherText, err := decrypt(appId, sessKey, encryptedData, iv)
+	if err != nil {
+		return nil, errors.Wrap(err, "decrypt encrypted data")
+	}
+
+	var userInfo typwx.WxmpUserInfo
+	err = json.Unmarshal(cipherText, &userInfo)
+	if err != nil {
+		return nil, errors.Wrap(err, "unmarshal to WxmpUserInfo")
+	}
+
+	if userInfo.Watermark.AppId != appId {
+		return nil, ErrAppIDNotMatch
+	}
+
+	return &userInfo, nil
+}
+
+func (w *implWxmp) DecryptMobileInfo(appId, encryptedData, iv string) (*typwx.WxmpMobileInfo, error) {
+	sessKey, err := _cache.GetSessKey(appId)
+	if err != nil {
+		return nil, errors.Wrap(err, "session key not found, you should invoke wx.login() firstly")
+	}
+
+	cipherText, err := decrypt(appId, sessKey, encryptedData, iv)
+	if err != nil {
+		return nil, errors.Wrap(err, "decrypt encrypted data")
+	}
+
+	var mobileInfo typwx.WxmpMobileInfo
+	err = json.Unmarshal(cipherText, &mobileInfo)
+	if err != nil {
+		return nil, errors.Wrap(err, "unmarshal to WxmpUserInfo")
+	}
+
+	return &mobileInfo, nil
 }

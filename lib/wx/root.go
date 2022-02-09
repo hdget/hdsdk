@@ -24,9 +24,14 @@ func WxmpAuth(appId, appSecret, code string) (string, string, error) {
 	return session.OpenId, session.UnionId, nil
 }
 
-// WxmpDecrypt 微信小程序解密
-func WxmpDecrypt(appId, wxId, encryptedData, iv string) (*typwx.WxmpUserInfo, error) {
-	return _wxmp.Decrypt(appId, wxId, encryptedData, iv)
+// WxmpDecryptUserInfo 微信小程序解密用户信息
+func WxmpDecryptUserInfo(appId, encryptedData, iv string) (*typwx.WxmpUserInfo, error) {
+	return _wxmp.DecryptUserInfo(appId, encryptedData, iv)
+}
+
+// WxmpDecryptMobileInfo 微信小程序解密手机信息
+func WxmpDecryptMobileInfo(appId, encryptedData, iv string) (*typwx.WxmpMobileInfo, error) {
+	return _wxmp.DecryptMobileInfo(appId, encryptedData, iv)
 }
 
 // WxqrGetWxId 微信二维码扫码登录

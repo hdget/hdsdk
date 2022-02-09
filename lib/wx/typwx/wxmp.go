@@ -12,11 +12,21 @@ type WxmpUserInfo struct {
 	Language  string `json:"language"`
 	Watermark struct {
 		Timestamp int64  `json:"timestamp"`
-		AppID     string `json:"appid"`
+		AppId     string `json:"appid"`
 	} `json:"watermark"`
 }
 
-// wechat miniprogram login session
+type WxmpMobileInfo struct {
+	PhoneNumber     string `json:"phoneNumber"`
+	PurePhoneNumber string `json:"purePhoneNumber"`
+	CountryCode     string `json:"countryCode"`
+	Watermark       struct {
+		AppId     string      `json:"appid"`
+		Timestamp interface{} `json:"timestamp"`
+	} `json:"watermark"`
+}
+
+// WxmpSession wechat miniprogram login session
 type WxmpSession struct {
 	SessionKey string `json:"session_key"`
 	OpenId     string `json:"openid"`
