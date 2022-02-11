@@ -72,25 +72,25 @@ func (p *Pagination) GetSQLClause(total int64) string {
 }
 
 // CalculatePages 计算页面，获取带有起始值的页面的数组
-// @return 返回一个二维数组， 第一维是多少页，第二维是每页[]int{start, end}
+// @return 返回一个二维数组， 第一维是多少页，第二维是每页[]int64{start, end}
 // e,g: 假设11个数的列表，分页pageSize是5，那么返回的是：
-// []int{
-//    []int{0, 5},
-//    []int{5, 10},
-//    []int{10, 11},
+// []int64{
+//    []int64{0, 5},
+//    []int64{5, 10},
+//    []int64{10, 11},
 // }
-func CalculatePages(total, pageSize int) [][]int {
-	totalPage := int(math.Ceil(float64(total) / float64(pageSize)))
+func CalculatePages(total, pageSize int64) [][]int64 {
+	totalPage := int64(math.Ceil(float64(total) / float64(pageSize)))
 
-	pages := make([][]int, 0)
-	for i := 0; i < totalPage; i++ {
+	pages := make([][]int64, 0)
+	for i := int64(0); i < totalPage; i++ {
 		start := i * pageSize
 		end := (i + 1) * pageSize
 		if end > total {
 			end = total
 		}
 
-		p := []int{start, end}
+		p := []int64{start, end}
 		pages = append(pages, p)
 	}
 	return pages
