@@ -82,7 +82,7 @@ func Unauthorized(c *gin.Context) {
 
 func err2response(e error) *Response {
 	code := ErrCodeServerInternal
-	codeErr, ok := e.(*err.CodeError)
+	codeErr, ok := e.(err.CodeError)
 	if ok {
 		code = codeErr.Code()
 	}

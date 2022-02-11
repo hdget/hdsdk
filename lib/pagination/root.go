@@ -41,6 +41,13 @@ func (p *Pagination) Paging(data interface{}) (int64, []interface{}) {
 	return total, sliceData[start:end]
 }
 
+// GenLimitClause 生成limit sql子句
+func (p *Pagination) GenLimitClause() string {
+	start := (p.page - 1) * p.pageSize
+	end := p.page * p.pageSize
+	return fmt.Sprintf("LIMIT %d, %d", start, end)
+}
+
 // GetSQLClause 获取翻页SQL查询语句
 //
 // 1. 假如前端没有传过来last_pk, 那么返回值是 last_pk, LIMIT子句(LIMIT offset, pageSize)
