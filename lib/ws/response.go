@@ -46,6 +46,11 @@ func Success(c *gin.Context, args ...interface{}) {
 	c.PureJSON(http.StatusOK, ret)
 }
 
+// SuccessRaw respond with raw data
+func SuccessRaw(c *gin.Context, args ...interface{}) {
+	c.PureJSON(http.StatusOK, args)
+}
+
 // SuccessPages respond with pagination data
 func SuccessPages(c *gin.Context, total int64, pages interface{}) {
 	c.PureJSON(http.StatusOK, PageResponse{
