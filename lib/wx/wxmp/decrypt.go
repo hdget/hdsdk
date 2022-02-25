@@ -4,7 +4,9 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
-	"errors"
+	"encoding/json"
+	"github.com/hdget/hdsdk/lib/wx/typwx"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -13,6 +15,50 @@ var (
 	ErrInvalidPKCS7Data    = errors.New("invalid PKCS7 data")
 	ErrInvalidPKCS7Padding = errors.New("invalid padding on input")
 )
+
+func (w *implWxmp) DecryptUserInfo(appId, encryptedData, iv string) (*typwx.WxmpUserInfo, error) {
+	sessKey, err := _cache.GetSessKey(appId)
+	if err != nil {
+		return nil, errors.Wrap(err, "session key not found, you should invoke wx.login() firstly")
+	}
+
+	cipherText, err := decrypt(appId, sessKey, encryptedData, iv)
+	if err != nil {
+		return nil, errors.Wrap(err, "decrypt encrypted data")
+	}
+
+	var userInfo typwx.WxmpUserInfo
+	err = json.Unmarshal(cipherText, &userInfo)
+	if err != nil {
+		return nil, errors.Wrap(err, "unmarshal to WxmpUserInfo")
+	}
+
+	if userInfo.Watermark.AppId != appId {
+		return nil, ErrAppIDNotMatch
+	}
+
+	return &userInfo, nil
+}
+
+func (w *implWxmp) DecryptMobileInfo(appId, encryptedData, iv string) (*typwx.WxmpMobileInfo, error) {
+	sessKey, err := _cache.GetSessKey(appId)
+	if err != nil {
+		return nil, errors.Wrap(err, "session key not found, you should invoke wx.login() firstly")
+	}
+
+	cipherText, err := decrypt(appId, sessKey, encryptedData, iv)
+	if err != nil {
+		return nil, errors.Wrap(err, "decrypt encrypted data")
+	}
+
+	var mobileInfo typwx.WxmpMobileInfo
+	err = json.Unmarshal(cipherText, &mobileInfo)
+	if err != nil {
+		return nil, errors.Wrap(err, "unmarshal to WxmpUserInfo")
+	}
+
+	return &mobileInfo, nil
+}
 
 // 解密加密信息获取微信用户信息
 func decrypt(appId, sessionKey, encryptedData, iv string) ([]byte, error) {

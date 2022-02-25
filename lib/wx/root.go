@@ -14,7 +14,7 @@ var (
 	_wxoa = wxoa.New()
 )
 
-// 小程序凭证校验, 返回openid, unionid
+// WxmpAuth 小程序凭证校验, 返回openid, unionid
 func WxmpAuth(appId, appSecret, code string) (string, string, error) {
 	session, err := _wxmp.Auth(appId, appSecret, code)
 	if err != nil {
