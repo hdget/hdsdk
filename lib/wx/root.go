@@ -34,11 +34,11 @@ func WxmpDecryptMobileInfo(appId, encryptedData, iv string) (*typwx.WxmpMobileIn
 	return _wxmp.DecryptMobileInfo(appId, encryptedData, iv)
 }
 
-func WxmpCreateLimitedWxaCode(appId, appSecret, path string, args ...wxmp.Param) (interface{}, error) {
+func WxmpCreateLimitedWxaCode(appId, appSecret, path string, args ...wxmp.Param) ([]byte, error) {
 	return _wxmp.CreateLimitedWxaCode(appId, appSecret, path, args...)
 }
 
-func WxmpCreateUnLimitedWxaCode(appId, appSecret, scene, page string, args ...wxmp.Param) (interface{}, error) {
+func WxmpCreateUnLimitedWxaCode(appId, appSecret, scene, page string, args ...wxmp.Param) ([]byte, error) {
 	return _wxmp.CreateUnLimitedWxaCode(appId, appSecret, scene, page, args...)
 }
 
