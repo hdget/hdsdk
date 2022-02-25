@@ -53,7 +53,11 @@ type CommonWxaCodeParam struct {
 	// auto_color 自动配置线条颜色，如果颜色依然是黑色，则说明不建议配置主色调
 	AutoColor bool `json:"auto_color"`
 	// auto_color 为 false 时生效，使用 rgb 设置颜色 例如 {"r":"xxx","g":"xxx","b":"xxx"} 十进制表示
-	LineColor bool `json:"line_color"`
+	LineColor struct {
+		R int `json:"r"`
+		G int `json:"g"`
+		B int `json:"b"`
+	} `json:"line_color"`
 	// 是否需要透明底色，为 true 时，生成透明底色的小程序码
 	IsHyaline bool `json:"is_hyaline"`
 }
@@ -75,7 +79,7 @@ type UnLimitedWxaCodeParam struct {
 	*CommonWxaCodeParam
 }
 
-type WxmpWxaCodeResult struct {
+type WxmpWxaCodeError struct {
 	Errcode     int         `json:"errcode"`
 	Errmsg      string      `json:"errmsg"`
 	ContentType string      `json:"contentType"`

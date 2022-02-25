@@ -15,8 +15,8 @@ type Wxmp interface {
 	Auth(appId, appSecret, code string) (*typwx.WxmpSession, error)
 	DecryptUserInfo(appId, encryptedData, iv string) (*typwx.WxmpUserInfo, error)
 	DecryptMobileInfo(appId, encryptedData, iv string) (*typwx.WxmpMobileInfo, error)
-	CreateLimitedWxaCode(appId, appSecret, path string, args ...Param) (interface{}, error)
-	CreateUnLimitedWxaCode(appId, appSecret, scene, page string, args ...Param) (interface{}, error)
+	CreateLimitedWxaCode(appId, appSecret, path string, args ...Param) ([]byte, error)
+	CreateUnLimitedWxaCode(appId, appSecret, scene, page string, args ...Param) ([]byte, error)
 }
 
 type implWxmp struct{}

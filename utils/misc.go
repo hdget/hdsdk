@@ -112,3 +112,21 @@ func RemoveInvisibleCharacter(origStr string) string {
 		return -1
 	}, origStr)
 }
+
+// IsImageData 是否是图像数据
+func IsImageData(data []byte) bool {
+	// image formats and magic numbers
+	var magicTable = map[string]string{
+		"\xff\xd8\xff":      "image/jpeg",
+		"\x89PNG\r\n\x1a\n": "image/png",
+		"GIF87a":            "image/gif",
+		"GIF89a":            "image/gif",
+	}
+	s := BytesToString(data)
+	for magic := range magicTable {
+		if strings.HasPrefix(s, magic) {
+			return true
+		}
+	}
+	return false
+}

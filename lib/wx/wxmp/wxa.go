@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/hdget/hdsdk/lib/wx/typwx"
-	"github.com/pkg/errors"
+	"github.com/hdget/hdsdk/utils"
 )
 
 type Param func(param *typwx.CommonWxaCodeParam)
 
 // CreateLimitedWxaCode 创建小程序码
-func (impl *implWxmp) CreateLimitedWxaCode(appId, appSecret, path string, args ...Param) (interface{}, error) {
+func (impl *implWxmp) CreateLimitedWxaCode(appId, appSecret, path string, args ...Param) ([]byte, error) {
 	accessToken, err := impl.getAccessToken(appId, appSecret)
 	if err != nil {
 		return nil, err
@@ -22,6 +22,8 @@ func (impl *implWxmp) CreateLimitedWxaCode(appId, appSecret, path string, args .
 		Path: path,
 		CommonWxaCodeParam: &typwx.CommonWxaCodeParam{
 			EnvVersion: "release",
+			Width:      430,
+			AutoColor:  true,
 		},
 	}
 	for _, arg := range args {
@@ -35,21 +37,20 @@ func (impl *implWxmp) CreateLimitedWxaCode(appId, appSecret, path string, args .
 		return nil, err
 	}
 
-	var result typwx.WxmpWxaCodeResult
-	err = json.Unmarshal(resp.Body(), &result)
-	if err != nil {
-		return nil, errors.New("invalid wxmp wxa code result")
+	// 如果不是图像数据，那就是json错误数据
+	if !utils.IsImageData(resp.Body()) {
+		var errResult typwx.WxmpWxaCodeError
+		err = json.Unmarshal(resp.Body(), &errResult)
+		if err == nil {
+			return nil, err
+		}
 	}
 
-	if result.Errcode != 0 {
-		return nil, errors.New(result.Errmsg)
-	}
-
-	return result.Buffer, nil
+	return resp.Body(), nil
 }
 
 // CreateUnLimitedWxaCode 创建小程序码
-func (impl *implWxmp) CreateUnLimitedWxaCode(appId, appSecret, scene, page string, args ...Param) (interface{}, error) {
+func (impl *implWxmp) CreateUnLimitedWxaCode(appId, appSecret, scene, page string, args ...Param) ([]byte, error) {
 	accessToken, err := impl.getAccessToken(appId, appSecret)
 	if err != nil {
 		return nil, err
@@ -61,6 +62,8 @@ func (impl *implWxmp) CreateUnLimitedWxaCode(appId, appSecret, scene, page strin
 		Page:  page,
 		CommonWxaCodeParam: &typwx.CommonWxaCodeParam{
 			EnvVersion: "release",
+			Width:      430,
+			AutoColor:  true,
 		},
 	}
 	for _, arg := range args {
@@ -74,17 +77,16 @@ func (impl *implWxmp) CreateUnLimitedWxaCode(appId, appSecret, scene, page strin
 		return nil, err
 	}
 
-	var result typwx.WxmpWxaCodeResult
-	err = json.Unmarshal(resp.Body(), &result)
-	if err != nil {
-		return nil, errors.New("invalid wxmp wxa code result")
+	// 如果不是图像数据，那就是json错误数据
+	if !utils.IsImageData(resp.Body()) {
+		var errResult typwx.WxmpWxaCodeError
+		err = json.Unmarshal(resp.Body(), &errResult)
+		if err == nil {
+			return nil, err
+		}
 	}
 
-	if result.Errcode != 0 {
-		return nil, errors.New(result.Errmsg)
-	}
-
-	return result.Buffer, nil
+	return resp.Body(), nil
 }
 
 func Trial(param *typwx.CommonWxaCodeParam) {
