@@ -4,17 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
-	"github.com/hdget/hdsdk"
 	"github.com/hdget/hdsdk/lib/wx/typwx"
 	"github.com/pkg/errors"
 )
 
 func (impl *implWxmp) getAccessToken(appId, appSecret string) (string, error) {
 	// 尝试从缓存中获取access token
-	cachedAccessToken, err := _cache.GetAccessToken(appId)
-	if err != nil {
-		hdsdk.Logger.Warn("find access token in cache", "err", err)
-	}
+	cachedAccessToken, _ := _cache.GetAccessToken(appId)
 	if cachedAccessToken != "" {
 		return cachedAccessToken, nil
 	}

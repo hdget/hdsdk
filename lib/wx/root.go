@@ -34,6 +34,14 @@ func WxmpDecryptMobileInfo(appId, encryptedData, iv string) (*typwx.WxmpMobileIn
 	return _wxmp.DecryptMobileInfo(appId, encryptedData, iv)
 }
 
+func WxmpCreateLimitedWxaCode(appId, appSecret, path string, args ...wxmp.Param) (interface{}, error) {
+	return _wxmp.CreateLimitedWxaCode(appId, appSecret, path, args...)
+}
+
+func WxmpCreateUnLimitedWxaCode(appId, appSecret, scene, page string, args ...wxmp.Param) (interface{}, error) {
+	return _wxmp.CreateUnLimitedWxaCode(appId, appSecret, scene, page, args...)
+}
+
 // WxqrGetWxId 微信二维码扫码登录
 func WxqrGetWxId(appId, appSecret, code string) (string, string, error) {
 	return _wxqr.GetWxId(appId, appSecret, code)
