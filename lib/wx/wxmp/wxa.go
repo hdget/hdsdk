@@ -1,11 +1,11 @@
 package wxmp
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/hdget/hdsdk/lib/wx/typwx"
 	"github.com/hdget/hdsdk/utils"
+	"github.com/pkg/errors"
 )
 
 type Param func(param *typwx.CommonWxaCodeParam)
@@ -39,11 +39,7 @@ func (impl *implWxmp) CreateLimitedWxaCode(appId, appSecret, path string, args .
 
 	// 如果不是图像数据，那就是json错误数据
 	if !utils.IsImageData(resp.Body()) {
-		var errResult typwx.WxmpWxaCodeError
-		err = json.Unmarshal(resp.Body(), &errResult)
-		if err == nil {
-			return nil, err
-		}
+		return nil, errors.New(utils.BytesToString(resp.Body()))
 	}
 
 	return resp.Body(), nil
@@ -79,11 +75,7 @@ func (impl *implWxmp) CreateUnLimitedWxaCode(appId, appSecret, scene, page strin
 
 	// 如果不是图像数据，那就是json错误数据
 	if !utils.IsImageData(resp.Body()) {
-		var errResult typwx.WxmpWxaCodeError
-		err = json.Unmarshal(resp.Body(), &errResult)
-		if err == nil {
-			return nil, err
-		}
+		return nil, errors.New(utils.BytesToString(resp.Body()))
 	}
 
 	return resp.Body(), nil

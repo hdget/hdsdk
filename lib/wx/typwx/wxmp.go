@@ -78,10 +78,3 @@ type UnLimitedWxaCodeParam struct {
 	CheckPath bool   `json:"check_path"`
 	*CommonWxaCodeParam
 }
-
-type WxmpWxaCodeError struct {
-	Errcode     int         `json:"errcode"`
-	Errmsg      string      `json:"errmsg"`
-	ContentType string      `json:"contentType"`
-	Buffer      interface{} `json:"buffer"`
-}
