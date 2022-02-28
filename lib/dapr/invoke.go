@@ -7,12 +7,13 @@ import (
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc/metadata"
 )
 
 const ContentTypeJson = "application/json"
 
 // InvokeService 调用dapr服务
-func InvokeService(appId, methodName string, data interface{}) ([]byte, error) {
+func InvokeService(appId, methodName string, data interface{}, args ...string) ([]byte, error) {
 	var value []byte
 	switch t := data.(type) {
 	case string:
@@ -37,13 +38,19 @@ func InvokeService(appId, methodName string, data interface{}) ([]byte, error) {
 
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
 	//defer daprClient.Close()
+	// 添加额外的meta信息
+	ctx := context.Background()
+	if len(args) > 0 {
+		md := metadata.Pairs(args...)
+		ctx = metadata.NewOutgoingContext(ctx, md)
+	}
 
 	content := &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
 	}
 
-	resp, err := daprClient.InvokeMethodWithContent(context.Background(), appId, methodName, "post", content)
+	resp, err := daprClient.InvokeMethodWithContent(ctx, appId, methodName, "post", content)
 	if err != nil {
 		return nil, errors.Wrapf(err, "dapr invoke method with content, app:%s, method: %s, content: %s", appId, methodName, utils.BytesToString(value))
 	}
@@ -52,7 +59,7 @@ func InvokeService(appId, methodName string, data interface{}) ([]byte, error) {
 }
 
 // InvokeServiceWithClient 需要传入daprClient去调用
-func InvokeServiceWithClient(daprClient client.Client, appId, methodName string, data interface{}) ([]byte, error) {
+func InvokeServiceWithClient(daprClient client.Client, appId, methodName string, data interface{}, args ...string) ([]byte, error) {
 	if daprClient == nil {
 		return nil, errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
@@ -71,12 +78,19 @@ func InvokeServiceWithClient(daprClient client.Client, appId, methodName string,
 		value = v
 	}
 
+	// 添加额外的meta信息
+	ctx := context.Background()
+	if len(args) > 0 {
+		md := metadata.Pairs(args...)
+		ctx = metadata.NewOutgoingContext(ctx, md)
+	}
+
 	content := &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
 	}
 
-	ret, err := daprClient.InvokeMethodWithContent(context.Background(), appId, methodName, "post", content)
+	ret, err := daprClient.InvokeMethodWithContent(ctx, appId, methodName, "post", content)
 	if err != nil {
 		return nil, errors.Wrapf(err, "dapr invoke method with content, app:%s, method: %s, content: %s", appId, methodName, utils.BytesToString(value))
 	}
@@ -96,4 +110,13 @@ func Reply(event *common.InvocationEvent, resp interface{}) *common.Content {
 		Data:        data,
 		DataTypeURL: event.DataTypeURL,
 	}
+}
+
+// GetMeta get grpc meta
+func GetMeta(ctx context.Context, key string) []string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil
+	}
+	return md.Get(key)
 }
