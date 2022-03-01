@@ -20,7 +20,7 @@ type OssPolicyConfig struct {
 	Conditions [][]string `json:"conditions"`
 }
 
-type Signature struct {
+type OssSignature struct {
 	AccessKeyId string
 	Host        string
 	Expire      int64
@@ -77,7 +77,7 @@ func (a *AliOss) Upload(bucket, dir, fileName string, data []byte) (string, erro
 }
 
 // GenSignature 生成oss直传token
-func (a *AliOss) GenSignature(dir, filename string) (*Signature, error) {
+func (a *AliOss) GenSignature(dir, filename string) (*OssSignature, error) {
 	expiresIn := time.Now().Unix() + DefaultExpireTime
 	policyData, err := getPolicyData(dir, expiresIn)
 	if err != nil {
@@ -94,7 +94,7 @@ func (a *AliOss) GenSignature(dir, filename string) (*Signature, error) {
 
 	signedStr := base64.StdEncoding.EncodeToString(h.Sum(nil))
 
-	return &Signature{
+	return &OssSignature{
 		AccessKeyId: a.AccessKey,
 		Host:        a.Domain,
 		Expire:      expiresIn,
