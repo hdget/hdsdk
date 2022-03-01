@@ -1,4 +1,4 @@
-package alidts
+package aliyun
 
 const ALIYUN_DTS_SCHEMA = `
 {

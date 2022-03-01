@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/Shopify/sarama v1.29.1
+	github.com/aliyun/aliyun-oss-go-sdk v2.0.7+incompatible
 	github.com/dapr/go-sdk v1.3.0
 	github.com/gin-gonic/gin v1.7.4
 	github.com/go-kit/kit v0.11.0

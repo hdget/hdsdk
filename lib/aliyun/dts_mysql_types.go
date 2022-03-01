@@ -1,4 +1,4 @@
-package alidts
+package aliyun
 
 const (
 	MYSQL_TYPE_DECIMAL = iota

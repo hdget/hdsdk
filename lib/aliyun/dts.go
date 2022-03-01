@@ -1,4 +1,4 @@
-package alidts
+package aliyun
 
 import (
 	"github.com/hamba/avro"

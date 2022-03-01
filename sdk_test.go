@@ -3,10 +3,10 @@ package hdsdk
 import (
 	"bytes"
 	"fmt"
+	"github.com/hdget/hdsdk/lib/aliyun"
 	"github.com/hdget/hdsdk/provider/mq/rabbitmq"
 	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdsdk/utils"
-	"github.com/hdget/hdsdk/utils/alidts"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -549,7 +549,7 @@ func BenchmarkHamba(b *testing.B) {
 }
 
 func parseByHamba() {
-	dts, err := alidts.New()
+	dts, err := aliyun.New()
 	if err != nil {
 		utils.LogFatal("new alidts", "err", err)
 	}
@@ -566,7 +566,7 @@ func parseByHamba() {
 }
 
 func TestUtilsAlidts(t *testing.T) {
-	dts, err := alidts.New()
+	dts, err := aliyun.New()
 	if err != nil {
 		utils.LogFatal("new alidts", "err", err)
 	}
@@ -596,8 +596,8 @@ func dtsHandler(data []byte) types.MqMsgAction {
 	return types.Ack
 }
 
-func parseDtsData(data []byte) *alidts.DtsRecord {
-	dts, err := alidts.New()
+func parseDtsData(data []byte) *aliyun.DtsRecord {
+	dts, err := aliyun.New()
 	if err != nil {
 		utils.LogError("err new alidts")
 		return nil
