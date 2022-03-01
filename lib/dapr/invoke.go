@@ -112,11 +112,24 @@ func Reply(event *common.InvocationEvent, resp interface{}) *common.Content {
 	}
 }
 
-// GetMeta get grpc meta
-func GetMeta(ctx context.Context, key string) []string {
+// GetMetaValues get grpc meta values
+func GetMetaValues(ctx context.Context, key string) []string {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil
 	}
 	return md.Get(key)
+}
+
+// GetMetaValue get the first grpc meta value
+func GetMetaValue(ctx context.Context, key string) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+	values := md.Get(key)
+	if len(values) == 0 {
+		return ""
+	}
+	return values[0]
 }
