@@ -121,14 +121,23 @@ func loadFromEnv(v *viper.Viper, option ConfigOption) {
 // 设置环境变量, 首先从命令行读取env, 如果未读到合法的env，尝试从环境变量runtime中去获取环境变量
 func setupEnv(v *viper.Viper, cliEnv string, option ConfigOption) (string, error) {
 	envValue := cliEnv
-	if exist := utils.StringSliceContains(types.SupportedEnvs, envValue); !exist {
+	if cliEnv == "" {
 		// 从环境变量通过读取env_name来获取env的值
 		envValue = v.GetString(option.Env.Name)
 	}
 
-	if exist := utils.StringSliceContains(types.SupportedEnvs, envValue); !exist {
-		return "", errors.Errorf("invalid env: %s, supported envs is: %v", envValue, types.SupportedEnvs)
+	if envValue == "" {
+		return "", errors.New("env not found")
 	}
+
+	//if exist := utils.StringSliceContains(types.SupportedEnvs, envValue); !exist {
+	//	// 从环境变量通过读取env_name来获取env的值
+	//	envValue = v.GetString(option.Env.Name)
+	//}
+	//
+	//if exist := utils.StringSliceContains(types.SupportedEnvs, envValue); !exist {
+	//	return "", errors.Errorf("invalid env: %s, supported envs is: %v", envValue, types.SupportedEnvs)
+	//}
 
 	return envValue, nil
 }
