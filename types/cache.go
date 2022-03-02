@@ -44,6 +44,7 @@ type CacheClient interface {
 	HMSet(key string, args map[string]interface{}) error
 	HDel(key string, field interface{}) (int, error)
 	HDels(key string, fields []interface{}) (int, error)
+	HLen(key string) (int, error)
 
 	// set
 	SIsMember(key string, member interface{}) (bool, error)
