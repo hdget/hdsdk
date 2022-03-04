@@ -78,6 +78,9 @@ func decrypt(appId, sessionKey, encryptedData, iv string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(iv) != block.BlockSize() {
+		return nil, errors.New("cipher.NewCBCDecrypter: IV length must equal block size")
+	}
 	mode := cipher.NewCBCDecrypter(block, ivBytes)
 	mode.CryptBlocks(cipherText, cipherText)
 	cipherText, err = pkcs7Unpad(cipherText, block.BlockSize())
