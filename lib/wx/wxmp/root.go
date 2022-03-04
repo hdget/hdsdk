@@ -17,6 +17,7 @@ type Wxmp interface {
 	DecryptMobileInfo(appId, encryptedData, iv string) (*typwx.WxmpMobileInfo, error)
 	CreateLimitedWxaCode(appId, appSecret, path string, args ...Param) ([]byte, error)
 	CreateUnLimitedWxaCode(appId, appSecret, scene, page string, args ...Param) ([]byte, error)
+	GetUserPhoneNumber(appId, appSecret, code string) (*typwx.WxmpMobileInfo, error)
 }
 
 type implWxmp struct{}
@@ -76,4 +77,37 @@ func (w *implWxmp) Auth(appId, appSecret, code string) (*typwx.WxmpSession, erro
 	}
 
 	return session, nil
+}
+
+func (impl *implWxmp) GetUserPhoneNumber(appId, appSecret, code string) (*typwx.WxmpMobileInfo, error) {
+	accessToken, err := impl.getAccessToken(appId, appSecret)
+	if err != nil {
+		return nil, errors.Wrap(err, "get access token")
+	}
+
+	url := fmt.Sprintf("https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=%s", accessToken)
+	client := resty.New()
+
+	body := struct {
+		Code string `json:"code"`
+	}{
+		Code: code,
+	}
+
+	resp, err := client.R().SetBody(body).Post(url)
+	if err != nil {
+		return nil, err
+	}
+
+	var result typwx.WxmpMobileResult
+	err = json.Unmarshal(resp.Body(), &result)
+	if err != nil {
+		return nil, errors.New("invalid wxmp access token result")
+	}
+
+	if result.Errcode != 0 {
+		return nil, errors.New(result.Errmsg)
+	}
+
+	return &result.PhoneInfo, nil
 }

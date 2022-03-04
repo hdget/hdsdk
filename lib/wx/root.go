@@ -34,6 +34,11 @@ func WxmpDecryptMobileInfo(appId, encryptedData, iv string) (*typwx.WxmpMobileIn
 	return _wxmp.DecryptMobileInfo(appId, encryptedData, iv)
 }
 
+// WxmpGetUserPhoneNumber 新版获取用户手机号码
+func WxmpGetUserPhoneNumber(appId, appSecret, code string) (*typwx.WxmpMobileInfo, error) {
+	return _wxmp.GetUserPhoneNumber(appId, appSecret, code)
+}
+
 func WxmpCreateLimitedWxaCode(appId, appSecret, path string, args ...wxmp.Param) ([]byte, error) {
 	return _wxmp.CreateLimitedWxaCode(appId, appSecret, path, args...)
 }

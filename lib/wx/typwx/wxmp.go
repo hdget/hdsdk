@@ -26,6 +26,12 @@ type WxmpMobileInfo struct {
 	} `json:"watermark"`
 }
 
+type WxmpMobileResult struct {
+	Errcode   int            `json:"errcode"`
+	Errmsg    string         `json:"errmsg"`
+	PhoneInfo WxmpMobileInfo `json:"phone_info"`
+}
+
 // WxmpSession wechat miniprogram login session
 type WxmpSession struct {
 	SessionKey string `json:"session_key"`
