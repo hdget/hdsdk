@@ -1,22 +1,25 @@
 package dapr
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"github.com/dapr/go-sdk/client"
 	"github.com/dapr/go-sdk/service/common"
+	"github.com/gogo/protobuf/jsonpb"
+	"github.com/gogo/protobuf/proto"
 	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 )
 
 const ContentTypeJson = "application/json"
 
-var jsonpb = protojson.MarshalOptions{
-	EmitUnpopulated: true,
-}
+// as we use gogoprotobuf which doesn't has protojson.Message interface
+//var jsonpb = protojson.MarshalOptions{
+//	EmitUnpopulated: true,
+//}
+var jsonpbMarshaler = jsonpb.Marshaler{EmitDefaults: true}
 
 // InvokeService 调用dapr服务
 func InvokeService(appId, methodName string, data interface{}, args ...string) ([]byte, error) {
@@ -106,14 +109,15 @@ func InvokeServiceWithClient(daprClient client.Client, appId, methodName string,
 
 // Reply dapr reply
 func Reply(event *common.InvocationEvent, resp proto.Message) *common.Content {
-	bs, err := jsonpb.Marshal(resp)
+	var buf bytes.Buffer
+	err := jsonpbMarshaler.Marshal(&buf, resp)
 	if err != nil {
 		return nil
 	}
 
 	return &common.Content{
 		ContentType: ContentTypeJson,
-		Data:        bs,
+		Data:        buf.Bytes(),
 		DataTypeURL: event.DataTypeURL,
 	}
 }
