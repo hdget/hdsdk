@@ -1,3 +1,4 @@
+// Package mysql
 // @Title  log capability of zerolog
 // @Description  zerolog implementation of log capability
 // @Author  Ryan Fan 2021-06-09
@@ -10,6 +11,7 @@ import (
 	"github.com/hdget/hdsdk/provider/db"
 	"github.com/hdget/hdsdk/types"
 	"github.com/jmoiron/sqlx"
+	"time"
 )
 
 type MysqlProvider struct {
@@ -90,6 +92,13 @@ func (mp *MysqlProvider) connect(conf *MySqlConf) (*sqlx.DB, error) {
 	//strParams := strings.Join(params, "&")
 	connStr := fmt.Sprintf(t, conf.User, conf.Password, conf.Host, conf.Port, conf.Database)
 	instance, err := sqlx.Connect("mysql", connStr)
+
+	// https://www.alexedwards.net/blog/configuring-sqldb
+	// https://making.pusher.com/production-ready-connection-pooling-in-go
+	// Avoid issue:
+	// packets.go:123: closing bad idle connection: EOF
+	// connection.go:173: driver: bad connection
+	instance.SetConnMaxLifetime(3 * time.Minute)
 	if err != nil {
 		return nil, err
 	}
