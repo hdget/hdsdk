@@ -42,11 +42,14 @@ func (p *Pagination) Paging(data interface{}) (int64, []interface{}) {
 	return total, sliceData[start:end]
 }
 
-// GenLimitClause 生成limit sql子句
-func (p *Pagination) GenLimitClause() string {
+// GetLimitClause 获取limit sql子句
+func (p *Pagination) GetLimitClause() string {
+	if p == nil || p.page == 0 {
+		return fmt.Sprintf("LIMIT %d", p.pageSize)
+	}
+
 	start := (p.page - 1) * p.pageSize
-	end := p.page * p.pageSize
-	return fmt.Sprintf("LIMIT %d, %d", start, end)
+	return fmt.Sprintf("LIMIT %d, %d", start, p.pageSize)
 }
 
 // GetSQLClause 获取翻页SQL查询语句
@@ -56,20 +59,22 @@ func (p *Pagination) GenLimitClause() string {
 //
 // 2. 假如前端传过来了last_pk, 那么返回值是 last_pk, LIMIT子句(LIMIT pageSize)
 // e,g: 123,"LIMIT 10" => 在数据库查询时可能会被组装成 WHERE pk > 123 ...  LIMIT 10
-func (p *Pagination) GetSQLClause(total int64) string {
-	if p == nil {
-		return ""
-	}
-
-	// 如果total值为0, 默认返回指定页面
-	if total == 0 {
-		return fmt.Sprintf("LIMIT 0, %d", p.pageSize)
-	}
-
-	start, end := getStartEndPosition(p.page, p.pageSize, total)
-
-	return fmt.Sprintf("LIMIT %d, %d", start, end-start)
-}
+//func (p *Pagination) GetSQLClause(total int64) string {
+//	if p == nil {
+//		return ""
+//	}
+//
+//	// 如果total值为0, 默认返回指定页面
+//	if total == 0 {
+//		return "LIMIT 0"
+//	}
+//
+//	start := (p.page - 1) * p.pageSize
+//	return fmt.Sprintf("LIMIT %d, %d", start, p.pageSize)
+//	//start, end := getStartEndPosition(p.page, p.pageSize, total)
+//	//
+//	//return fmt.Sprintf("LIMIT %d, %d", start, end-start)
+//}
 
 // CalculatePages 计算页面，获取带有起始值的页面的数组
 // @return 返回一个二维数组， 第一维是多少页，第二维是每页[]int64{start, end}
