@@ -1,8 +1,10 @@
 package ws
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/hdget/hdsdk/lib/err"
+	"github.com/hdget/hdsdk/utils"
 	"net/http"
 )
 
@@ -43,12 +45,26 @@ func Success(c *gin.Context, args ...interface{}) {
 	case 1:
 		ret.Data = args[0]
 	}
-	c.PureJSON(http.StatusOK, ret)
+
+	//c.PureJSON(http.StatusOK, ret)
+	c.String(http.StatusOK, "%u", ret)
 }
 
 // SuccessRaw respond with raw data
-func SuccessRaw(c *gin.Context, rawData interface{}) {
-	c.PureJSON(http.StatusOK, rawData)
+func SuccessRaw(c *gin.Context, result interface{}) {
+	var content string
+	switch t := result.(type) {
+	case string:
+		content = t
+	case []byte:
+		content = utils.BytesToString(t)
+	default:
+		v, _ := json.Marshal(result)
+		content = utils.BytesToString(v)
+	}
+	c.Writer.WriteHeader(http.StatusOK)
+	c.Header("Content-Type", "application/json; charset=utf-8")
+	_, _ = c.Writer.WriteString(content)
 }
 
 // SuccessPages respond with pagination data
