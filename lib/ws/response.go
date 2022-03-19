@@ -46,8 +46,7 @@ func Success(c *gin.Context, args ...interface{}) {
 		ret.Data = args[0]
 	}
 
-	//c.PureJSON(http.StatusOK, ret)
-	c.String(http.StatusOK, "%u", ret)
+	c.PureJSON(http.StatusOK, ret)
 }
 
 // SuccessRaw respond with raw data
