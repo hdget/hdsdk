@@ -6,19 +6,29 @@ import (
 	"github.com/hdget/hdsdk"
 	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdsdk/utils/parallel"
+	"github.com/pkg/errors"
 	"net/http"
 	"syscall"
 )
 
-type MyHttpServer struct {
+type WebServer interface {
+	Run()
+	NewRouterGroup(name, relativePath string, handlers ...gin.HandlerFunc) (*gin.RouterGroup, error)
+	CreateRouterGroup(name, relativePath string, handlers ...gin.HandlerFunc) error
+	GetRouterGroup(groupName string) *gin.RouterGroup
+	AddRoutes(routes []*Route)
+	AddGroupRoutes(groupName string, routes []*Route) error
+}
+
+type HttpServer struct {
 	*http.Server
 	router       *gin.Engine
 	routerGroups map[string]*gin.RouterGroup
 }
 
-func NewHttpServer(logger types.LogProvider, address string) *MyHttpServer {
+func NewHttpServer(logger types.LogProvider, address string) WebServer {
 	router := NewRouter(logger)
-	return &MyHttpServer{
+	return &HttpServer{
 		Server: &http.Server{
 			Addr:    address,
 			Handler: router,
@@ -29,7 +39,7 @@ func NewHttpServer(logger types.LogProvider, address string) *MyHttpServer {
 }
 
 // Run http server
-func (srv *MyHttpServer) Run() {
+func (srv *HttpServer) Run() {
 	var group parallel.Group
 	{
 		group.Add(srv.ListenAndServe, srv.shutdown)
@@ -51,8 +61,18 @@ func (srv *MyHttpServer) Run() {
 	}
 }
 
+// NewRouterGroup new a gin router group
+func (srv *HttpServer) NewRouterGroup(name, relativePath string, handlers ...gin.HandlerFunc) (*gin.RouterGroup, error) {
+	err := srv.CreateRouterGroup(name, relativePath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "create router group, name: %s, prefix: %s", name, relativePath)
+
+	}
+	return srv.GetRouterGroup(name), nil
+}
+
 // CreateRouterGroup create a gin router group
-func (srv *MyHttpServer) CreateRouterGroup(name, relativePath string, handlers ...gin.HandlerFunc) error {
+func (srv *HttpServer) CreateRouterGroup(name, relativePath string, handlers ...gin.HandlerFunc) error {
 	_, exist := srv.routerGroups[name]
 	if exist {
 		return ErrDuplicateRouterGroup
@@ -62,18 +82,18 @@ func (srv *MyHttpServer) CreateRouterGroup(name, relativePath string, handlers .
 	return nil
 }
 
-func (srv *MyHttpServer) GetRouterGroup(groupName string) *gin.RouterGroup {
+func (srv *HttpServer) GetRouterGroup(groupName string) *gin.RouterGroup {
 	return srv.routerGroups[groupName]
 }
 
 // AddRoutes add routes from Route slice
-func (srv *MyHttpServer) AddRoutes(routes []*Route) {
+func (srv *HttpServer) AddRoutes(routes []*Route) {
 	for _, r := range routes {
 		addToRouter(srv.router, r.Method, r.Path, r.Handler)
 	}
 }
 
-func (srv *MyHttpServer) AddGroupRoutes(groupName string, routes []*Route) error {
+func (srv *HttpServer) AddGroupRoutes(groupName string, routes []*Route) error {
 	routerGroup := srv.GetRouterGroup(groupName)
 	if routerGroup == nil {
 		return ErrRouterGroupNotFound
@@ -85,7 +105,7 @@ func (srv *MyHttpServer) AddGroupRoutes(groupName string, routes []*Route) error
 	return nil
 }
 
-func (srv *MyHttpServer) shutdown(err error) {
+func (srv *HttpServer) shutdown(err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), waitTime)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {

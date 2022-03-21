@@ -2,6 +2,7 @@ package ws
 
 import (
 	"context"
+	"github.com/gin-gonic/gin"
 	"github.com/hdget/hdsdk"
 	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdsdk/utils/parallel"
@@ -11,32 +12,31 @@ import (
 	"syscall"
 )
 
-type MyHttpsServer struct {
-	*MyHttpServer
+type HttpsServer struct {
+	*HttpServer
 	CertPath string
 	KeyPath  string
 }
 
-func NewHttpsServer(logger types.LogProvider, certPath, keyPath, address string) (*MyHttpsServer, error) {
-	srv := &MyHttpsServer{
-		MyHttpServer: NewHttpServer(logger, address),
-		CertPath:     certPath,
-		KeyPath:      keyPath,
+func NewHttpsServer(logger types.LogProvider, certPath, keyPath, address string) (WebServer, error) {
+	srv := &HttpsServer{
+		HttpServer: createHttpServer(logger, address),
+		CertPath:   certPath,
+		KeyPath:    keyPath,
 	}
 
-	err := srv.setupCerts(address)
-	if err != nil {
-		return nil, err
+	// Check if the cert files are available.
+	if err := httpscerts.Check(srv.CertPath, srv.KeyPath); err != nil {
+		// If they are not available, generate new ones.
+		if err = httpscerts.Generate(srv.CertPath, srv.KeyPath, address); err != nil {
+			return nil, errors.Wrap(err, "generate secure credential")
+		}
 	}
 
-	return &MyHttpsServer{
-		MyHttpServer: NewHttpServer(logger, address),
-		CertPath:     certPath,
-		KeyPath:      keyPath,
-	}, nil
+	return srv, nil
 }
 
-func (srv *MyHttpsServer) Run() {
+func (srv *HttpsServer) Run() {
 	listenFunc := func() error {
 		return srv.ListenAndServeTLS(srv.CertPath, srv.KeyPath)
 	}
@@ -62,13 +62,14 @@ func (srv *MyHttpsServer) Run() {
 	}
 }
 
-func (srv *MyHttpsServer) setupCerts(address string) error {
-	// Check if the cert files are available.
-	if err := httpscerts.Check(srv.CertPath, srv.KeyPath); err != nil {
-		// If they are not available, generate new ones.
-		if err = httpscerts.Generate(srv.CertPath, srv.KeyPath, address); err != nil {
-			return errors.Wrap(err, "generate secure credential")
-		}
+func createHttpServer(logger types.LogProvider, address string) *HttpServer {
+	router := NewRouter(logger)
+	return &HttpServer{
+		Server: &http.Server{
+			Addr:    address,
+			Handler: router,
+		},
+		router:       router,
+		routerGroups: make(map[string]*gin.RouterGroup),
 	}
-	return nil
 }
