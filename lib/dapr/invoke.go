@@ -1,13 +1,10 @@
 package dapr
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"github.com/dapr/go-sdk/client"
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/gogo/protobuf/jsonpb"
-	"github.com/gogo/protobuf/proto"
 	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/metadata"
@@ -19,7 +16,7 @@ const ContentTypeJson = "application/json"
 //var jsonpb = protojson.MarshalOptions{
 //	EmitUnpopulated: true,
 //}
-var jsonpbMarshaler = jsonpb.Marshaler{EmitDefaults: true}
+//var jsonpbMarshaler = jsonpb.Marshaler{EmitDefaults: true}
 
 // InvokeService 调用dapr服务
 func InvokeService(appId, methodName string, data interface{}, args ...string) ([]byte, error) {
@@ -108,16 +105,15 @@ func InvokeServiceWithClient(daprClient client.Client, appId, methodName string,
 }
 
 // Reply dapr reply
-func Reply(event *common.InvocationEvent, resp proto.Message) *common.Content {
-	var buf bytes.Buffer
-	err := jsonpbMarshaler.Marshal(&buf, resp)
+func Reply(event *common.InvocationEvent, resp interface{}) *common.Content {
+	data, err := json.Marshal(resp)
 	if err != nil {
 		return nil
 	}
 
 	return &common.Content{
 		ContentType: ContentTypeJson,
-		Data:        buf.Bytes(),
+		Data:        data,
 		DataTypeURL: event.DataTypeURL,
 	}
 }
