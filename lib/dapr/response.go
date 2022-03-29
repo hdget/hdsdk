@@ -12,7 +12,10 @@ type ApiError struct {
 	Msg  string
 }
 
-const DefaultErrorCode = 1
+var DefaultApiError = &ApiError{
+	Code: 1,
+	Msg:  "api error",
+}
 
 // Success reply with success response
 func Success(event *common.InvocationEvent, resp interface{}) (*common.Content, error) {
@@ -22,7 +25,7 @@ func Success(event *common.InvocationEvent, resp interface{}) (*common.Content, 
 // Error Reply with response
 func Error(event *common.InvocationEvent, e error) (*common.Content, error) {
 	apiError := &ApiError{
-		Code: DefaultErrorCode,
+		Code: DefaultApiError.Code,
 		Msg:  e.Error(),
 	}
 
