@@ -14,31 +14,25 @@ type ApiError struct {
 
 const DefaultErrorCode = 1
 
-// Reply with response
-func Reply(event *common.InvocationEvent, resp interface{}) *common.Content {
-	// 判断响应是否是错误
-	e, ok := resp.(error)
-	if ok {
-		var apiError interface{}
-		// 如果响应是错误，检查err是否是CodeErr
-		ce, ok := e.(err.CodeError)
-		if ok {
-			apiError = &ApiError{
-				Code: ce.Code(),
-				Msg:  ce.Error(),
-			}
-		} else {
-			apiError = &ApiError{
-				Code: DefaultErrorCode,
-				Msg:  e.Error(),
-			}
-		}
+// Success reply with success response
+func Success(event *common.InvocationEvent, resp interface{}) (*common.Content, error) {
+	return getDaprContent(event, resp), nil
+}
 
-		return getDaprContent(event, apiError)
+// Error Reply with response
+func Error(event *common.InvocationEvent, e error) (*common.Content, error) {
+	apiError := &ApiError{
+		Code: DefaultErrorCode,
+		Msg:  e.Error(),
 	}
 
-	// 返回正常数据
-	return getDaprContent(event, resp)
+	// 如果响应是错误，检查err是否是CodeErr
+	ce, ok := e.(err.CodeError)
+	if ok {
+		apiError.Code = ce.Code()
+	}
+
+	return getDaprContent(event, apiError), e
 }
 
 func getDaprContent(event *common.InvocationEvent, resp interface{}) *common.Content {
