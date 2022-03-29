@@ -49,6 +49,14 @@ func Success(c *gin.Context, args ...interface{}) {
 	c.PureJSON(http.StatusOK, ret)
 }
 
+func Error(c *gin.Context, code int, msg string) {
+	ret := &Response{
+		Code: code,
+		Msg:  msg,
+	}
+	c.PureJSON(http.StatusOK, ret)
+}
+
 // SuccessRaw respond with raw data
 func SuccessRaw(c *gin.Context, result interface{}) {
 	var content string

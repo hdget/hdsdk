@@ -12,7 +12,7 @@ type ApiError struct {
 	Msg  string
 }
 
-var DefaultApiError = &ApiError{
+var DefaultApiError = ApiError{
 	Code: 1,
 	Msg:  "api error",
 }
