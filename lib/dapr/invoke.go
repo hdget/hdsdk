@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/dapr/go-sdk/client"
-	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/metadata"
@@ -102,20 +101,6 @@ func InvokeServiceWithClient(daprClient client.Client, appId, methodName string,
 	}
 
 	return ret, nil
-}
-
-// Reply dapr reply
-func Reply(event *common.InvocationEvent, resp interface{}) *common.Content {
-	data, err := json.Marshal(resp)
-	if err != nil {
-		return nil
-	}
-
-	return &common.Content{
-		ContentType: ContentTypeJson,
-		Data:        data,
-		DataTypeURL: event.DataTypeURL,
-	}
 }
 
 // GetMetaValues get grpc meta values
