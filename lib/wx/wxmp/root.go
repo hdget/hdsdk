@@ -18,6 +18,7 @@ type Wxmp interface {
 	CreateLimitedWxaCode(appId, appSecret, path string, args ...Param) ([]byte, error)
 	CreateUnLimitedWxaCode(appId, appSecret, scene, page string, args ...Param) ([]byte, error)
 	GetUserPhoneNumber(appId, appSecret, code string) (*typwx.WxmpMobileInfo, error)
+	GetAccessToken(appId, appSecret string) (string, error)
 }
 
 type implWxmp struct{}
@@ -110,4 +111,8 @@ func (impl *implWxmp) GetUserPhoneNumber(appId, appSecret, code string) (*typwx.
 	}
 
 	return &result.PhoneInfo, nil
+}
+
+func (impl *implWxmp) GetAccessToken(appId, appSecret string) (string, error) {
+	return impl.getAccessToken(appId, appSecret)
 }

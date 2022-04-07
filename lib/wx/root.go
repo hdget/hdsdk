@@ -47,6 +47,10 @@ func WxmpCreateUnLimitedWxaCode(appId, appSecret, scene, page string, args ...wx
 	return _wxmp.CreateUnLimitedWxaCode(appId, appSecret, scene, page, args...)
 }
 
+func WxmpGetAccessToken(appId, appSecret string) (string, error) {
+	return _wxmp.GetAccessToken(appId, appSecret)
+}
+
 // WxqrGetWxId 微信二维码扫码登录
 func WxqrGetWxId(appId, appSecret, code string) (string, string, error) {
 	return _wxqr.GetWxId(appId, appSecret, code)
