@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/dapr/go-sdk/client"
+	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/metadata"
+	"reflect"
+	"strings"
 )
 
 const ContentTypeJson = "application/json"
@@ -123,4 +126,37 @@ func GetMetaValue(ctx context.Context, key string) string {
 		return ""
 	}
 	return values[0]
+}
+
+// RegisterHandlers register namespace's method to global registry
+func RegisterHandlers(holder interface{}, methods map[string]common.ServiceInvocationHandler, registry map[string]map[string]common.ServiceInvocationHandler) error {
+	if registry == nil {
+		return errors.New("registry is nil")
+	}
+	namespace := getNamespaceName(holder)
+	if namespace != "" {
+		registry[namespace] = methods
+	}
+	return nil
+}
+
+// ParseHandlers parse handlers from registry
+func ParseHandlers(registry map[string]map[string]common.ServiceInvocationHandler) map[string]common.ServiceInvocationHandler {
+	handlers := make(map[string]common.ServiceInvocationHandler)
+	for namespace, methods := range registry {
+		for methodName, fn := range methods {
+			tokens := strings.Split(namespace, "_")
+			tokens = append(tokens, methodName)
+			handlers[strings.Join(tokens, ":")] = fn
+		}
+	}
+	return handlers
+}
+
+func getNamespaceName(myvar interface{}) string {
+	if t := reflect.TypeOf(myvar); t.Kind() == reflect.Ptr {
+		return t.Elem().Name()
+	} else {
+		return t.Name()
+	}
 }
