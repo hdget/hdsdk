@@ -179,7 +179,7 @@ func getNamespaceName(myvar interface{}) string {
 func getFullMethodName(version int, namespace, client, method string) string {
 	tokens := []string{fmt.Sprintf("v%d", version), namespace, method}
 	if client != "" {
-		tokens = []string{fmt.Sprintf("v%d", version), namespace, method}
+		tokens = []string{fmt.Sprintf("v%d", version), namespace, client, method}
 	}
 
 	return strings.Join(tokens, ":")
