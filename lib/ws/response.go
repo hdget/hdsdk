@@ -133,8 +133,8 @@ func fromStatusError(err error) interface{} {
 	}
 
 	return bizerr.Error{
-		Code:    int32(codes.Internal),
-		Message: err.Error(),
+		Code: int32(codes.Internal),
+		Msg:  err.Error(),
 	}
 }
 

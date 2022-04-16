@@ -12,8 +12,8 @@ func Error(err error) (*common.Content, error) {
 	be, ok := err.(*bizerr.BizError)
 	if ok {
 		st, _ := status.New(codes.Internal, "").WithDetails(&bizerr.Error{
-			Code:    int32(be.Code),
-			Message: be.Message,
+			Code: int32(be.Code),
+			Msg:  be.Msg,
 		})
 		return nil, st.Err()
 	}
