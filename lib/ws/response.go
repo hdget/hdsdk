@@ -7,6 +7,7 @@ import (
 	"github.com/hdget/hdsdk/lib/bizerr"
 	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"net/http"
 )
@@ -117,6 +118,7 @@ func fromStatusError(err error) interface{} {
 	if err == nil {
 		return nil
 	}
+
 	cause := errors.Cause(err)
 	st, ok := status.FromError(cause)
 	if ok {
@@ -129,7 +131,11 @@ func fromStatusError(err error) interface{} {
 			}
 		}
 	}
-	return err
+
+	return bizerr.Error{
+		Code:    int32(codes.Internal),
+		Message: err.Error(),
+	}
 }
 
 func err2response(e error) *Response {
