@@ -1,8 +1,8 @@
 package ws
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/hdget/hdsdk/lib/err"
 	"time"
 )
 
@@ -16,8 +16,8 @@ const (
 const waitTime = 3 * time.Second
 
 var (
-	ErrDuplicateRouterGroup = err.New("duplicate router group")
-	ErrRouterGroupNotFound  = err.New("router group not found")
+	ErrDuplicateRouterGroup = errors.New("duplicate router group")
+	ErrRouterGroupNotFound  = errors.New("router group not found")
 )
 
 // SetReleaseMode set gin to release mode

@@ -3,8 +3,11 @@ package ws
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/hdget/hdsdk/lib/err"
+	"github.com/gogo/protobuf/proto"
+	"github.com/hdget/hdsdk/lib/bizerr"
 	"github.com/hdget/hdsdk/utils"
+	"github.com/pkg/errors"
+	"google.golang.org/grpc/status"
 	"net/http"
 )
 
@@ -20,7 +23,7 @@ type PageResponse struct {
 }
 
 const (
-	_                     = err.ErrCodeModuleRoot + iota
+	_                     = bizerr.ErrCodeModuleRoot + iota
 	ErrCodeServerInternal // 内部错误
 	ErrCodeUnauthorized   // 未授权
 	ErrCodeInvalidRequest // 非法请求
@@ -29,9 +32,9 @@ const (
 )
 
 var (
-	errInvalidRequest = err.New("invalid request", ErrCodeInvalidRequest)
-	errForbidden      = err.New("forbidden", ErrCodeForbidden)
-	errUnauthorized   = err.New("unauthorized", ErrCodeUnauthorized)
+	errInvalidRequest = bizerr.New(ErrCodeInvalidRequest, "invalid request")
+	errForbidden      = bizerr.New(ErrCodeForbidden, "forbidden")
+	errUnauthorized   = bizerr.New(ErrCodeUnauthorized, "unauthorized")
 )
 
 // Success respond with data
@@ -84,8 +87,9 @@ func SuccessPages(c *gin.Context, total int64, pages interface{}) {
 	})
 }
 
+// Failure grpc http错误
 func Failure(c *gin.Context, err error) {
-	c.PureJSON(http.StatusInternalServerError, err2response(err))
+	c.PureJSON(http.StatusOK, fromStatusError(err))
 }
 
 func Redirect(c *gin.Context, location string) {
@@ -108,11 +112,31 @@ func Unauthorized(c *gin.Context) {
 	c.PureJSON(http.StatusUnauthorized, err2response(errUnauthorized))
 }
 
+// fromStatusError 从grpc status error获取额外的错误信息
+func fromStatusError(err error) interface{} {
+	if err == nil {
+		return nil
+	}
+	cause := errors.Cause(err)
+	st, ok := status.FromError(cause)
+	if ok {
+		details := st.Details()
+		if len(details) > 0 {
+			var pbErr bizerr.Error
+			e := proto.Unmarshal(st.Proto().Details[0].GetValue(), &pbErr)
+			if e == nil {
+				return pbErr
+			}
+		}
+	}
+	return err
+}
+
 func err2response(e error) *Response {
 	code := ErrCodeServerInternal
-	codeErr, ok := e.(err.CodeError)
+	be, ok := e.(*bizerr.BizError)
 	if ok {
-		code = codeErr.Code()
+		code = be.Code
 	}
 	return &Response{
 		Msg:  e.Error(),

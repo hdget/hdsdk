@@ -67,7 +67,7 @@ func InvokeWithDaprClient(daprClient client.Client, appId, methodName string, da
 
 	ret, err := daprClient.InvokeMethodWithContent(ctx, appId, methodName, "post", content)
 	if err != nil {
-		return nil, errors.Wrapf(err, "dapr invoke method with content, app:%s, method: %s, content: %s", appId, methodName, utils.BytesToString(value))
+		return nil, err
 	}
 
 	return ret, nil
@@ -112,7 +112,7 @@ func realInvoke(appId, fullMethodName string, data interface{}, args ...string) 
 
 	resp, err := daprClient.InvokeMethodWithContent(ctx, appId, fullMethodName, "post", content)
 	if err != nil {
-		return nil, errors.Wrapf(err, "dapr invoke method with content, app:%s, method: %s, content: %s", appId, fullMethodName, utils.BytesToString(value))
+		return nil, err
 	}
 
 	return resp, nil
