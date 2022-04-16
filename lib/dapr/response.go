@@ -8,7 +8,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func Error(event *common.InvocationEvent, err error) (*common.Content, error) {
+func Error(err error) (*common.Content, error) {
 	be, ok := err.(*bizerr.BizError)
 	if ok {
 		st, _ := status.New(codes.Internal, "").WithDetails(&bizerr.Error{
