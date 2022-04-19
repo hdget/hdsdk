@@ -22,13 +22,13 @@ const ContentTypeJson = "application/json"
 //var jsonpbMarshaler = jsonpb.Marshaler{EmitDefaults: true}
 
 // Invoke 调用dapr服务
-func Invoke(version int, appId, namespace, method string, data interface{}, args ...string) ([]byte, error) {
+func Invoke(appId string, version int, namespace, method string, data interface{}, args ...string) ([]byte, error) {
 	fullMethodName := getFullMethodName(version, namespace, "", method)
 	return realInvoke(appId, fullMethodName, data, args...)
 }
 
 // InvokeWithClient 调用dapr服务
-func InvokeWithClient(version int, appId, namespace, client, method string, data interface{}, args ...string) ([]byte, error) {
+func InvokeWithClient(appId string, version int, namespace, client, method string, data interface{}, args ...string) ([]byte, error) {
 	fullMethodName := getFullMethodName(version, namespace, client, method)
 	return realInvoke(appId, fullMethodName, data, args...)
 }
