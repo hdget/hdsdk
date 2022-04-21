@@ -77,7 +77,7 @@ func (a *AliOss) Upload(bucket, dir, fileName string, data []byte) (string, erro
 }
 
 // GenSignature 生成oss直传token
-func (a *AliOss) GenSignature(dir, filename string) (*OssSignature, error) {
+func (a *AliOss) GenSignature(dir string) (*OssSignature, error) {
 	expiresIn := time.Now().Unix() + DefaultExpireTime
 	policyData, err := getPolicyData(dir, expiresIn)
 	if err != nil {
