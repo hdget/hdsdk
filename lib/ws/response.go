@@ -3,12 +3,8 @@ package ws
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/gogo/protobuf/proto"
 	"github.com/hdget/hdsdk/lib/bizerr"
 	"github.com/hdget/hdsdk/utils"
-	"github.com/pkg/errors"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 	"net/http"
 )
 
@@ -90,7 +86,7 @@ func SuccessPages(c *gin.Context, total int64, pages interface{}) {
 
 // Failure grpc http错误
 func Failure(c *gin.Context, err error) {
-	c.PureJSON(http.StatusOK, fromStatusError(err))
+	c.PureJSON(http.StatusOK, bizerr.FromStatusError(err))
 }
 
 func Redirect(c *gin.Context, location string) {
@@ -111,31 +107,6 @@ func Forbidden(c *gin.Context) {
 
 func Unauthorized(c *gin.Context) {
 	c.PureJSON(http.StatusUnauthorized, err2response(errUnauthorized))
-}
-
-// fromStatusError 从grpc status error获取额外的错误信息
-func fromStatusError(err error) interface{} {
-	if err == nil {
-		return nil
-	}
-
-	cause := errors.Cause(err)
-	st, ok := status.FromError(cause)
-	if ok {
-		details := st.Details()
-		if len(details) > 0 {
-			var pbErr bizerr.Error
-			e := proto.Unmarshal(st.Proto().Details[0].GetValue(), &pbErr)
-			if e == nil {
-				return pbErr
-			}
-		}
-	}
-
-	return bizerr.Error{
-		Code: int32(codes.Internal),
-		Msg:  err.Error(),
-	}
 }
 
 func err2response(e error) *Response {
