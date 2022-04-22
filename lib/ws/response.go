@@ -19,20 +19,14 @@ type PageResponse struct {
 	Total int64 `json:"total"`
 }
 
-const (
-	_                     = bizerr.ErrCodeModuleRoot + iota
-	ErrCodeServerInternal // 内部错误
-	ErrCodeUnauthorized   // 未授权
-	ErrCodeInvalidRequest // 非法请求
-	ErrCodeForbidden      // 拒绝访问
-
-)
-
-var (
-	errInvalidRequest = bizerr.New(ErrCodeInvalidRequest, "invalid request")
-	errForbidden      = bizerr.New(ErrCodeForbidden, "forbidden")
-	errUnauthorized   = bizerr.New(ErrCodeUnauthorized, "unauthorized")
-)
+//const (
+//	_                     = bizerr.ErrCodeModuleRoot + iota
+//	ErrCodeServerInternal // 内部错误
+//	ErrCodeUnauthorized   // 未授权
+//	ErrCodeInvalidRequest // 非法请求
+//	ErrCodeForbidden      // 拒绝访问
+//
+//)
 
 // Success respond with data
 // empty args respond with 'ok' message
@@ -86,7 +80,19 @@ func SuccessPages(c *gin.Context, total int64, pages interface{}) {
 
 // Failure grpc http错误
 func Failure(c *gin.Context, err error) {
-	c.PureJSON(http.StatusOK, bizerr.FromStatusError(err))
+	c.PureJSON(http.StatusOK, bizerr.Convert(err))
+}
+
+func InvalidRequest(c *gin.Context, err error) {
+	c.PureJSON(http.StatusBadRequest, bizerr.Convert(err))
+}
+
+func Forbidden(c *gin.Context, err error) {
+	c.PureJSON(http.StatusForbidden, bizerr.Convert(err))
+}
+
+func Unauthorized(c *gin.Context, err error) {
+	c.PureJSON(http.StatusUnauthorized, bizerr.Convert(err))
 }
 
 func Redirect(c *gin.Context, location string) {
@@ -95,28 +101,4 @@ func Redirect(c *gin.Context, location string) {
 
 func PermanentRedirect(c *gin.Context, location string) {
 	c.Redirect(http.StatusMovedPermanently, location)
-}
-
-func InvalidRequest(c *gin.Context) {
-	c.PureJSON(http.StatusBadRequest, err2response(errInvalidRequest))
-}
-
-func Forbidden(c *gin.Context) {
-	c.PureJSON(http.StatusForbidden, err2response(errForbidden))
-}
-
-func Unauthorized(c *gin.Context) {
-	c.PureJSON(http.StatusUnauthorized, err2response(errUnauthorized))
-}
-
-func err2response(e error) *Response {
-	code := ErrCodeServerInternal
-	be, ok := e.(*bizerr.BizError)
-	if ok {
-		code = be.Code
-	}
-	return &Response{
-		Msg:  e.Error(),
-		Code: code,
-	}
 }
