@@ -8,8 +8,8 @@ import (
 )
 
 type BizError struct {
-	Code int32
-	Msg  string
+	Code int32  `json:"code"`
+	Msg  string `json:"msg"`
 }
 
 // New an error support error code
