@@ -11,7 +11,7 @@ import (
 type Param func(param *typwx.CommonWxaCodeParam)
 
 // CreateLimitedWxaCode 创建小程序码
-func (impl *implWxmp) CreateLimitedWxaCode(appId, appSecret, path string, args ...Param) ([]byte, error) {
+func (impl *implWxmp) CreateLimitedWxaCode(appId, appSecret, path string, width int, args ...Param) ([]byte, error) {
 	accessToken, err := impl.getAccessToken(appId, appSecret)
 	if err != nil {
 		return nil, err
@@ -22,7 +22,7 @@ func (impl *implWxmp) CreateLimitedWxaCode(appId, appSecret, path string, args .
 		Path: path,
 		CommonWxaCodeParam: &typwx.CommonWxaCodeParam{
 			EnvVersion: "release",
-			Width:      430,
+			Width:      width,
 			AutoColor:  true,
 		},
 	}
@@ -46,7 +46,7 @@ func (impl *implWxmp) CreateLimitedWxaCode(appId, appSecret, path string, args .
 }
 
 // CreateUnLimitedWxaCode 创建小程序码
-func (impl *implWxmp) CreateUnLimitedWxaCode(appId, appSecret, scene, page string, args ...Param) ([]byte, error) {
+func (impl *implWxmp) CreateUnLimitedWxaCode(appId, appSecret, scene, page string, width int, args ...Param) ([]byte, error) {
 	accessToken, err := impl.getAccessToken(appId, appSecret)
 	if err != nil {
 		return nil, err
@@ -58,7 +58,7 @@ func (impl *implWxmp) CreateUnLimitedWxaCode(appId, appSecret, scene, page strin
 		Page:  page,
 		CommonWxaCodeParam: &typwx.CommonWxaCodeParam{
 			EnvVersion: "release",
-			Width:      430,
+			Width:      width,
 			AutoColor:  true,
 		},
 	}
