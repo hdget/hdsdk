@@ -39,12 +39,12 @@ func WxmpGetUserPhoneNumber(appId, appSecret, code string) (*typwx.WxmpMobileInf
 	return _wxmp.GetUserPhoneNumber(appId, appSecret, code)
 }
 
-func WxmpCreateLimitedWxaCode(appId, appSecret, path string, args ...wxmp.Param) ([]byte, error) {
-	return _wxmp.CreateLimitedWxaCode(appId, appSecret, path, args...)
+func WxmpCreateLimitedWxaCode(appId, appSecret, path string, width int, args ...wxmp.Param) ([]byte, error) {
+	return _wxmp.CreateLimitedWxaCode(appId, appSecret, path, width, args...)
 }
 
-func WxmpCreateUnLimitedWxaCode(appId, appSecret, scene, page string, args ...wxmp.Param) ([]byte, error) {
-	return _wxmp.CreateUnLimitedWxaCode(appId, appSecret, scene, page, args...)
+func WxmpCreateUnLimitedWxaCode(appId, appSecret, scene, page string, width int, args ...wxmp.Param) ([]byte, error) {
+	return _wxmp.CreateUnLimitedWxaCode(appId, appSecret, scene, page, width, args...)
 }
 
 func WxmpGetAccessToken(appId, appSecret string) (string, error) {

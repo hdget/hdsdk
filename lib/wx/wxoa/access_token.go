@@ -35,7 +35,7 @@ func (w *implWxoa) getAccessToken(appId, appSecret string) (string, error) {
 		return "", err
 	}
 
-	err = _cache.SetAccessToken(appId, accessToken.Value, accessToken.ExpiresIn)
+	err = _cache.SetAccessToken(appId, accessToken.Value, accessToken.ExpiresIn-1000)
 	if err != nil {
 		return "", errors.Wrap(err, "set wxoa access token to cache")
 	}

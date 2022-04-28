@@ -22,15 +22,14 @@ type WxErrResponse struct {
 
 var (
 	_ Wxqr = (*implWxqr)(nil)
-	// _cache      = cache.New()
 )
 
 func New() Wxqr {
 	return &implWxqr{}
 }
 
-// WxqrAccessToken 类型
-type WxqrAccessToken struct {
+// WxqrResponse 类型
+type WxqrResponse struct {
 	AccessToken  string `json:"access_token"`
 	ExpiresIn    int    `json:"expires_in"`
 	RefreshToken string `json:"refresh_token"`
@@ -39,16 +38,16 @@ type WxqrAccessToken struct {
 	Scope        string `json:"scope"`
 }
 
-func (w *implWxqr) GetWxId(appId, appSecret, code string) (string, string, error) {
-	wxAccessToken, err := w.requestAccessToken(appId, appSecret, code)
+func (impl *implWxqr) GetWxId(appId, appSecret, code string) (string, string, error) {
+	resp, err := impl.getWxqrResponse(appId, appSecret, code)
 	if err != nil {
 		return "", "", err
 	}
 
-	return wxAccessToken.OpenId, wxAccessToken.UnionId, nil
+	return resp.OpenId, resp.UnionId, nil
 }
 
-func (w *implWxqr) requestAccessToken(appId, appSecret, code string) (*WxqrAccessToken, error) {
+func (w *implWxqr) getWxqrResponse(appId, appSecret, code string) (*WxqrResponse, error) {
 	wxAccessTokenTmpl := "https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code"
 	wxAccessTokenURL := fmt.Sprintf(wxAccessTokenTmpl, appId, appSecret, code)
 
@@ -58,7 +57,7 @@ func (w *implWxqr) requestAccessToken(appId, appSecret, code string) (*WxqrAcces
 		return nil, err
 	}
 
-	var wxAccessToken WxqrAccessToken
+	var wxAccessToken WxqrResponse
 	err = json.Unmarshal(resp.Body(), &wxAccessToken)
 	if err != nil {
 		var errResp WxErrResponse
@@ -103,7 +102,7 @@ func (w *implWxqr) requestAccessToken(appId, appSecret, code string) (*WxqrAcces
 //	}
 //
 //	// 如果刷新也获取不到，尝试重新获取
-//	wxAccessToken, err = w.requestAccessToken(appId, appSecret, code)
+//	wxAccessToken, err = w.getWxqrResponse(appId, appSecret, code)
 //	if err != nil {
 //		return "", err
 //	}
@@ -126,7 +125,7 @@ func (w *implWxqr) requestAccessToken(appId, appSecret, code string) (*WxqrAcces
 //
 
 //
-//func (w *implWxqr) refreshAccessToken(appId string) (*WxqrAccessToken, error) {
+//func (w *implWxqr) refreshAccessToken(appId string) (*WxqrResponse, error) {
 //	refreshToken, err := _cache.GetRefreshToken()
 //	if err != nil {
 //		return nil, err
@@ -146,7 +145,7 @@ func (w *implWxqr) requestAccessToken(appId, appSecret, code string) (*WxqrAcces
 //		return nil, err
 //	}
 //
-//	var wxAccessToken WxqrAccessToken
+//	var wxAccessToken WxqrResponse
 //	err = json.Unmarshal(resp.Body(), &wxAccessToken)
 //	if err != nil {
 //		var errResp WxErrResponse

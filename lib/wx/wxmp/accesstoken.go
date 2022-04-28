@@ -21,7 +21,7 @@ func (impl *implWxmp) getAccessToken(appId, appSecret string) (string, error) {
 		return "", err
 	}
 
-	err = _cache.SetAccessToken(appId, wxAccessToken.AccessToken, wxAccessToken.ExpiresIn)
+	err = _cache.SetAccessToken(appId, wxAccessToken.AccessToken, wxAccessToken.ExpiresIn-1000)
 	if err != nil {
 		return "", err
 	}

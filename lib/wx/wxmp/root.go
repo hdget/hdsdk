@@ -15,8 +15,8 @@ type Wxmp interface {
 	Auth(appId, appSecret, code string) (*typwx.WxmpSession, error)
 	DecryptUserInfo(appId, encryptedData, iv string) (*typwx.WxmpUserInfo, error)
 	DecryptMobileInfo(appId, encryptedData, iv string) (*typwx.WxmpMobileInfo, error)
-	CreateLimitedWxaCode(appId, appSecret, path string, args ...Param) ([]byte, error)
-	CreateUnLimitedWxaCode(appId, appSecret, scene, page string, args ...Param) ([]byte, error)
+	CreateLimitedWxaCode(appId, appSecret, path string, width int, args ...Param) ([]byte, error)
+	CreateUnLimitedWxaCode(appId, appSecret, scene, page string, width int, args ...Param) ([]byte, error)
 	GetUserPhoneNumber(appId, appSecret, code string) (*typwx.WxmpMobileInfo, error)
 	GetAccessToken(appId, appSecret string) (string, error)
 }
