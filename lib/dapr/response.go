@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/lib/bizerr"
+	"github.com/hdget/hdsdk/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -21,9 +22,18 @@ func Error(err error) (*common.Content, error) {
 }
 
 func Success(event *common.InvocationEvent, resp interface{}) (*common.Content, error) {
-	data, err := json.Marshal(resp)
-	if err != nil {
-		return nil, err
+	var err error
+	var data []byte
+	switch t := resp.(type) {
+	case string:
+		data = utils.StringToBytes(t)
+	case []byte:
+		data = t
+	default:
+		data, err = json.Marshal(resp)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &common.Content{
