@@ -26,7 +26,7 @@ var (
 
 var _ types.MqProducer = (*RabbitMqProducer)(nil)
 
-// producer的名字和route中的名字对应
+// CreateProducer producer的名字和route中的名字对应
 func (rmq *RabbitMq) CreateProducer(name string, args ...map[types.MqOptionType]types.MqOptioner) (types.MqProducer, error) {
 	options := rmq.GetDefaultOptions()
 	if len(args) > 0 {
@@ -167,6 +167,38 @@ func (rmp RabbitMqProducer) Publish(data []byte, args ...interface{}) error {
 			ContentType:  rmp.Option.ContentType,
 			DeliveryMode: rmp.Option.DeliveryMode,
 			Body:         data,
+		})
+
+	// 等待发送确认
+	errAck := <-rmp.chanDelivery
+	if errAck != nil {
+		return errAck
+	}
+	return errPublish
+}
+
+func (rmp RabbitMqProducer) PublishDelay(data []byte, ttl int64, args ...interface{}) error {
+	key := ""
+	if len(args) > 0 {
+		v, ok := args[0].(string)
+		if ok {
+			key = v
+		}
+	}
+
+	// 尝试发送
+	errPublish := rmp.Client.Channel.Publish(
+		rmp.ExchangeName,
+		key,
+		rmp.Option.Mandatory,
+		rmp.Option.Immediate,
+		amqp.Publishing{
+			ContentType:  rmp.Option.ContentType,
+			DeliveryMode: rmp.Option.DeliveryMode,
+			Body:         data,
+			Headers: map[string]interface{}{
+				"x-delay": ttl, // 消息从交换机过期时间,毫秒（x-dead-message插件提供）
+			},
 		})
 
 	// 等待发送确认

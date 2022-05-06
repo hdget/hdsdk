@@ -103,6 +103,7 @@ const TEST_CONFIG_RABBITMQ = `
         	rotation_time=24
 	[sdk.aliyun]
 		[sdk.aliyun.default]
+			[sdk.aliyun.default]
 			host="192.168.0.114"
 			username="guest"
 			password="guest"
@@ -118,6 +119,39 @@ const TEST_CONFIG_RABBITMQ = `
 				name="producer1"
 				exchange_name="testexchange"
 				exchange_type="direct"`
+
+const TEST_CONFIG_RABBITMQ_DELAY = `
+[sdk]
+	[sdk.log]
+        filename = "demo.log"
+		[sdk.log.rotate]
+			# 最大保存时间7天(单位hour)
+        	max_age = 168
+        	# 日志切割时间间隔24小时（单位hour)
+        	rotation_time=24
+	[sdk.aliyun]
+		[sdk.aliyun.default]
+			host="127.0.0.1"
+			username="guest"
+			password="guest"
+			port=5672
+			vhost="/"
+			[[sdk.aliyun.default.consumers]]
+				name="consumer1"
+				exchange_name="exchange_delay"
+				exchange_type="delay:topic"
+				queue_name = "queue1"
+				routing_keys = ["close"]
+			[[sdk.aliyun.default.consumers]]
+				name="consumer2"
+				exchange_name="exchange_delay"
+				exchange_type="delay:topic"
+				queue_name = "queue1"
+				routing_keys = ["delivery"]
+			[[sdk.aliyun.default.producers]]
+				name="producer1"
+				exchange_name="exchange_delay"
+				exchange_type="delay:topic"`
 
 const TEST_CONFIG_KAFKA = `
 [sdk]
@@ -438,8 +472,42 @@ func TestRabbitmqSend(t *testing.T) {
 	}
 }
 
+func TestRabbitmqSendDelay(t *testing.T) {
+	v := LoadConfig("demo", "local", "")
+
+	// merge config from string
+	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_RABBITMQ_DELAY)))
+
+	// 将配置信息转换成对应的数据结构
+	var conf TestConf
+	err := v.Unmarshal(&conf)
+	if err != nil {
+		utils.LogFatal("unmarshal democonf", "err", err)
+	}
+
+	err = Initialize(&conf)
+	if err != nil {
+		utils.LogFatal("sdk initialize", "err", err)
+	}
+
+	p, err := Rabbitmq.My().CreateProducer("producer1")
+	if err != nil {
+		Logger.Fatal("create producer", "err", err)
+	}
+
+	err = p.PublishDelay([]byte("1"), int64(2000), "close")
+	if err != nil {
+		Logger.Error("publish", "last", p.GetLastConfirmedId(), "err", err)
+	}
+
+	err = p.PublishDelay([]byte("2"), int64(5000), "close")
+	if err != nil {
+		Logger.Error("publish", "last", p.GetLastConfirmedId(), "err", err)
+	}
+}
+
 func msgProcess(data []byte) types.MqMsgAction {
-	fmt.Println(utils.BytesToString(data))
+	fmt.Println(time.Now(), utils.BytesToString(data))
 	return types.Ack
 }
 

@@ -62,3 +62,7 @@ func (p Producer) Publish(data []byte, args ...interface{}) error {
 	// be distributed randomly over the different partitions.
 	return p.Client.handler.SendMessages(msgs)
 }
+
+func (p Producer) PublishDelay(data []byte, ttl int64, args ...interface{}) error {
+	return nil
+}

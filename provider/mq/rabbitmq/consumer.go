@@ -18,7 +18,7 @@ type RabbitMqConsumer struct {
 
 var _ types.MqConsumer = (*RabbitMqConsumer)(nil)
 
-// producer的名字和route中的名字对应
+// CreateConsumer producer的名字和route中的名字对应
 func (rmq *RabbitMq) CreateConsumer(name string, processFunc types.MqMsgProcessFunc, args ...map[types.MqOptionType]types.MqOptioner) (types.MqConsumer, error) {
 	options := rmq.GetDefaultOptions()
 	if len(args) > 0 {
@@ -63,7 +63,7 @@ func (rmq *RabbitMq) CreateConsumer(name string, processFunc types.MqMsgProcessF
 	return c, nil
 }
 
-// 消费消息
+// Consume 消费消息
 // consume -> spawn a routing -> handle(deliveries)
 func (mc *RabbitMqConsumer) Consume() {
 	countRetry := 0

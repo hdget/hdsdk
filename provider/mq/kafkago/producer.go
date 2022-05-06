@@ -74,3 +74,7 @@ func (p Producer) Publish(data []byte, args ...interface{}) error {
 
 	return p.Client.Writer.WriteMessages(p.Client.ctx, msgs...)
 }
+
+func (p Producer) PublishDelay(data []byte, ttl int64, args ...interface{}) error {
+	return nil
+}

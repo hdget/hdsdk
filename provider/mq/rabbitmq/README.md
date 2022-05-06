@@ -20,7 +20,7 @@
         [[sdk.rabbitmq.default.producers]]     <--- RabbitMQ生产者配置，包括exchange_name、exchange_type
             name = "producer1"                 <--- 消费者必须用name来区分
             exchange_name="testexchange"
-            exchange_type="direct"             <--- 当前支支持direct,fanout,topic三种交换方式
+            exchange_type="direct"             <--- 当前支支持direct, fanout, topic, delay:direct, delay:fanout, delay:topic 三种交换方式
     [[sdk.rabbitmq.items]]
             name = "extra_rabbitmq"
             host="127.0.0.1"
@@ -67,6 +67,15 @@ if err != nil {
 ```
 ...
 err = p.Publish([]byte("test"), "routing_key1")
+if err != nil {
+	sdk.Logger.Fatal("publish", "err", err)
+}
+```
+
+如果配置了exchange_type为delay:*, 则可以发送延时队列消息, 这里第二个参数为ttl,单位是毫秒 
+```
+...
+err = p.PublishDelay([]byte("test"), 5000, "routing_key1")
 if err != nil {
 	sdk.Logger.Fatal("publish", "err", err)
 }

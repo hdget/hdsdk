@@ -32,8 +32,9 @@ type Mq interface {
 
 // 消息发布者，负责生产并发送消息至Topic
 type MqProducer interface {
-	Publish(data []byte, args ...interface{}) error // MQ发送消息
-	GetLastConfirmedId() uint64                     // 获取上一次确认发送成功的消息Tag
+	Publish(data []byte, args ...interface{}) error                 // MQ发送消息
+	PublishDelay(data []byte, ttl int64, args ...interface{}) error // MQ发送延迟消息
+	GetLastConfirmedId() uint64                                     // 获取上一次确认发送成功的消息Tag
 	Close()
 }
 

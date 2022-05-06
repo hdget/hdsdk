@@ -32,7 +32,7 @@ const (
 
 // 支持的exchangeTypes
 var (
-	SupportedExchangeTypes = []string{"direct", "fanout", "topic"}
+	SupportedExchangeTypes = []string{"direct", "fanout", "topic", "delay:direct", "delay:fanout", "delay:topic"}
 )
 
 func (rmq *RabbitMq) newBaseClient(name string, options map[types.MqOptionType]types.MqOptioner) *BaseClient {
@@ -129,6 +129,20 @@ func (c *BaseClient) setupExchange(exchangeName, exchangeType string) error {
 
 	// 如果指定了exchangeName, 尝试检测exchange是否声明了, 如果已经声明了的话就会无错误
 	option := getExchangeOption(c.Options)
+	if strings.HasPrefix(exchangeType, "delay:") {
+		routeType := exchangeType[len("delay:"):]
+		if !utils.StringSliceContains(SupportedExchangeTypes, strings.ToLower(routeType)) {
+			return fmt.Errorf("unsupported route type: %s", routeType)
+		}
+
+		if option.Args == nil {
+			option.Args = amqp.Table{"x-delayed-type": routeType}
+		} else {
+			option.Args["x-delayed-type"] = routeType
+		}
+		exchangeType = "x-delayed-message"
+	}
+
 	err := c.Channel.ExchangeDeclarePassive(
 		exchangeName,      // exchange name
 		exchangeType,      // exchange type
