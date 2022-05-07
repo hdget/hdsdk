@@ -101,21 +101,21 @@ const TEST_CONFIG_RABBITMQ = `
         	max_age = 168
         	# 日志切割时间间隔24小时（单位hour)
         	rotation_time=24
-	[sdk.aliyun]
-		[sdk.aliyun.default]
-			[sdk.aliyun.default]
+	[sdk.rabbitmq]
+		[sdk.rabbitmq.default]
+			[sdk.rabbitmq.default]
 			host="192.168.0.114"
 			username="guest"
 			password="guest"
 			port=5672
 			vhost="/"
-			[[sdk.aliyun.default.consumers]]
+			[[sdk.rabbitmq.default.consumers]]
 				name="consumer1"
 				exchange_name="testexchange"
 				exchange_type="direct"
 				queue_name = "testqueue"
 				routing_keys = [""]
-			[[sdk.aliyun.default.producers]]
+			[[sdk.rabbitmq.default.producers]]
 				name="producer1"
 				exchange_name="testexchange"
 				exchange_type="direct"`
@@ -129,26 +129,26 @@ const TEST_CONFIG_RABBITMQ_DELAY = `
         	max_age = 168
         	# 日志切割时间间隔24小时（单位hour)
         	rotation_time=24
-	[sdk.aliyun]
-		[sdk.aliyun.default]
+	[sdk.rabbitmq]
+		[sdk.rabbitmq.default]
 			host="127.0.0.1"
 			username="guest"
 			password="guest"
 			port=5672
 			vhost="/"
-			[[sdk.aliyun.default.consumers]]
+			[[sdk.rabbitmq.default.consumers]]
 				name="consumer1"
 				exchange_name="exchange_delay"
 				exchange_type="delay:topic"
 				queue_name = "queue1"
 				routing_keys = ["close"]
-			[[sdk.aliyun.default.consumers]]
+			[[sdk.rabbitmq.default.consumers]]
 				name="consumer2"
 				exchange_name="exchange_delay"
 				exchange_type="delay:topic"
 				queue_name = "queue1"
 				routing_keys = ["delivery"]
-			[[sdk.aliyun.default.producers]]
+			[[sdk.rabbitmq.default.producers]]
 				name="producer1"
 				exchange_name="exchange_delay"
 				exchange_type="delay:topic"`
