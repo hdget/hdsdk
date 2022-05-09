@@ -7,29 +7,29 @@ import (
 
 type ConsumerClient struct {
 	*BaseClient
-	Config *ConsumerConfig
+	//Config *ConsumerConfig
 }
 
-func (rmq *RabbitMq) NewConsumerClient(name string, options map[types.MqOptionType]types.MqOptioner) (*ConsumerClient, error) {
-	// 获取匹配的路由配置
-	config, err := rmq.getConsumerConfig(name)
-	if err != nil {
-		return nil, errors.Wrap(err, name)
-	}
+func (rmq *RabbitMq) NewConsumerClient(options map[types.MqOptionType]types.MqOptioner) (*ConsumerClient, error) {
+	//// 获取匹配的路由配置
+	//config, err := rmq.getConsumerConfig(name)
+	//if err != nil {
+	//	return nil, errors.Wrap(err, name)
+	//}
 
 	return &ConsumerClient{
-		BaseClient: rmq.newBaseClient(name, options),
-		Config:     config,
+		BaseClient: rmq.newBaseClient(options),
+		//Config:     config,
 	}, nil
 }
 
 // 声明和绑定queue
 // @return error
-func (cc *ConsumerClient) setupQueue() (string, error) {
+func (cc *ConsumerClient) setupQueue(exchangeName, queueName string, routingKeys []string) (string, error) {
 	// 尝试声明队列, 检查指定的queue是否存在
 	option := getQueueOption(cc.Options)
 	q, err := cc.Channel.QueueDeclarePassive(
-		cc.Config.QueueName,
+		queueName,
 		option.Durable,
 		option.AutoDelete,
 		option.Exclusive,
@@ -45,7 +45,7 @@ func (cc *ConsumerClient) setupQueue() (string, error) {
 		}
 
 		q, err = cc.Channel.QueueDeclare(
-			cc.Config.QueueName,
+			queueName,
 			option.Durable,
 			option.AutoDelete,
 			option.Exclusive,
@@ -58,8 +58,8 @@ func (cc *ConsumerClient) setupQueue() (string, error) {
 		}
 	}
 
-	for _, key := range cc.Config.RoutingKeys {
-		err = cc.Channel.QueueBind(q.Name, key, cc.Config.ExchangeName, true, nil)
+	for _, key := range routingKeys {
+		err = cc.Channel.QueueBind(q.Name, key, exchangeName, true, nil)
 		if err != nil {
 			return "", errors.Wrap(err, "bind queue")
 		}

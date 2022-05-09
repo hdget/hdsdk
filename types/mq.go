@@ -24,6 +24,11 @@ const (
 	BatchRetry             // 批量消息进行重传并重新处理，自上次ack到现在的消息都会被重传
 )
 
+// 选项接口
+type MqOptioner interface {
+	GetType() MqOptionType // 获取配置项类型，现在有几个配置项: exchange配置项, queue配置项, publish配置项
+}
+
 type Mq interface {
 	GetDefaultOptions() map[MqOptionType]MqOptioner
 	CreateProducer(name string, args ...map[MqOptionType]MqOptioner) (MqProducer, error)
@@ -43,17 +48,6 @@ type MqConsumer interface {
 	Consume() // 消费消息
 	Close()
 }
-
-// 选项接口
-type MqOptioner interface {
-	GetType() MqOptionType // 获取配置项类型，现在有几个配置项: exchange配置项, queue配置项, publish配置项
-}
-
-const (
-	MqTypeDirect = "direct"
-	MqTypeFanout = "fanout"
-	MqTypeTopic  = "topic"
-)
 
 // option types
 type MqOptionType int

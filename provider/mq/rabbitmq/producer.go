@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"errors"
 	"github.com/hdget/hdsdk/types"
+	"github.com/hdget/hdsdk/utils"
 	"github.com/streadway/amqp"
 	"time"
 )
@@ -34,7 +35,7 @@ func (rmq *RabbitMq) CreateProducer(name string, args ...map[types.MqOptionType]
 	}
 
 	// 初始化rabbitmq client
-	client, err := rmq.newProducerClient(name, options)
+	client, err := rmq.newProducerClient(options)
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +47,12 @@ func (rmq *RabbitMq) CreateProducer(name string, args ...map[types.MqOptionType]
 	}
 
 	// exchange不管producer还是consumer都必须要设置好
-	// exchange不管producer还是consumer都必须要设置好
-	err = client.setupExchange(client.Config.ExchangeName, client.Config.ExchangeType)
+	publishOption := getPublishOption(options)
+	if !utils.StringSliceContains(SupportedExchangeTypes, publishOption.ExchangeType) {
+		return nil, ErrInvalidProducerConfig
+	}
+
+	err = client.setupExchange(publishOption.ExchangeName, publishOption.ExchangeType)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +61,7 @@ func (rmq *RabbitMq) CreateProducer(name string, args ...map[types.MqOptionType]
 		Logger:       rmq.Logger,
 		Client:       client,
 		Option:       getPublishOption(options),
-		ExchangeName: client.Config.ExchangeName,
+		ExchangeName: publishOption.ExchangeName,
 		chanDelivery: make(chan error),
 	}
 

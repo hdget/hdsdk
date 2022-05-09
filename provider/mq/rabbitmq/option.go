@@ -99,8 +99,10 @@ type QueueOption struct {
 // immediate=true
 // 如果在匹配的队列上没有消费者准备好，发布的消息也可能处于不能递交状态
 type PublishOption struct {
-	Mandatory bool
-	Immediate bool
+	ExchangeName string
+	ExchangeType string
+	Mandatory    bool
+	Immediate    bool
 
 	ContentType  string // MIME content type
 	DeliveryMode uint8  // Transient (0 or 1) or Persistent (2)
@@ -120,12 +122,16 @@ type PublishOption struct {
 // immediate=true
 // 如果在匹配的队列上没有消费者准备好，发布的消息也可能处于不能递交状态
 type ConsumeOption struct {
-	ConsumerTag string // consumer_tag 消费者标签
-	NoLocal     bool   // 这个功能属于AMQP的标准,但是rabbitMQ并没有做实现.
-	NoAck       bool   // 收到消息后,是否不需要回复确认即被认为被消费
-	Exclusive   bool   // 排他消费者,即这个队列只能由一个消费者消费.适用于任务不允许进行并发处理的情况下.比如系统对接
-	NoWait      bool   // 不返回执行结果,但是如果exclusive开启的话,则必须需要等待结果的,如果exclusive和nowait都为true就会报错
-	Arguments   amqp.Table
+	ExchangeName string
+	ExchangeType string
+	QueueName    string
+	RoutingKeys  []string
+	ConsumerTag  string // consumer_tag 消费者标签
+	NoLocal      bool   // 这个功能属于AMQP的标准,但是rabbitMQ并没有做实现.
+	NoAck        bool   // 收到消息后,是否不需要回复确认即被认为被消费
+	Exclusive    bool   // 排他消费者,即这个队列只能由一个消费者消费.适用于任务不允许进行并发处理的情况下.比如系统对接
+	NoWait       bool   // 不返回执行结果,但是如果exclusive开启的话,则必须需要等待结果的,如果exclusive和nowait都为true就会报错
+	Arguments    amqp.Table
 }
 
 type QosOption struct {
@@ -150,18 +156,23 @@ var (
 		Args:       nil,
 	}
 	defaultPublishOption = &PublishOption{
+		ExchangeName: "default",
+		ExchangeType: "topic",
 		Mandatory:    false,
 		Immediate:    false,
 		ContentType:  "application/json",
 		DeliveryMode: 2, // 不设置persistent，broker重启后消息会丢失
 	}
 	defaultConsumeOption = &ConsumeOption{
-		ConsumerTag: "",
-		NoLocal:     false,
-		NoAck:       false,
-		Exclusive:   false,
-		NoWait:      false,
-		Arguments:   nil,
+		ExchangeName: "default",
+		ExchangeType: "topic",
+		RoutingKeys:  []string{},
+		ConsumerTag:  "",
+		NoLocal:      false,
+		NoAck:        false,
+		Exclusive:    false,
+		NoWait:       false,
+		Arguments:    nil,
 	}
 	// 从测试来看prefetchCount=20会大大提高吞吐量
 	// http://www.rabbitmq.com/blog/2012/04/25/rabbitmq-performance-measurements-part-2/

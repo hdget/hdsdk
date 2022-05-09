@@ -2,7 +2,6 @@ package rabbitmq
 
 import (
 	"github.com/hdget/hdsdk/types"
-	"github.com/hdget/hdsdk/utils"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 )
@@ -23,9 +22,9 @@ type ConsumerConfig struct {
 
 // ProducerConfig 发送端配置
 type ProducerConfig struct {
-	Name         string `mapstructure:"name"`
-	ExchangeName string `mapstructure:"exchange_name"`
-	ExchangeType string `mapstructure:"exchange_type"`
+	//Name         string `mapstructure:"name"`
+	//ExchangeName string `mapstructure:"exchange_name"`
+	//ExchangeType string `mapstructure:"exchange_type"`
 }
 
 // MqConfig amqp://user:pass@host:10000/vhost
@@ -90,44 +89,40 @@ func parseConfig(rootConfiger types.Configer) (*MqProviderConfig, error) {
 	return &conf, nil
 }
 
-func (rmq *RabbitMq) getConsumerConfig(name string) (*ConsumerConfig, error) {
-	var found *ConsumerConfig
-	for _, conf := range rmq.Config.Consumers {
-		if conf.Name == name {
-			found = conf
-			break
-		}
-	}
+//func (rmq *RabbitMq) getConsumerConfig(name string) (*ConsumerConfig, error) {
+//	var found *ConsumerConfig
+//	for _, conf := range rmq.Config.Consumers {
+//		if conf.Name == name {
+//			found = conf
+//			break
+//		}
+//	}
+//
+//	if found == nil {
+//		return nil, ErrConsumerConfigNotFound
+//	}
+//
+//	if found.QueueName == "" ||
+//		found.Name == "" ||
+//		!utils.StringSliceContains(SupportedExchangeTypes, found.ExchangeType) {
+//		return nil, ErrInvalidConsumerConfig
+//	}
+//
+//	return found, nil
+//}
 
-	if found == nil {
-		return nil, ErrConsumerConfigNotFound
-	}
-
-	if found.QueueName == "" ||
-		found.Name == "" ||
-		!utils.StringSliceContains(SupportedExchangeTypes, found.ExchangeType) {
-		return nil, ErrInvalidConsumerConfig
-	}
-
-	return found, nil
-}
-
-func (rmq *RabbitMq) getProducerConfig(name string) (*ProducerConfig, error) {
-	var found *ProducerConfig
-	for _, conf := range rmq.Config.Producers {
-		if conf.Name == name {
-			found = conf
-			break
-		}
-	}
-
-	if found == nil {
-		return nil, ErrProducerConfigNotFound
-	}
-
-	if !utils.StringSliceContains(SupportedExchangeTypes, found.ExchangeType) {
-		return nil, ErrInvalidProducerConfig
-	}
-
-	return found, nil
-}
+//func (rmq *RabbitMq) getProducerConfig(name string) (*ProducerConfig, error) {
+//	var found *ProducerConfig
+//	for _, conf := range rmq.Config.Producers {
+//		if conf.Name == name {
+//			found = conf
+//			break
+//		}
+//	}
+//
+//	if found == nil {
+//		return nil, ErrProducerConfigNotFound
+//	}
+//
+//	return found, nil
+//}

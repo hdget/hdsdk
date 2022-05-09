@@ -35,12 +35,11 @@ var (
 	SupportedExchangeTypes = []string{"direct", "fanout", "topic", "delay:direct", "delay:fanout", "delay:topic"}
 )
 
-func (rmq *RabbitMq) newBaseClient(name string, options map[types.MqOptionType]types.MqOptioner) *BaseClient {
+func (rmq *RabbitMq) newBaseClient(options map[types.MqOptionType]types.MqOptioner) *BaseClient {
 	// 连接URL
 	url := fmt.Sprintf("amqp://%s:%s@%s:%d/%s", rmq.Config.Username, rmq.Config.Password, rmq.Config.Host, rmq.Config.Port, rmq.Config.Vhost)
 	return &BaseClient{
 		Logger:        rmq.Logger,
-		Name:          name,
 		Url:           url,
 		Options:       options,
 		chanReconnect: make(chan interface{}),

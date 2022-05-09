@@ -26,7 +26,7 @@ func (rmq *RabbitMq) CreateConsumer(name string, processFunc types.MqMsgProcessF
 	}
 
 	// 初始化rabbitmq client
-	client, err := rmq.NewConsumerClient(name, options)
+	client, err := rmq.NewConsumerClient(options)
 	if err != nil {
 		return nil, err
 	}
@@ -38,12 +38,13 @@ func (rmq *RabbitMq) CreateConsumer(name string, processFunc types.MqMsgProcessF
 	}
 
 	// exchange不管producer还是consumer都必须要设置好
-	err = client.setupExchange(client.Config.ExchangeName, client.Config.ExchangeType)
+	consumerOption := getConsumeOption(options)
+	err = client.setupExchange(consumerOption.ExchangeName, consumerOption.ExchangeType)
 	if err != nil {
 		return nil, err
 	}
 
-	qname, err := client.setupQueue()
+	qname, err := client.setupQueue(consumerOption.ExchangeName, consumerOption.QueueName, consumerOption.RoutingKeys)
 	if err != nil {
 		return nil, err
 	}
