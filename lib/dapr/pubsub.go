@@ -2,28 +2,19 @@ package dapr
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/dapr/go-sdk/client"
-	"github.com/hdget/hdsdk/utils"
+	"github.com/dapr/go-sdk/service/common"
 	"github.com/pkg/errors"
 )
 
-// Publish 发布消息
-func Publish(pubSubName, topic string, data interface{}) error {
-	var value []byte
-	switch t := data.(type) {
-	case string:
-		value = utils.StringToBytes(t)
-	case []byte:
-		value = t
-	default:
-		v, err := json.Marshal(data)
-		if err != nil {
-			return errors.Wrap(err, "marshal invoke data")
-		}
-		value = v
-	}
+type Event struct {
+	Subscription *common.Subscription
+	Handler      common.TopicEventHandler
+}
 
+// Publish 发布消息
+// isRawPayLoad 发送原始的消息，非cloudevent message
+func Publish(pubSubName, topic string, data interface{}, args ...bool) error {
 	daprClient, err := client.NewClient()
 	if err != nil {
 		return errors.Wrap(err, "new dapr client")
@@ -35,10 +26,40 @@ func Publish(pubSubName, topic string, data interface{}) error {
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
 	//defer daprClient.Close()
 
-	err = daprClient.PublishEvent(context.Background(), pubSubName, topic, value)
-	if err != nil {
-		return errors.Wrapf(err, "publish event, pubsub: %s, topic: %s, value: %s", pubSubName, topic, value)
+	var opt client.PublishEventOption
+	metaOptions := getMeta(args...)
+	if metaOptions != nil {
+		opt = client.PublishEventWithMetadata(metaOptions)
 	}
 
+	err = daprClient.PublishEvent(context.Background(), pubSubName, topic, data, opt)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GetEvent(pubsubName, topic string, handler common.TopicEventHandler, args ...bool) Event {
+	metaOptions := getMeta(args...)
+	return Event{
+		Subscription: &common.Subscription{
+			PubsubName: pubsubName,
+			Topic:      topic,
+			Metadata:   metaOptions,
+		},
+		Handler: handler,
+	}
+}
+
+func getMeta(args ...bool) map[string]string {
+	isRawPayLoad := false
+	if len(args) > 0 {
+		isRawPayLoad = args[0]
+	}
+
+	if isRawPayLoad {
+		return map[string]string{"rawPayload": "true"}
+	}
 	return nil
 }
