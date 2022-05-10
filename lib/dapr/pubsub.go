@@ -30,9 +30,11 @@ func Publish(pubSubName, topic string, data interface{}, args ...bool) error {
 	metaOptions := getMeta(args...)
 	if metaOptions != nil {
 		opt = client.PublishEventWithMetadata(metaOptions)
+		err = daprClient.PublishEvent(context.Background(), pubSubName, topic, data, opt)
+	} else {
+		err = daprClient.PublishEvent(context.Background(), pubSubName, topic, data)
 	}
 
-	err = daprClient.PublishEvent(context.Background(), pubSubName, topic, data, opt)
 	if err != nil {
 		return err
 	}
