@@ -68,6 +68,8 @@ type CacheClient interface {
 
 	// list
 	RPop(key string) ([]byte, error)
+
+	Eval(scriptContent string, keys []interface{}, args []interface{}) (interface{}, error)
 }
 
 // cache ability

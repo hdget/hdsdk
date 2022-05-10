@@ -437,3 +437,21 @@ func (r *RedisClient) RPop(key string) ([]byte, error) {
 	defer conn.Close()
 	return redis.Bytes(conn.Do("RPOP", key))
 }
+
+func (r *RedisClient) Eval(scriptContent string, keys []interface{}, args []interface{}) (interface{}, error) {
+	script := redis.NewScript(len(keys), scriptContent)
+
+	conn := r.pool.Get()
+	defer conn.Close()
+
+	keyArgs := make([]interface{}, 0)
+	keyArgs = append(keyArgs, keys...)
+	keyArgs = append(keyArgs, args...)
+
+	reply, err := script.Do(conn, keyArgs...)
+	if err != nil {
+		return nil, err
+	}
+
+	return reply, nil
+}

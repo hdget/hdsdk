@@ -344,6 +344,36 @@ func TestMysql(t *testing.T) {
 	Logger.Debug("get total from extra db", "total", total4, "err", err)
 }
 
+//const lusHasStock = `
+//for i,v in pairs(KEYS) do
+//	local ret = redis.call("Get", v)
+//	if( ret - ARGV[i] <= 0 ) then
+//		error("not enough stock")
+//	end;
+//end;
+//return 1
+//`
+
+const luaDeduckStock = `
+for i,v in pairs(KEYS) do 
+	local current = redis.call('GET', v)
+	local delta = current - ARGV[i]
+	if( delta >= 0 ) then
+		local leftStock = redis.call("DECRBY", v, ARGV[i])
+	else
+		error("not enough stock")
+	end;
+end;
+return 1
+`
+
+//const luaRevertStock = `
+//for i,v in pairs(KEYS) do
+//	redis.call("INCRBY", v, ARGV[i])
+//end;
+//return 1
+//`
+
 // nolint:errcheck
 func TestRedis(t *testing.T) {
 	v := LoadConfig("demo", "local", "")
@@ -362,6 +392,12 @@ func TestRedis(t *testing.T) {
 	if err != nil {
 		utils.LogFatal("sdk initialize", "err", err)
 	}
+
+	result, err := Redis.My().Eval(luaDeduckStock, []interface{}{"stock:123:25:2343", "stock:123:25:2342"}, []interface{}{100, 200})
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("eval result:%v", result)
 
 	Redis.My().Set("key1", 1)
 	Redis.My().Set("key2", "strvalue")
