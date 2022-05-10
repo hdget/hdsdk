@@ -10,7 +10,7 @@ type ConsumerClient struct {
 	//Config *ConsumerConfig
 }
 
-func (rmq *RabbitMq) NewConsumerClient(options map[types.MqOptionType]types.MqOptioner) (*ConsumerClient, error) {
+func (rmq *RabbitMq) NewConsumerClient(options ...types.MqOptioner) (*ConsumerClient, error) {
 	//// 获取匹配的路由配置
 	//config, err := rmq.getConsumerConfig(name)
 	//if err != nil {
@@ -18,7 +18,7 @@ func (rmq *RabbitMq) NewConsumerClient(options map[types.MqOptionType]types.MqOp
 	//}
 
 	return &ConsumerClient{
-		BaseClient: rmq.newBaseClient(options),
+		BaseClient: rmq.newBaseClient(options...),
 		//Config:     config,
 	}, nil
 }
@@ -27,7 +27,7 @@ func (rmq *RabbitMq) NewConsumerClient(options map[types.MqOptionType]types.MqOp
 // @return error
 func (cc *ConsumerClient) setupQueue(exchangeName, queueName string, routingKeys []string) (string, error) {
 	// 尝试声明队列, 检查指定的queue是否存在
-	option := getQueueOption(cc.Options)
+	option := GetQueueOption(cc.Options)
 	q, err := cc.Channel.QueueDeclarePassive(
 		queueName,
 		option.Durable,

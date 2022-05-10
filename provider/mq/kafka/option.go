@@ -54,7 +54,7 @@ func (q ConsumeOption) GetType() types.MqOptionType {
 	return types.MqOptionConsume
 }
 
-func getPublishOption(options map[types.MqOptionType]types.MqOptioner) *PublishOption {
+func GetPublishOption(options map[types.MqOptionType]types.MqOptioner) *PublishOption {
 	if len(options) == 0 {
 		return defaultPublishOption
 	}

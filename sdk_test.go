@@ -103,22 +103,22 @@ const TEST_CONFIG_RABBITMQ = `
         	rotation_time=24
 	[sdk.rabbitmq]
 		[sdk.rabbitmq.default]
-			[sdk.rabbitmq.default]
-			host="192.168.0.114"
+			host="127.0.0.1"
 			username="guest"
 			password="guest"
 			port=5672
-			vhost="/"
-			[[sdk.rabbitmq.default.consumers]]
-				name="consumer1"
-				exchange_name="testexchange"
-				exchange_type="direct"
-				queue_name = "testqueue"
-				routing_keys = [""]
-			[[sdk.rabbitmq.default.producers]]
-				name="producer1"
-				exchange_name="testexchange"
-				exchange_type="direct"`
+			vhost="/"`
+
+//[[sdk.rabbitmq.default.consumers]]
+//	name="consumer1"
+//	exchange_name="testexchange"
+//	exchange_type="direct"
+//	queue_name = "testqueue"
+//	routing_keys = [""]
+//[[sdk.rabbitmq.default.producers]]
+//	name="producer1"
+//	exchange_name="testexchange"
+//	exchange_type="direct"`
 
 const TEST_CONFIG_RABBITMQ_DELAY = `
 [sdk]
@@ -452,19 +452,25 @@ func TestRabbitmqSend(t *testing.T) {
 		utils.LogFatal("unmarshal democonf", "err", err)
 	}
 
+	fmt.Println(v.AllKeys())
+
 	err = Initialize(&conf)
 	if err != nil {
 		utils.LogFatal("sdk initialize", "err", err)
 	}
 
-	p, err := Rabbitmq.My().CreateProducer("producer1")
+	params := map[string]interface{}{
+		"exchangeName": "default",
+		"exchangeType": "topic",
+	}
+	p, err := Rabbitmq.My().CreateProducer(params)
 	if err != nil {
 		Logger.Fatal("create producer", "err", err)
 	}
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 10; i++ {
 		s := fmt.Sprintf("%d", i)
-		err = p.Publish([]byte(s))
+		err = p.Publish([]byte(s), "test")
 		if err != nil {
 			Logger.Error("publish", "last", p.GetLastConfirmedId(), "err", err)
 		}
@@ -490,7 +496,11 @@ func TestRabbitmqSendDelay(t *testing.T) {
 		utils.LogFatal("sdk initialize", "err", err)
 	}
 
-	p, err := Rabbitmq.My().CreateProducer("producer1")
+	params := map[string]interface{}{
+		"exchangeName": "delay",
+		"exchangeType": "delay:topic",
+	}
+	p, err := Rabbitmq.My().CreateProducer(params)
 	if err != nil {
 		Logger.Fatal("create producer", "err", err)
 	}
@@ -530,12 +540,53 @@ func TestRabbitmqRecv(t *testing.T) {
 		utils.LogFatal("sdk initialize", "err", err)
 	}
 
-	mq := Rabbitmq.My()
-	options := mq.GetDefaultOptions()
-	qosOption := options[types.MqOptionQos].(*rabbitmq.QosOption)
+	qosOption := Rabbitmq.My().GetDefaultOptions()[types.MqOptionQos].(*rabbitmq.QosOption)
 	qosOption.PrefetchCount = 2
-	options[types.MqOptionQos] = qosOption
-	c, err := mq.CreateConsumer("consumer1", msgProcess, options)
+	params := map[string]interface{}{
+		"exchangeName": "default",
+		"exchangeType": "topic",
+		"routingKeys":  []string{"test"},
+	}
+	c, err := Rabbitmq.My().CreateConsumer(msgProcess, params, qosOption)
+	if err != nil {
+		Logger.Fatal("create consumer", "err", err)
+	}
+
+	//go func() {
+	//	time.Sleep(3 * time.Second)
+	//	c.close()
+	//}()
+
+	c.Consume()
+}
+
+// nolint:errcheck
+func TestRabbitmqRecvDelay(t *testing.T) {
+	v := LoadConfig("demo", "local", "")
+
+	// merge config from string
+	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_RABBITMQ)))
+
+	// 将配置信息转换成对应的数据结构
+	var conf TestConf
+	err := v.Unmarshal(&conf)
+	if err != nil {
+		utils.LogFatal("unmarshal democonf", "err", err)
+	}
+
+	err = Initialize(&conf)
+	if err != nil {
+		utils.LogFatal("sdk initialize", "err", err)
+	}
+
+	qosOption := Rabbitmq.My().GetDefaultOptions()[types.MqOptionQos].(*rabbitmq.QosOption)
+	qosOption.PrefetchCount = 2
+	params := map[string]interface{}{
+		"exchangeName": "delay",
+		"exchangeType": "delay:topic",
+		"routingKeys":  []string{"close"},
+	}
+	c, err := Rabbitmq.My().CreateConsumer(msgProcess, params, qosOption)
 	if err != nil {
 		Logger.Fatal("create consumer", "err", err)
 	}
@@ -567,7 +618,7 @@ func TestKafkaSend(t *testing.T) {
 		utils.LogFatal("sdk initialize", "err", err)
 	}
 
-	p, err := Kafka.My().CreateProducer("producer1")
+	p, err := Kafka.My().CreateProducer(nil)
 	if err != nil {
 		utils.LogFatal("kafka create producer", "err", err)
 	}
@@ -601,7 +652,7 @@ func TestKafkaRecv(t *testing.T) {
 		utils.LogFatal("sdk initialize", "err", err)
 	}
 
-	c, err := Kafka.My().CreateConsumer("consumer1", msgProcess)
+	c, err := Kafka.My().CreateConsumer(msgProcess, nil)
 	if err != nil {
 		utils.LogFatal("kafka create consumer", "err", err)
 	}
@@ -698,7 +749,7 @@ func TestDts(t *testing.T) {
 		utils.LogFatal("sdk initialize", "err", err)
 	}
 
-	c, err := Kafka.By("xxx").CreateConsumer("syncdata", dtsHandler)
+	c, err := Kafka.By("xxx").CreateConsumer(dtsHandler, nil)
 	if err != nil {
 		utils.LogFatal("create consumer", "err", err)
 	}

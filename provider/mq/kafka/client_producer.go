@@ -1,32 +1,38 @@
 package kafka
 
 import (
-	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/hdget/hdsdk/types"
+	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 )
 
 type ProducerClient struct {
 	*BaseClient
-	Config *ProducerConfig
-	Option *PublishOption
+	Parameter *ProducerParameter
+	Option    *PublishOption
 
 	saramaClient sarama.Client
 	saramaConfig *sarama.Config
 	handler      sarama.SyncProducer
 }
 
-func (k *Kafka) newProducerClient(name string, options map[types.MqOptionType]types.MqOptioner) (*ProducerClient, error) {
-	// 获取匹配的路由配置
-	config := k.getProducerConfig(name)
-	if config == nil {
-		return nil, fmt.Errorf("no matched producer config for: %s", name)
+type ProducerParameter struct {
+	Topics []string `mapstructure:"topics"`
+}
+
+func (k *Kafka) newProducerClient(parameters map[string]interface{}, options ...types.MqOptioner) (*ProducerClient, error) {
+	producerParams, err := parseProducerParameter(parameters)
+	if err != nil {
+		return nil, err
 	}
 
+	client := k.newBaseClient(options...)
+
 	pc := &ProducerClient{
-		BaseClient: k.newBaseClient(name, options),
-		Config:     config,
-		Option:     getPublishOption(options),
+		BaseClient: client,
+		Parameter:  producerParams,
+		Option:     GetPublishOption(client.options),
 	}
 
 	pc.saramaConfig = pc.getSaramaConfig()
@@ -73,4 +79,18 @@ func (pc *ProducerClient) close() {
 	if pc.saramaClient != nil {
 		pc.saramaClient.Close()
 	}
+}
+
+func parseProducerParameter(params map[string]interface{}) (*ProducerParameter, error) {
+	var producerParams ProducerParameter
+	err := mapstructure.Decode(params, &producerParams)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(producerParams.Topics) == 0 {
+		return nil, errors.New("invalid parameter")
+	}
+
+	return &producerParams, nil
 }

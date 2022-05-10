@@ -14,14 +14,9 @@ type Producer struct {
 var _ types.MqProducer = (*Producer)(nil)
 
 // CreateProducer 创造一个生产者
-func (k *Kafka) CreateProducer(name string, args ...map[types.MqOptionType]types.MqOptioner) (types.MqProducer, error) {
-	options := k.GetDefaultOptions()
-	if len(args) > 0 {
-		options = args[0]
-	}
-
+func (k *Kafka) CreateProducer(parameters map[string]interface{}, args ...types.MqOptioner) (types.MqProducer, error) {
 	// 初始化rabbitmq client
-	client, err := k.newProducerClient(name, options)
+	client, err := k.newProducerClient(parameters, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +45,7 @@ func (p *Producer) Close() {
 
 func (p Producer) Publish(data []byte, args ...interface{}) error {
 	msgs := make([]*sarama.ProducerMessage, 0)
-	for _, topic := range p.Client.Config.Topics {
+	for _, topic := range p.Client.Parameter.Topics {
 		m := &sarama.ProducerMessage{
 			Topic: topic,
 			Value: sarama.ByteEncoder(data),

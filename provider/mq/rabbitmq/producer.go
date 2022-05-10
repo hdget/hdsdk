@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdsdk/utils"
+	"github.com/mitchellh/mapstructure"
 	"github.com/streadway/amqp"
 	"time"
 )
@@ -27,15 +28,15 @@ var (
 
 var _ types.MqProducer = (*RabbitMqProducer)(nil)
 
-// CreateProducer producer的名字和route中的名字对应
-func (rmq *RabbitMq) CreateProducer(name string, args ...map[types.MqOptionType]types.MqOptioner) (types.MqProducer, error) {
-	options := rmq.GetDefaultOptions()
-	if len(args) > 0 {
-		options = args[0]
-	}
+type ProducerParameter struct {
+	ExchangeName string `mapstructure:"exchangeName"`
+	ExchangeType string `mapstructure:"exchangeType"`
+}
 
+// CreateProducer producer的名字和route中的名字对应
+func (rmq *RabbitMq) CreateProducer(parameters map[string]interface{}, options ...types.MqOptioner) (types.MqProducer, error) {
 	// 初始化rabbitmq client
-	client, err := rmq.newProducerClient(options)
+	client, err := rmq.newProducerClient(options...)
 	if err != nil {
 		return nil, err
 	}
@@ -47,12 +48,12 @@ func (rmq *RabbitMq) CreateProducer(name string, args ...map[types.MqOptionType]
 	}
 
 	// exchange不管producer还是consumer都必须要设置好
-	publishOption := getPublishOption(options)
-	if !utils.StringSliceContains(SupportedExchangeTypes, publishOption.ExchangeType) {
-		return nil, ErrInvalidProducerConfig
+	producerParam, err := parseProducerParameter(parameters)
+	if err != nil {
+		return nil, err
 	}
 
-	err = client.setupExchange(publishOption.ExchangeName, publishOption.ExchangeType)
+	err = client.setupExchange(producerParam.ExchangeName, producerParam.ExchangeType)
 	if err != nil {
 		return nil, err
 	}
@@ -60,8 +61,8 @@ func (rmq *RabbitMq) CreateProducer(name string, args ...map[types.MqOptionType]
 	p := &RabbitMqProducer{
 		Logger:       rmq.Logger,
 		Client:       client,
-		Option:       getPublishOption(options),
-		ExchangeName: publishOption.ExchangeName,
+		Option:       GetPublishOption(client.Options),
+		ExchangeName: producerParam.ExchangeName,
 		chanDelivery: make(chan error),
 	}
 
@@ -212,4 +213,18 @@ func (rmp RabbitMqProducer) PublishDelay(data []byte, ttl int64, args ...interfa
 		return errAck
 	}
 	return errPublish
+}
+
+func parseProducerParameter(params map[string]interface{}) (*ProducerParameter, error) {
+	var producerParams ProducerParameter
+	err := mapstructure.Decode(params, &producerParams)
+	if err != nil {
+		return nil, err
+	}
+
+	if producerParams.ExchangeName == "" || !utils.StringSliceContains(SupportedExchangeTypes, producerParams.ExchangeType) {
+		return nil, ErrInvalidProducerParam
+	}
+
+	return &producerParams, nil
 }

@@ -2,6 +2,8 @@ package rabbitmq
 
 import (
 	"github.com/hdget/hdsdk/types"
+	"github.com/hdget/hdsdk/utils"
+	"github.com/mitchellh/mapstructure"
 	"github.com/streadway/amqp"
 	"sync/atomic"
 )
@@ -16,17 +18,19 @@ type RabbitMqConsumer struct {
 	closed        int32
 }
 
+type ConsumerParameter struct {
+	ExchangeName string   `mapstructure:"exchangeName"`
+	ExchangeType string   `mapstructure:"exchangeType"`
+	QueueName    string   `mapstructure:"queueName"`
+	RoutingKeys  []string `mapstructure:"routingKeys"`
+}
+
 var _ types.MqConsumer = (*RabbitMqConsumer)(nil)
 
 // CreateConsumer producer的名字和route中的名字对应
-func (rmq *RabbitMq) CreateConsumer(name string, processFunc types.MqMsgProcessFunc, args ...map[types.MqOptionType]types.MqOptioner) (types.MqConsumer, error) {
-	options := rmq.GetDefaultOptions()
-	if len(args) > 0 {
-		options = args[0]
-	}
-
+func (rmq *RabbitMq) CreateConsumer(processFunc types.MqMsgProcessFunc, parameters map[string]interface{}, args ...types.MqOptioner) (types.MqConsumer, error) {
 	// 初始化rabbitmq client
-	client, err := rmq.NewConsumerClient(options)
+	client, err := rmq.NewConsumerClient(args...)
 	if err != nil {
 		return nil, err
 	}
@@ -38,13 +42,18 @@ func (rmq *RabbitMq) CreateConsumer(name string, processFunc types.MqMsgProcessF
 	}
 
 	// exchange不管producer还是consumer都必须要设置好
-	consumerOption := getConsumeOption(options)
-	err = client.setupExchange(consumerOption.ExchangeName, consumerOption.ExchangeType)
+	consumerParams, err := parseConsumerParameter(parameters)
 	if err != nil {
 		return nil, err
 	}
 
-	qname, err := client.setupQueue(consumerOption.ExchangeName, consumerOption.QueueName, consumerOption.RoutingKeys)
+	consumeOption := GetConsumeOption(client.Options)
+	err = client.setupExchange(consumerParams.ExchangeName, consumerParams.ExchangeType)
+	if err != nil {
+		return nil, err
+	}
+
+	qname, err := client.setupQueue(consumerParams.ExchangeName, consumerParams.QueueName, consumerParams.RoutingKeys)
 	if err != nil {
 		return nil, err
 	}
@@ -55,8 +64,8 @@ func (rmq *RabbitMq) CreateConsumer(name string, processFunc types.MqMsgProcessF
 	c := &RabbitMqConsumer{
 		Logger:        rmq.Logger,
 		Client:        client,
-		ConsumeOption: getConsumeOption(options),
-		QosOption:     getQosOption(options),
+		ConsumeOption: consumeOption,
+		QosOption:     GetQosOption(client.Options),
 		QueueName:     qname,
 		Process:       processFunc,
 	}
@@ -167,4 +176,18 @@ func (mc *RabbitMqConsumer) shutdown() {
 
 func (mc *RabbitMqConsumer) Close() {
 	mc.shutdown()
+}
+
+func parseConsumerParameter(params map[string]interface{}) (*ConsumerParameter, error) {
+	var consumerParams ConsumerParameter
+	err := mapstructure.Decode(params, &consumerParams)
+	if err != nil {
+		return nil, err
+	}
+
+	if consumerParams.ExchangeName == "" || !utils.StringSliceContains(SupportedExchangeTypes, consumerParams.ExchangeType) {
+		return nil, ErrInvalidProducerParam
+	}
+
+	return &consumerParams, nil
 }

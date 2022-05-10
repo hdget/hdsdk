@@ -156,23 +156,18 @@ var (
 		Args:       nil,
 	}
 	defaultPublishOption = &PublishOption{
-		ExchangeName: "default",
-		ExchangeType: "topic",
 		Mandatory:    false,
 		Immediate:    false,
 		ContentType:  "application/json",
 		DeliveryMode: 2, // 不设置persistent，broker重启后消息会丢失
 	}
 	defaultConsumeOption = &ConsumeOption{
-		ExchangeName: "default",
-		ExchangeType: "topic",
-		RoutingKeys:  []string{},
-		ConsumerTag:  "",
-		NoLocal:      false,
-		NoAck:        false,
-		Exclusive:    false,
-		NoWait:       false,
-		Arguments:    nil,
+		ConsumerTag: "",
+		NoLocal:     false,
+		NoAck:       false,
+		Exclusive:   false,
+		NoWait:      false,
+		Arguments:   nil,
 	}
 	// 从测试来看prefetchCount=20会大大提高吞吐量
 	// http://www.rabbitmq.com/blog/2012/04/25/rabbitmq-performance-measurements-part-2/
@@ -203,7 +198,7 @@ func (q QosOption) GetType() types.MqOptionType {
 	return types.MqOptionQos
 }
 
-func getQueueOption(options map[types.MqOptionType]types.MqOptioner) *QueueOption {
+func GetQueueOption(options map[types.MqOptionType]types.MqOptioner) *QueueOption {
 	if len(options) == 0 {
 		return defaultQueueOption
 	}
@@ -221,25 +216,7 @@ func getQueueOption(options map[types.MqOptionType]types.MqOptioner) *QueueOptio
 	return option
 }
 
-func getExchangeOption(options map[types.MqOptionType]types.MqOptioner) *ExchangeOption {
-	if len(options) == 0 {
-		return defaultExchangeOption
-	}
-
-	v := options[types.MqOptionExchange]
-	if v == nil {
-		return defaultExchangeOption
-	}
-
-	option, ok := v.(*ExchangeOption)
-	if !ok {
-		return defaultExchangeOption
-	}
-
-	return option
-}
-
-func getPublishOption(options map[types.MqOptionType]types.MqOptioner) *PublishOption {
+func GetPublishOption(options map[types.MqOptionType]types.MqOptioner) *PublishOption {
 	if len(options) == 0 {
 		return defaultPublishOption
 	}
@@ -256,12 +233,12 @@ func getPublishOption(options map[types.MqOptionType]types.MqOptioner) *PublishO
 	return option
 }
 
-func getConsumeOption(options map[types.MqOptionType]types.MqOptioner) *ConsumeOption {
+func GetConsumeOption(options map[types.MqOptionType]types.MqOptioner) *ConsumeOption {
 	if len(options) == 0 {
 		return defaultConsumeOption
 	}
 
-	v := options[types.MqOptionConsume]
+	v := options[types.MqOptionPublish]
 	if v == nil {
 		return defaultConsumeOption
 	}
@@ -273,7 +250,24 @@ func getConsumeOption(options map[types.MqOptionType]types.MqOptioner) *ConsumeO
 	return option
 }
 
-func getQosOption(options map[types.MqOptionType]types.MqOptioner) *QosOption {
+func GetExchangeOption(options map[types.MqOptionType]types.MqOptioner) *ExchangeOption {
+	if len(options) == 0 {
+		return defaultExchangeOption
+	}
+
+	v := options[types.MqOptionExchange]
+	if v == nil {
+		return defaultExchangeOption
+	}
+
+	option, ok := v.(*ExchangeOption)
+	if !ok {
+		return defaultExchangeOption
+	}
+	return option
+}
+
+func GetQosOption(options map[types.MqOptionType]types.MqOptioner) *QosOption {
 	if len(options) == 0 {
 		return defaultQosOption
 	}

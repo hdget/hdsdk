@@ -18,14 +18,9 @@ type KafkaConsumer struct {
 
 var _ types.MqConsumer = (*KafkaConsumer)(nil)
 
-func (k *Kafka) CreateConsumer(name string, processFunc types.MqMsgProcessFunc, args ...map[types.MqOptionType]types.MqOptioner) (types.MqConsumer, error) {
-	options := k.GetDefaultOptions()
-	if len(args) > 0 {
-		options = args[0]
-	}
-
+func (k *Kafka) CreateConsumer(processFunc types.MqMsgProcessFunc, parameters map[string]interface{}, args ...types.MqOptioner) (types.MqConsumer, error) {
 	// 初始化kafka client
-	client, err := k.newConsumerClient(name, options)
+	client, err := k.newConsumerClient(parameters, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +52,7 @@ func (kc *KafkaConsumer) Consume() {
 			// `Consume` should be called inside an infinite loop, when a
 			// server-side rebalance happens, the consumer session will need to be
 			// recreated to get the new claims
-			if err := kc.Client.saramaConsumerGroup.Consume(kc.ctx, strings.Split(kc.Client.Config.Topic, ","), kc.handler); err != nil {
+			if err := kc.Client.saramaConsumerGroup.Consume(kc.ctx, strings.Split(kc.Client.Parameter.Topic, ","), kc.handler); err != nil {
 				kc.Logger.Error("consume in group", "err", err)
 			}
 
@@ -72,7 +67,7 @@ func (kc *KafkaConsumer) Consume() {
 	}()
 
 	<-kc.handler.ready // Await till the consumer handler has been set up
-	kc.Logger.Debug("handler in consumer group is up and running...", "name", kc.Client.name)
+	kc.Logger.Debug("handler in consumer group is up and running...")
 
 	<-kc.ctx.Done()
 }

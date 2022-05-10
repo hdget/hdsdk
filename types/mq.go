@@ -31,8 +31,8 @@ type MqOptioner interface {
 
 type Mq interface {
 	GetDefaultOptions() map[MqOptionType]MqOptioner
-	CreateProducer(name string, args ...map[MqOptionType]MqOptioner) (MqProducer, error)
-	CreateConsumer(name string, processFunc MqMsgProcessFunc, args ...map[MqOptionType]MqOptioner) (MqConsumer, error)
+	CreateProducer(parameters map[string]interface{}, args ...MqOptioner) (MqProducer, error)
+	CreateConsumer(processFunc MqMsgProcessFunc, parameters map[string]interface{}, args ...MqOptioner) (MqConsumer, error)
 }
 
 // 消息发布者，负责生产并发送消息至Topic
@@ -60,6 +60,14 @@ const (
 	MqOptionConsume               // 消费选项
 	MqOptionQos                   // Qos选项
 )
+
+var AllMqOptionsTypes = []MqOptionType{
+	MqOptionPublish,
+	MqOptionConsume,
+	MqOptionExchange,
+	MqOptionQueue,
+	MqOptionQos,
+}
 
 // message queue provider
 const (

@@ -4,29 +4,38 @@ import (
 	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/hdget/hdsdk/types"
+	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 )
 
 type ConsumerClient struct {
 	*BaseClient
-	Option *ConsumeOption
-	Config *ConsumerConfig
-
+	Option              *ConsumeOption
+	Parameter           *ConsumerParameter
 	saramaConfig        *sarama.Config
 	saramaClient        sarama.Client
 	saramaConsumerGroup sarama.ConsumerGroup
 }
 
-func (k *Kafka) newConsumerClient(name string, options map[types.MqOptionType]types.MqOptioner) (*ConsumerClient, error) {
-	// 获取匹配的路由配置
-	config := k.getConsumerConfig(name)
-	if config == nil {
-		return nil, fmt.Errorf("no matched consumer config for: %s", name)
+type ConsumerParameter struct {
+	Name     string `mapstructure:"name"`
+	GroupId  string `mapstructure:"groupId"`
+	Topic    string `mapstructure:"topic"`
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"password"`
+}
+
+func (k *Kafka) newConsumerClient(parameters map[string]interface{}, args ...types.MqOptioner) (*ConsumerClient, error) {
+	consumerParam, err := parseConsumerParameter(parameters)
+	if err != nil {
+		return nil, err
 	}
 
+	client := k.newBaseClient(args...)
 	cc := &ConsumerClient{
-		BaseClient: k.newBaseClient(name, options),
-		Config:     config,
-		Option:     getConsumeOption(options),
+		BaseClient: client,
+		Option:     getConsumeOption(client.options),
+		Parameter:  consumerParam,
 	}
 
 	cc.saramaConfig = cc.getSaramaConfig()
@@ -41,7 +50,7 @@ func (cc *ConsumerClient) connect(brokers []string) error {
 	}
 	cc.saramaClient = saramaClient
 
-	consumerGroup, err := sarama.NewConsumerGroupFromClient(cc.Config.GroupId, saramaClient)
+	consumerGroup, err := sarama.NewConsumerGroupFromClient(cc.Parameter.GroupId, saramaClient)
 	if err != nil {
 		return err
 	}
@@ -58,13 +67,13 @@ func (cc *ConsumerClient) getSaramaConfig() *sarama.Config {
 	saramaConfig.Version = sarama.V0_11_0_2
 
 	// 检查是否需要创建安全SASL认证
-	if cc.Config.User != "" && cc.Config.Password != "" {
+	if cc.Parameter.User != "" && cc.Parameter.Password != "" {
 		// SASL
 		saramaConfig.Net.SASL.Enable = true
-		saramaConfig.ClientID = cc.Config.Name
+		saramaConfig.ClientID = cc.Parameter.Name
 		// user = <消费组的账号>-<消费组ID>
-		saramaConfig.Net.SASL.User = fmt.Sprintf("%s-%s", cc.Config.User, cc.Config.GroupId)
-		saramaConfig.Net.SASL.Password = cc.Config.Password
+		saramaConfig.Net.SASL.User = fmt.Sprintf("%s-%s", cc.Parameter.User, cc.Parameter.GroupId)
+		saramaConfig.Net.SASL.Password = cc.Parameter.Password
 	}
 
 	// consume options
@@ -83,4 +92,21 @@ func (cc *ConsumerClient) close() {
 	if cc.saramaClient != nil {
 		cc.saramaClient.Close()
 	}
+}
+
+func parseConsumerParameter(params map[string]interface{}) (*ConsumerParameter, error) {
+	var consumerParams ConsumerParameter
+	err := mapstructure.Decode(params, &consumerParams)
+	if err != nil {
+		return nil, err
+	}
+
+	if consumerParams.GroupId == "" ||
+		consumerParams.Topic == "" ||
+		consumerParams.Name == "" ||
+		consumerParams.User == "" {
+		return nil, errors.New("invalid parameter")
+	}
+
+	return &consumerParams, nil
 }

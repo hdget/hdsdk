@@ -71,24 +71,25 @@ func parseConfig(rootConfiger types.Configer) (*MqProviderConfig, error) {
 	return &conf, nil
 }
 
-func (k *Kafka) getConsumerConfig(name string) *ConsumerConfig {
-	var found *ConsumerConfig
-	for _, conf := range k.Config.Consumers {
-		if conf.Name == name {
-			found = conf
-			break
-		}
-	}
-	return found
-}
-
-func (k *Kafka) getProducerConfig(name string) *ProducerConfig {
-	var found *ProducerConfig
-	for _, conf := range k.Config.Producers {
-		if conf.Name == name {
-			found = conf
-			break
-		}
-	}
-	return found
-}
+//
+//func (k *Kafka) getConsumerConfig(name string) *ConsumerConfig {
+//	var found *ConsumerConfig
+//	for _, conf := range k.Config.Consumers {
+//		if conf.Name == name {
+//			found = conf
+//			break
+//		}
+//	}
+//	return found
+//}
+//
+//func (k *Kafka) getProducerConfig(name string) *ProducerConfig {
+//	var found *ProducerConfig
+//	for _, conf := range k.Config.Producers {
+//		if conf.Name == name {
+//			found = conf
+//			break
+//		}
+//	}
+//	return found
+//}

@@ -32,16 +32,35 @@ const (
 
 // 支持的exchangeTypes
 var (
-	SupportedExchangeTypes = []string{"direct", "fanout", "topic", "delay:direct", "delay:fanout", "delay:topic"}
+	ExchangeTypeDirect      = "direct"
+	ExchangeTypeFanout      = "fanout"
+	ExchangeTypeTopic       = "topic"
+	ExchangeTypeDelayDirect = "delay:direct"
+	ExchangeTypeDelayFanout = "delay:fanout"
+	ExchangeTypeDelayTopic  = "delay:topic"
+
+	SupportedExchangeTypes = []string{
+		ExchangeTypeDirect,
+		ExchangeTypeFanout,
+		ExchangeTypeTopic,
+		ExchangeTypeDelayDirect,
+		ExchangeTypeDelayFanout,
+		ExchangeTypeDelayTopic,
+	}
 )
 
-func (rmq *RabbitMq) newBaseClient(options map[types.MqOptionType]types.MqOptioner) *BaseClient {
+func (rmq *RabbitMq) newBaseClient(options ...types.MqOptioner) *BaseClient {
+	allOptions := rmq.GetDefaultOptions()
+	for _, option := range options {
+		allOptions[option.GetType()] = option
+	}
+
 	// 连接URL
 	url := fmt.Sprintf("amqp://%s:%s@%s:%d/%s", rmq.Config.Username, rmq.Config.Password, rmq.Config.Host, rmq.Config.Port, rmq.Config.Vhost)
 	return &BaseClient{
 		Logger:        rmq.Logger,
 		Url:           url,
-		Options:       options,
+		Options:       allOptions,
 		chanReconnect: make(chan interface{}),
 	}
 }
@@ -127,7 +146,7 @@ func (c *BaseClient) setupExchange(exchangeName, exchangeType string) error {
 	}
 
 	// 如果指定了exchangeName, 尝试检测exchange是否声明了, 如果已经声明了的话就会无错误
-	option := getExchangeOption(c.Options)
+	option := GetExchangeOption(c.Options)
 	if strings.HasPrefix(exchangeType, "delay:") {
 		routeType := exchangeType[len("delay:"):]
 		if !utils.StringSliceContains(SupportedExchangeTypes, strings.ToLower(routeType)) {

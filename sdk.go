@@ -60,7 +60,7 @@ var (
 		},
 		&SdkProvider{
 			Kind:     types.SdkTypeMqRabbitmq,
-			Name:     "aliyun",
+			Name:     "rabbitmq",
 			Instance: &rabbitmq.RabbitmqProvider{},
 		},
 		&SdkProvider{

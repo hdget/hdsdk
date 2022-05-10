@@ -9,13 +9,8 @@ type ProducerClient struct {
 	//Config *ProducerConfig
 }
 
-func (rmq *RabbitMq) newProducerClient(options map[types.MqOptionType]types.MqOptioner) (*ProducerClient, error) {
-	//// 获取匹配的路由配置
-	//config, err := rmq.getProducerConfig(name)
-	//if config == nil {
-	//	return nil, errors.Wrap(err, name)
-	//}
+func (rmq *RabbitMq) newProducerClient(options ...types.MqOptioner) (*ProducerClient, error) {
 	return &ProducerClient{
-		BaseClient: rmq.newBaseClient(options),
+		BaseClient: rmq.newBaseClient(options...),
 	}, nil
 }
