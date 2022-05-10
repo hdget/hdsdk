@@ -103,6 +103,22 @@ func (r *RedisClient) Incr(key string) error {
 	return err
 }
 
+func (r *RedisClient) IncrBy(key string, number int) error {
+	conn := r.pool.Get()
+	defer conn.Close()
+
+	_, err := conn.Do("INCRBY", key, number)
+	return err
+}
+
+func (r *RedisClient) DecrBy(key string, number int) error {
+	conn := r.pool.Get()
+	defer conn.Close()
+
+	_, err := conn.Do("DECRBY", key, number)
+	return err
+}
+
 // Ping 检查redis是否存活
 func (r *RedisClient) Ping() error {
 	conn := r.pool.Get()

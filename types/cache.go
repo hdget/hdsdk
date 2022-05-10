@@ -18,6 +18,8 @@ type CacheClient interface {
 	Exists(key string) (bool, error)
 	Expire(key string, expire int) error
 	Incr(key string) error
+	IncrBy(key string, number int) error
+	DecrBy(key string, number int) error
 	Pipeline(commands []*CacheCommand) (reply interface{}, err error)
 	Ping() error
 
