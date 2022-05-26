@@ -152,7 +152,7 @@ func RegisterHandlers(app string, holder interface{}, methods map[string]common.
 			newMethods[name] =  func(ctx context.Context, in *common.InvocationEvent) (out *common.Content, err error) {
 				defer func() {
 					if r := recover(); r != nil {
-						utils.RecordErrorStack(app)
+						utils.RecordErrorStack(fmt.Sprintf("%s_service", app))
 					}
 				}()
 				return handler(ctx, in)
