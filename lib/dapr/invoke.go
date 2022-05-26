@@ -141,7 +141,7 @@ func GetMetaValue(ctx context.Context, key string) string {
 }
 
 // RegisterHandlers register namespace's method to global registry
-func RegisterHandlers(holder interface{}, methods map[string]common.ServiceInvocationHandler, registry map[string]map[string]common.ServiceInvocationHandler) error {
+func RegisterHandlers(app string, holder interface{}, methods map[string]common.ServiceInvocationHandler, registry map[string]map[string]common.ServiceInvocationHandler) error {
 	if registry == nil {
 		return errors.New("registry is nil")
 	}
