@@ -149,16 +149,8 @@ func RegisterHandlers(app string, holder interface{}, methods map[string]common.
 	if namespace != "" {
 		newMethods := make(map[string]common.ServiceInvocationHandler)
 		for name, handler := range methods {
-			newMethods[name] =  func(ctx context.Context, in *common.InvocationEvent) (out *common.Content, err error) {
-				defer func() {
-					if r := recover(); r != nil {
-						utils.RecordErrorStack(fmt.Sprintf("%s_service", app))
-					}
-				}()
-				return handler(ctx, in)
-			}
+			newMethods[name] = wrapRecoverHandler(app, handler)
 		}
-
 		registry[namespace] = newMethods
 	}
 	return nil
@@ -195,4 +187,16 @@ func getFullMethodName(version int, namespace, client, method string) string {
 	}
 
 	return strings.Join(tokens, ":")
+}
+
+// wrapRecoverHandler 将panic recover处理逻辑封装进去
+func wrapRecoverHandler(app string, handler common.ServiceInvocationHandler) common.ServiceInvocationHandler {
+	return func(ctx context.Context, in *common.InvocationEvent) (out *common.Content, err error) {
+		defer func() {
+			if r := recover(); r != nil {
+				utils.RecordErrorStack(app)
+			}
+		}()
+		return handler(ctx, in)
+	}
 }
