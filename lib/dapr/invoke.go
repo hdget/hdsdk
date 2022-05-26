@@ -147,7 +147,19 @@ func RegisterHandlers(holder interface{}, methods map[string]common.ServiceInvoc
 	}
 	namespace := getNamespaceName(holder)
 	if namespace != "" {
-		registry[namespace] = methods
+		newMethods := make(map[string]common.ServiceInvocationHandler)
+		for name, handler := range methods {
+			newMethods[name] =  func(ctx context.Context, in *common.InvocationEvent) (out *common.Content, err error) {
+				defer func() {
+					if r := recover(); r != nil {
+						utils.RecordErrorStack(app)
+					}
+				}()
+				return handler(ctx, in)
+			}
+		}
+
+		registry[namespace] = newMethods
 	}
 	return nil
 }
