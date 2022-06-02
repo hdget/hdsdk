@@ -5,6 +5,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdsdk/utils"
+	"strconv"
 	"time"
 )
 
@@ -454,4 +455,64 @@ func (r *RedisClient) Eval(scriptContent string, keys []interface{}, args []inte
 	}
 
 	return reply, nil
+}
+
+/////////////////////////////////////////////////////////////
+// Redis Bloom
+/////////////////////////////////////////////////////////////
+
+// BfExists - Determines whether an item may exist in the Bloom Filter or not.
+// args:
+// key - the name of the filter
+// item - the item to check for
+func (r *RedisClient) BfExists(key string, item string) (exists bool, err error) {
+	conn := r.pool.Get()
+	defer conn.Close()
+	return redis.Bool(conn.Do("BF.EXISTS", key, item))
+}
+
+// BfAdd - Add (or create and add) a new value to the filter
+// args:
+// key - the name of the filter
+// item - the item to add
+func (r *RedisClient) BfAdd(key string, item string) (exists bool, err error) {
+	conn := r.pool.Get()
+	defer conn.Close()
+	return redis.Bool(conn.Do("BF.ADD", key, item))
+}
+
+// BfReserve - Creates an empty Bloom Filter with a given desired error ratio and initial capacity.
+// args:
+// key - the name of the filter
+// error_rate - the desired probability for false positives
+// capacity - the number of entries you intend to add to the filter
+func (r *RedisClient) BfReserve(key string, errorRate float64, capacity uint64) (err error) {
+	conn := r.pool.Get()
+	defer conn.Close()
+	_, err = conn.Do("BF.RESERVE", key, strconv.FormatFloat(errorRate, 'g', 16, 64), capacity)
+	return err
+}
+
+// BfAddMulti - Adds one or more items to the Bloom Filter, creating the filter if it does not yet exist.
+// args:
+// key - the name of the filter
+// item - One or more items to add
+func (r *RedisClient) BfAddMulti(key string, items []string) ([]int64, error) {
+	conn := r.pool.Get()
+	defer conn.Close()
+	args := redis.Args{key}.AddFlat(items)
+	result, err := conn.Do("BF.MADD", args...)
+	return redis.Int64s(result, err)
+}
+
+// BfExistsMulti - Determines if one or more items may exist in the filter or not.
+// args:
+// key - the name of the filter
+// item - one or more items to check
+func (r *RedisClient) BfExistsMulti(key string, items []string) ([]int64, error) {
+	conn := r.pool.Get()
+	defer conn.Close()
+	args := redis.Args{key}.AddFlat(items)
+	result, err := conn.Do("BF.MEXISTS", args...)
+	return redis.Int64s(result, err)
 }
