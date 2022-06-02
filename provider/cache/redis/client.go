@@ -497,7 +497,7 @@ func (r *RedisClient) BfReserve(key string, errorRate float64, capacity uint64) 
 // args:
 // key - the name of the filter
 // item - One or more items to add
-func (r *RedisClient) BfAddMulti(key string, items []string) ([]int64, error) {
+func (r *RedisClient) BfAddMulti(key string, items []interface{}) ([]int64, error) {
 	conn := r.pool.Get()
 	defer conn.Close()
 	args := redis.Args{key}.AddFlat(items)
@@ -509,7 +509,7 @@ func (r *RedisClient) BfAddMulti(key string, items []string) ([]int64, error) {
 // args:
 // key - the name of the filter
 // item - one or more items to check
-func (r *RedisClient) BfExistsMulti(key string, items []string) ([]int64, error) {
+func (r *RedisClient) BfExistsMulti(key string, items []interface{}) ([]int64, error) {
 	conn := r.pool.Get()
 	defer conn.Close()
 	args := redis.Args{key}.AddFlat(items)

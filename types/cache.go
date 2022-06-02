@@ -68,8 +68,14 @@ type CacheClient interface {
 
 	// list
 	RPop(key string) ([]byte, error)
-
 	Eval(scriptContent string, keys []interface{}, args []interface{}) (interface{}, error)
+
+	// redis bloom
+	BfExists(key string, item string) (exists bool, err error)
+	BfAdd(key string, item string) (exists bool, err error)
+	BfReserve(key string, errorRate float64, capacity uint64) (err error)
+	BfAddMulti(key string, items []interface{}) ([]int64, error)
+	BfExistsMulti(key string, items []interface{}) ([]int64, error)
 }
 
 // cache ability
