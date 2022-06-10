@@ -83,7 +83,11 @@ func (rmq *RabbitMq) CreateProducer(parameters map[string]interface{}, options .
 // 监听是否需要关闭producer, 处理消息是否投递成功事件
 func (rmp *RabbitMqProducer) addEventListener() {
 	// 设置channel进入消息投递确认模式
-	chanPublishConfirm := rmp.Client.Channel.NotifyPublish(make(chan amqp.Confirmation))
+	//The capacity of the chan Confirmation must be at least as large as the
+	//number of outstanding publishings.  Not having enough buffered chans will
+	//create a deadlock if you attempt to perform other operations on the Connection
+	//or Channel while confirms are in-flight.
+	chanPublishConfirm := rmp.Client.Channel.NotifyPublish(make(chan amqp.Confirmation, 1))
 	rmp.Client.Channel.Confirm(false)
 
 	// Publish Confirm事件监听
@@ -99,7 +103,7 @@ func (rmp *RabbitMqProducer) addEventListener() {
 
 				// 放置在这里因为每次channel关闭并且重连需要重新初始化channel并使新channel进入confirm模式
 				// 注意这里需要放在NotifyClose后面,因为这里执行出错会导致channel关闭，后面的select就会检测到并重连
-				confirms = rmp.Client.Channel.NotifyPublish(make(chan amqp.Confirmation))
+				confirms = rmp.Client.Channel.NotifyPublish(make(chan amqp.Confirmation, 1))
 				rmp.Client.Channel.Confirm(false)
 				// 在重新setup后需要返回给客户
 				rmp.chanDelivery <- ErrPublishAckLost
