@@ -38,7 +38,7 @@ func New(page, pageSize int64, args ...int64) *Pagination {
 func (p *Pagination) Paging(data interface{}) (int64, []interface{}) {
 	sliceData := convertToSlice(data)
 	total := int64(len(sliceData))
-	start, end := getStartEndPosition(p.page, p.pageSize, total)
+	start, end := GetStartEndPosition(p.page, p.pageSize, total)
 	return total, sliceData[start:end]
 }
 
@@ -71,7 +71,7 @@ func (p *Pagination) GetLimitClause() string {
 //
 //	start := (p.page - 1) * p.pageSize
 //	return fmt.Sprintf("LIMIT %d, %d", start, p.pageSize)
-//	//start, end := getStartEndPosition(p.page, p.pageSize, total)
+//	//start, end := GetStartEndPosition(p.page, p.pageSize, total)
 //	//
 //	//return fmt.Sprintf("LIMIT %d, %d", start, end-start)
 //}
@@ -102,7 +102,7 @@ func CalculatePages(total, pageSize int64) [][]int64 {
 }
 
 // GetStartEndPosition 如果是按列表slice进行翻页的话， 计算slice的起始index
-func getStartEndPosition(page, pageSize, total int64) (int64, int64) {
+func GetStartEndPosition(page, pageSize, total int64) (int64, int64) {
 	start := (page - 1) * pageSize
 	end := page * pageSize
 

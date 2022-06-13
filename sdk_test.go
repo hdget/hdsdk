@@ -541,12 +541,12 @@ func TestRabbitmqSendDelay(t *testing.T) {
 		Logger.Fatal("create producer", "err", err)
 	}
 
-	err = p.PublishDelay([]byte("1"), int64(2000), "close")
+	err = p.PublishDelay([]byte("1"), int64(60000), "close")
 	if err != nil {
 		Logger.Error("publish", "last", p.GetLastConfirmedId(), "err", err)
 	}
 
-	err = p.PublishDelay([]byte("2"), int64(5000), "close")
+	err = p.PublishDelay([]byte("2"), int64(70000), "close")
 	if err != nil {
 		Logger.Error("publish", "last", p.GetLastConfirmedId(), "err", err)
 	}
@@ -618,6 +618,7 @@ func TestRabbitmqRecvDelay(t *testing.T) {
 	qosOption := Rabbitmq.My().GetDefaultOptions()[types.MqOptionQos].(*rabbitmq.QosOption)
 	qosOption.PrefetchCount = 2
 	params := map[string]interface{}{
+		"queueName":    "close",
 		"exchangeName": "delay",
 		"exchangeType": "delay:topic",
 		"routingKeys":  []string{"close"},
