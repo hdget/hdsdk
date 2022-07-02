@@ -7,6 +7,8 @@ import (
 	"github.com/hdget/hdsdk/provider/mq/rabbitmq"
 	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdsdk/utils"
+	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
+	"github.com/neo4j/neo4j-go-driver/v4/neo4j/dbtype"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
@@ -193,6 +195,24 @@ const TEST_CONFIG_ALIYUN_DTS = `
                 password = "testpassword"
                 group_id = "testgroup"
                 topic = "testtopic"
+`
+
+const TEST_CONFIG_NEO4J = `
+[sdk]
+	[sdk.log]
+        filename = "demo.log"
+		[sdk.log.rotate]
+			# 最大保存时间7天(单位hour)
+        	max_age = 168
+        	# 日志切割时间间隔24小时（单位hour)
+        	rotation_time=24
+	[sdk.neo4j]
+		virtual_uri = "neo4j://test.newaigou.com:7687"
+		username = "neo4j"
+		password = "123456"
+		#[[sdk.neo4j.servers]]
+		#	host = "xxx"
+		#	port = 1234
 `
 
 // nolint:errcheck
@@ -792,4 +812,130 @@ func TestDts(t *testing.T) {
 	}
 
 	c.Consume()
+}
+
+// nolint:errcheck
+func TestNeo4j(t *testing.T) {
+	v := LoadConfig("demo", "local", "")
+
+	// merge config from string
+	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_NEO4J)))
+
+	// 将配置信息转换成对应的数据结构
+	var conf TestConf
+	err := v.Unmarshal(&conf)
+	if err != nil {
+		utils.LogFatal("unmarshal demo conf", "err", err)
+	}
+
+	err = Initialize(&conf)
+	if err != nil {
+		utils.LogFatal("sdk initialize", "err", err)
+	}
+
+	works := []neo4j.TransactionWork{
+		graphDeleteAllPersons(),
+		graphAddPerson("A"),
+		graphAddPerson("B"),
+		graphAddPerson("C"),
+		graphAddReferralRelation("A", "B"),
+		graphAddReferralRelation("B", "C"),
+		graphDeletePerson("B"),
+	}
+
+	_, err = Neo4j.Exec(works)
+	if err != nil {
+		utils.LogFatal("neo4j exec", "err", err)
+	}
+
+	result, err := Neo4j.Select("MATCH (a:Person) RETURN a")
+	if err != nil {
+		utils.LogFatal("neo4j select", "err", err)
+	}
+	fmt.Println(result)
+
+	type Person struct {
+		Name string `json:"name"`
+	}
+	ddd, err := Neo4j.Get("MATCH (a:Person {name: $Name}) RETURN a", &Person{Name: "A"})
+	if err != nil {
+		utils.LogFatal("neo4j get", "err", err)
+	}
+	fmt.Println(ddd)
+}
+
+// 找到匹配的a节点，然后detach命令会删除a节点相关的所有关系
+func graphDeleteAllPersons() neo4j.TransactionWork {
+	return func(tx neo4j.Transaction) (interface{}, error) {
+		var result, err = tx.Run(
+			"MATCH (a:Person) DETACH DELETE a", nil)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return result.Consume()
+	}
+}
+
+func graphDeletePerson(name string) neo4j.TransactionWork {
+	return func(tx neo4j.Transaction) (interface{}, error) {
+		// 1. 删除
+		result, err := tx.Run(
+			"MATCH (a:Person)-[:REFERRAL]-(b:Person {name: $name})-[:REFERRAL]-(c:Person) RETURN a,c", map[string]interface{}{"name": name})
+		if err != nil {
+			return nil, err
+		}
+
+		var from, to dbtype.Node
+		if result.Next() {
+			from = result.Record().Values[0].(dbtype.Node)
+			to = result.Record().Values[1].(dbtype.Node)
+		}
+
+		// 2. 删除节点
+		result, err = tx.Run(
+			"MATCH (a:Person {name: $name}) DETACH DELETE a", map[string]interface{}{"name": name})
+		if err != nil {
+			return nil, err
+		}
+
+		// 3. 增加边
+		if from.Id > 0 && to.Id > 0 {
+			result, err = tx.Run(
+				"MATCH (a:Person {name: $from}),(b:Person {name: $to}) MERGE (a)-[:REFERER]->(b)", map[string]interface{}{"from": from.Props["name"], "to": to.Props["name"]})
+			if err != nil {
+				return nil, err
+			}
+		}
+		return result.Consume()
+	}
+}
+
+func graphAddPerson(person1 string) neo4j.TransactionWork {
+	return func(tx neo4j.Transaction) (interface{}, error) {
+		var result, err = tx.Run(
+			"CREATE (a:Person {name: $name1})", map[string]interface{}{"name1": person1})
+
+		if err != nil {
+			return nil, err
+		}
+
+		return result.Consume()
+	}
+}
+
+func graphAddReferralRelation(person1 string, person2 string) neo4j.TransactionWork {
+	return func(tx neo4j.Transaction) (interface{}, error) {
+		var result, err = tx.Run(
+			"MATCH (a:Person {name: $name1}),"+
+				"(b:Person {name: $name2}) "+
+				"MERGE (a)-[:REFERRAL]->(b)", map[string]interface{}{"name1": person1, "name2": person2})
+
+		if err != nil {
+			return nil, err
+		}
+
+		return result.Consume()
+	}
 }

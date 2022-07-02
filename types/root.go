@@ -26,6 +26,7 @@ const (
 	SdkCategoryMs            // 微服务能力
 	SdkCategoryNosql         // nosql数据库能力，例如es, monodb
 	SdkCategoryKv            // kv型数据库能力，例如etcd
+	SdkCategoryGraph         // 图数据库能力
 )
 
 const (

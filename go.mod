@@ -6,6 +6,7 @@ require (
 	github.com/Shopify/sarama v1.32.0
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.1+incompatible
 	github.com/dapr/go-sdk v1.3.1
+	github.com/fatih/structs v1.1.0
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-kit/kit v0.12.0
 	github.com/go-resty/resty/v2 v2.7.0
@@ -18,12 +19,14 @@ require (
 	github.com/kabukky/httpscerts v0.0.0-20150320125433-617593d7dcb3
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/mitchellh/mapstructure v1.4.3
+	github.com/neo4j/neo4j-go-driver/v4 v4.4.3
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/openzipkin-contrib/zipkin-go-opentracing v0.4.5
 	github.com/openzipkin/zipkin-go v0.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.26.1
 	github.com/sony/gobreaker v0.5.0
+	github.com/spf13/cast v1.4.1
 	github.com/spf13/viper v1.10.1
 	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.7.0
@@ -99,7 +102,6 @@ require (
 	github.com/smartystreets/assertions v1.1.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
-	github.com/spf13/cast v1.4.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/streadway/handy v0.0.0-20200128134331-0f66f006fb2e // indirect

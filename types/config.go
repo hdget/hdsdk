@@ -9,6 +9,7 @@ type Configer interface {
 	GetNosqlConfig() interface{}        // NoSQL服务配置
 	GetKvConfig() interface{}           // kv型服务配置
 	GetMicroServiceConfig() interface{} // gokit微服务配置
+	GetGraphConfig() interface{}        // 图数据库配置
 }
 
 // items under sdk config
@@ -21,4 +22,5 @@ type SdkConfigItem struct {
 	MicroService interface{} `mapstructure:"service"`  // 基于gokit实现的微服务配置, ms means microservice
 	Nosql        interface{} `mapstructure:"nosql"`    // NoSQL配置
 	Kv           interface{} `mapstructure:"kv"`       // Key/Value数据库配置
+	Neo4j        interface{} `mapstructure:"neo4j"`    // neo4j数据库配置
 }

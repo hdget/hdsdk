@@ -70,7 +70,7 @@ func (c *Config) GetNosqlConfig() interface{} {
 		return nil
 	}
 
-	return c.Sdk.Kv
+	return c.Sdk.Nosql
 }
 
 // GetKvConfig 获取KV配置
@@ -79,4 +79,12 @@ func (c *Config) GetKvConfig() interface{} {
 		return nil
 	}
 	return c.Sdk.Kv
+}
+
+// GetGraphConfig 获取图数据库配置
+func (c *Config) GetGraphConfig() interface{} {
+	if c == nil || c.Sdk == nil {
+		return nil
+	}
+	return c.Sdk.Neo4j
 }
