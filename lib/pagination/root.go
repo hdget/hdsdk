@@ -52,6 +52,15 @@ func (p *Pagination) GetLimitClause() string {
 	return fmt.Sprintf("LIMIT %d, %d", start, p.pageSize)
 }
 
+func (p *Pagination) GetLimitValues() (int64, int64) {
+	var start int64
+	if p != nil && p.page > 0 {
+		start = (p.page - 1) * p.pageSize
+	}
+
+	return start, p.pageSize
+}
+
 // GetSQLClause 获取翻页SQL查询语句
 //
 // 1. 假如前端没有传过来last_pk, 那么返回值是 last_pk, LIMIT子句(LIMIT offset, pageSize)
