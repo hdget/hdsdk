@@ -151,9 +151,9 @@ func GetVarName(myvar interface{}) string {
 }
 
 // GetNeo4jPathPattern 解析Neo4j语法的Variable-length pattern
-func GetNeo4jPathPattern(args ...int) string {
-	start := -1
-	end := -1
+func GetNeo4jPathPattern(args ...int32) string {
+	start := int32(-1)
+	end := int32(-1)
 	switch len(args) {
 	case 1:
 		start = args[0]
