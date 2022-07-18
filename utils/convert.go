@@ -2,7 +2,7 @@ package utils
 
 import (
 	jsoniter "github.com/json-iterator/go"
-	"strconv"
+	"github.com/spf13/cast"
 	"strings"
 	"unsafe"
 )
@@ -51,19 +51,9 @@ func CsvToInt64s(strValue string) []int64 {
 	return ToInt64Slice(tokens)
 }
 
-// Int64sToCsv 将int64 slice转换成用逗号分隔的字符串: 1,2,3
-func Int64sToCsv(int64s []int64) string {
-	return strings.Join(ToStringSlice(int64s), ",")
-}
-
-// Int32sToCsv 将int32 slice转换成用逗号分隔的字符串: 1,2,3
-func Int32sToCsv(int32s []int64) string {
-	return strings.Join(ToStringSlice(int32s), ",")
-}
-
-// CsvToInt32s 将逗号分隔的string尝试转换成[1,2,3...]的int64 slice
+// CsvToInt32s 将逗号分隔的string尝试转换成[1,2,3...]的int32 slice
 // Csv means Comma Separated Value
-func CsvToInt32s(strValue string) []int64 {
+func CsvToInt32s(strValue string) []int32 {
 	if len(strValue) == 0 {
 		return nil
 	}
@@ -76,18 +66,14 @@ func CsvToInt32s(strValue string) []int64 {
 	return ToInt32Slice(tokens)
 }
 
-// ToStringSlice 将int64 slice转换成["1", "2", "3"...]字符串slice
-func ToStringSlice(int64Slice []int64) []string {
-	if len(int64Slice) == 0 {
-		return nil
-	}
+// Int64sToCsv 将int64 slice转换成用逗号分隔的字符串: 1,2,3
+func Int64sToCsv(int64s []int64) string {
+	return strings.Join(cast.ToStringSlice(int64s), ",")
+}
 
-	stringList := make([]string, 0)
-	for _, item := range int64Slice {
-		stringList = append(stringList, strconv.FormatInt(item, 10))
-	}
-
-	return stringList
+// Int32sToCsv 将int32 slice转换成用逗号分隔的字符串: 1,2,3
+func Int32sToCsv(int32s []int32) string {
+	return strings.Join(cast.ToStringSlice(int32s), ",")
 }
 
 // ToInt64Slice 将string slice转换成[1,2,3...]的int64 slice
@@ -95,25 +81,21 @@ func ToInt64Slice(strSlice []string) []int64 {
 	if len(strSlice) == 0 {
 		return nil
 	}
-	stringList := make([]int64, 0)
+	int64s := make([]int64, 0)
 	for _, item := range strSlice {
-		parseInt, _ := strconv.ParseInt(item, 10, 64)
-		stringList = append(stringList, parseInt)
+		int64s = append(int64s, cast.ToInt64(item))
 	}
-
-	return stringList
+	return int64s
 }
 
 // ToInt32Slice 将string slice转换成[1,2,3...]的int32 slice
-func ToInt32Slice(strSlice []string) []int64 {
+func ToInt32Slice(strSlice []string) []int32 {
 	if len(strSlice) == 0 {
 		return nil
 	}
-	stringList := make([]int64, 0)
+	int32s := make([]int32, 0)
 	for _, item := range strSlice {
-		parseInt, _ := strconv.ParseInt(item, 10, 32)
-		stringList = append(stringList, parseInt)
+		int32s = append(int32s, cast.ToInt32(item))
 	}
-
-	return stringList
+	return int32s
 }
