@@ -56,6 +56,26 @@ func Int64sToCsv(int64s []int64) string {
 	return strings.Join(ToStringSlice(int64s), ",")
 }
 
+// Int32sToCsv 将int32 slice转换成用逗号分隔的字符串: 1,2,3
+func Int32sToCsv(int32s []int64) string {
+	return strings.Join(ToStringSlice(int32s), ",")
+}
+
+// CsvToInt32s 将逗号分隔的string尝试转换成[1,2,3...]的int64 slice
+// Csv means Comma Separated Value
+func CsvToInt32s(strValue string) []int64 {
+	if len(strValue) == 0 {
+		return nil
+	}
+
+	tokens := strings.Split(strValue, ",")
+	if len(tokens) == 0 {
+		return nil
+	}
+
+	return ToInt32Slice(tokens)
+}
+
 // ToStringSlice 将int64 slice转换成["1", "2", "3"...]字符串slice
 func ToStringSlice(int64Slice []int64) []string {
 	if len(int64Slice) == 0 {
@@ -78,6 +98,20 @@ func ToInt64Slice(strSlice []string) []int64 {
 	stringList := make([]int64, 0)
 	for _, item := range strSlice {
 		parseInt, _ := strconv.ParseInt(item, 10, 64)
+		stringList = append(stringList, parseInt)
+	}
+
+	return stringList
+}
+
+// ToInt32Slice 将string slice转换成[1,2,3...]的int32 slice
+func ToInt32Slice(strSlice []string) []int64 {
+	if len(strSlice) == 0 {
+		return nil
+	}
+	stringList := make([]int64, 0)
+	for _, item := range strSlice {
+		parseInt, _ := strconv.ParseInt(item, 10, 32)
 		stringList = append(stringList, parseInt)
 	}
 
