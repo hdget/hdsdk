@@ -25,6 +25,10 @@ var (
 	_ types.GraphProvider = (*Neo4jProvider)(nil)
 )
 
+const (
+	defaultMaxPoolSize = 1000
+)
+
 // Init	implements types.Provider interface, used to initialize the capability
 // @author	Ryan Fan	(2021-06-09)
 // @param	baseconf.Configer	root config interface to extract config info
@@ -48,7 +52,11 @@ func (np *Neo4jProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 		serverAddresses = append(serverAddresses, neo4j.NewServerAddress(server.Host, cast.ToString(server.Port)))
 	}
 
-	np.driver, err = createDriverWithAddressResolver(config.VirtualUri, config.Username, config.Password, serverAddresses...)
+	maxPoolSize := defaultMaxPoolSize
+	if config.MaxPoolSize > 0 {
+		maxPoolSize = config.MaxPoolSize
+	}
+	np.driver, err = createDriverWithAddressResolver(config.VirtualUri, config.Username, config.Password, maxPoolSize, serverAddresses...)
 	if err != nil {
 		return err
 	}
@@ -56,12 +64,13 @@ func (np *Neo4jProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 	return nil
 }
 
-func createDriverWithAddressResolver(virtualURI, username, password string, addresses ...neo4j.ServerAddress) (neo4j.Driver, error) {
+func createDriverWithAddressResolver(virtualURI, username, password string, maxPoolSize int, addresses ...neo4j.ServerAddress) (neo4j.Driver, error) {
 	// Address resolver is only valid for neo4j uri
 	return neo4j.NewDriver(virtualURI, neo4j.BasicAuth(username, password, ""), func(config *neo4j.Config) {
 		config.AddressResolver = func(address neo4j.ServerAddress) []neo4j.ServerAddress {
 			return addresses
 		}
+		config.MaxConnectionPoolSize = maxPoolSize
 	})
 }
 
@@ -140,4 +149,10 @@ func (np *Neo4jProvider) Reader(bookmarks ...string) neo4j.Session {
 
 func (np *Neo4jProvider) Writer(bookmarks ...string) neo4j.Session {
 	return np.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite, Bookmarks: bookmarks})
+}
+
+func (np *Neo4jProvider) Read(cypher string, params map[string]interface{}, bookmarks ...string) neo4j.Session {
+	sess := np.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead, Bookmarks: bookmarks})
+	defer sess.Close()
+
 }

@@ -7,10 +7,11 @@ import (
 )
 
 type ConfigNeo4j struct {
-	VirtualUri string             `mapstructure:"virtual_uri"`
-	Username   string             `mapstructure:"username"`
-	Password   string             `mapstructure:"password"`
-	Servers    []*Neo4jServerConf `mapstructure:"servers"`
+	VirtualUri  string             `mapstructure:"virtual_uri"`
+	Username    string             `mapstructure:"username"`
+	Password    string             `mapstructure:"password"`
+	Servers     []*Neo4jServerConf `mapstructure:"servers"`
+	MaxPoolSize int                `mapstructure:"max_pool_size"`
 }
 
 type Neo4jServerConf struct {
