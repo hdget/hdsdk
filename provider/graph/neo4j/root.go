@@ -152,7 +152,5 @@ func (np *Neo4jProvider) Writer(bookmarks ...string) neo4j.Session {
 }
 
 func (np *Neo4jProvider) Read(cypher string, params map[string]interface{}, bookmarks ...string) neo4j.Session {
-	sess := np.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead, Bookmarks: bookmarks})
-	defer sess.Close()
-
+	return np.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead, Bookmarks: bookmarks})
 }
