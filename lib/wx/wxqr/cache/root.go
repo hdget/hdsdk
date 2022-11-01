@@ -2,7 +2,7 @@ package cache
 
 import (
 	"fmt"
-	"hdsdk"
+	"github.com/hdget/hdsdk"
 )
 
 const (

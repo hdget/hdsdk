@@ -1,6 +1,6 @@
 package mbtree
 
-import "hdsdk/utils"
+import "github.com/hdget/hdsdk/utils"
 
 // Size get how many nodes in the tree
 func (t *SafeMultiBranchTree) Size() int {

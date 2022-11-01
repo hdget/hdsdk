@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/hdget/hdsdk"
 	"github.com/pkg/errors"
-	"hdsdk"
 )
 
 type Wxqr interface {

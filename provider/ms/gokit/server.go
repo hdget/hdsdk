@@ -2,7 +2,7 @@ package gokit
 
 import (
 	"context"
-	"hdsdk/types"
+	"github.com/hdget/hdsdk/types"
 )
 
 // ServerConfig 服务端配置

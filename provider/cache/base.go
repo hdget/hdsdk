@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"hdsdk/types"
+	"github.com/hdget/hdsdk/types"
 )
 
 type BaseCacheProvider struct {

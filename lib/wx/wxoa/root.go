@@ -1,8 +1,8 @@
 package wxoa
 
 import (
-	"hdsdk/lib/wx/typwx"
-	"hdsdk/lib/wx/wxoa/cache"
+	"github.com/hdget/hdsdk/lib/wx/typwx"
+	"github.com/hdget/hdsdk/lib/wx/wxoa/cache"
 )
 
 type Wxoa interface {

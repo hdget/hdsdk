@@ -6,9 +6,9 @@ package zerolog
 
 import (
 	"fmt"
+	"github.com/hdget/hdsdk/types"
+	"github.com/hdget/hdsdk/utils"
 	"github.com/rs/zerolog"
-	"hdsdk/types"
-	"hdsdk/utils"
 	stdlog "log"
 	"os"
 	"path/filepath"

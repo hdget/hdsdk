@@ -8,8 +8,8 @@ package kafka
 import (
 	"github.com/Shopify/sarama"
 	_ "github.com/go-sql-driver/mysql"
-	"hdsdk/provider/mq"
-	"hdsdk/types"
+	"github.com/hdget/hdsdk/provider/mq"
+	"github.com/hdget/hdsdk/types"
 )
 
 type KafkaProvider struct {

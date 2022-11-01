@@ -4,10 +4,10 @@ import (
 	kitot "github.com/go-kit/kit/tracing/opentracing"
 	kitzipkin "github.com/go-kit/kit/tracing/zipkin"
 	kithttp "github.com/go-kit/kit/transport/http"
+	"github.com/hdget/hdsdk/types"
 	"github.com/opentracing/opentracing-go"
 	"github.com/openzipkin/zipkin-go"
 	"github.com/openzipkin/zipkin-go/reporter"
-	"hdsdk/types"
 
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
 	zipkinot "github.com/openzipkin-contrib/zipkin-go-opentracing"

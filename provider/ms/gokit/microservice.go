@@ -2,7 +2,7 @@
 package gokit
 
 import (
-	"hdsdk/types"
+	"github.com/hdget/hdsdk/types"
 )
 
 // MicroServiceConfig 微服务配置

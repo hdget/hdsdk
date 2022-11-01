@@ -2,9 +2,9 @@ package rabbitmq
 
 import (
 	"fmt"
+	"github.com/hdget/hdsdk/types"
+	"github.com/hdget/hdsdk/utils"
 	"github.com/streadway/amqp"
-	"hdsdk/types"
-	"hdsdk/utils"
 	"strings"
 	"sync/atomic"
 	"time"

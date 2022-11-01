@@ -3,7 +3,7 @@ package kafka
 import (
 	"context"
 	"github.com/Shopify/sarama"
-	"hdsdk/types"
+	"github.com/hdget/hdsdk/types"
 )
 
 // BaseClient 消息队列客户端维护connection和channel
