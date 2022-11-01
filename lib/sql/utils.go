@@ -2,7 +2,7 @@ package sql
 
 import (
 	"fmt"
-	"github.com/hdget/hdsdk/utils"
+	"hdsdk/utils"
 	"strings"
 )
 
@@ -32,38 +32,40 @@ import (
 
 // GetUnionSQL 通过Union关键字实现多SQL批量查询
 //
-//		(
-//		SELECT user_id, amount FROM fission_reward
-//		WHERE user_id=123 AND created_at BETWEEN 1575376982 and (1575376982+24*3600*7)
-//      )
-//	    UNION ALL
-//		(
-//	     	SELECT user_id, amount FROM fission_reward
-//			WHERE user_id=456 AND created_at BETWEEN 1575376982 and (1575376982+24*3600*7)
-//		)
-//
+//			(
+//			SELECT user_id, amount FROM fission_reward
+//			WHERE user_id=123 AND created_at BETWEEN 1575376982 and (1575376982+24*3600*7)
+//	     )
+//		    UNION ALL
+//			(
+//		     	SELECT user_id, amount FROM fission_reward
+//				WHERE user_id=456 AND created_at BETWEEN 1575376982 and (1575376982+24*3600*7)
+//			)
 func GetUnionSQL(subSQLs []string) string {
 	return strings.Join(subSQLs, " UNION ALL ")
 }
 
 // GetBatchUpdateSQL 根据给定的主键列表对相应的值进行批量更新
 // UPDATE <tableName> SET
-//    <fieldname1> = CASE pkName
-//        WHEN <pk1> THEN <interface{}>
-//        WHEN <pk2> THEN <interface{}>
-//        WHEN <pk3> THEN <interface{}>
-//    END,
-//    <fieldname1> = CASE pkName
-//        WHEN <pk1> THEN <interface{}>
-//        WHEN <pk1> THEN <interface{}>
-//        WHEN <pk1> THEN <interface{}>
-//    END
-//WHERE pkName IN (<pks>)
-// values: <fieldName1> => {
-//      pk1 => interface{}
-//      pk2 => interface{}
-//      pk3 => interface{}
-// }
+//
+//	<fieldname1> = CASE pkName
+//	    WHEN <pk1> THEN <interface{}>
+//	    WHEN <pk2> THEN <interface{}>
+//	    WHEN <pk3> THEN <interface{}>
+//	END,
+//	<fieldname1> = CASE pkName
+//	    WHEN <pk1> THEN <interface{}>
+//	    WHEN <pk1> THEN <interface{}>
+//	    WHEN <pk1> THEN <interface{}>
+//	END
+//
+// WHERE pkName IN (<pks>)
+//
+//	values: <fieldName1> => {
+//	     pk1 => interface{}
+//	     pk2 => interface{}
+//	     pk3 => interface{}
+//	}
 func GetBatchUpdateSQL(tableName, pkName string, pks []int64, values map[string]map[int64]interface{}) string {
 	if len(pks) == 0 {
 		return ""

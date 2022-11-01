@@ -1,8 +1,8 @@
 package rabbitmq
 
 import (
-	"github.com/hdget/hdsdk/types"
 	"github.com/streadway/amqp"
+	"hdsdk/types"
 )
 
 // 声明exchange, 注意：如果声明出错的话会导致关闭channel
@@ -35,7 +35,6 @@ import (
 // 当不想对外公布exchange只想做内部exchange的时候才适用,一般不用
 //
 // 当noWait=true,在声明的时候不会等待server端的确认，如果有错误会被NotifyClose回调函数监听到
-//
 type ExchangeOption struct {
 	Durable    bool // 消息是否持久化
 	AutoDelete bool // 是否会自动删除：当最后一个消费者断开后，是否将队列中的消息清除
@@ -51,12 +50,13 @@ type ExchangeOption struct {
 // exchangeName="", routingKey=queueName,
 //
 // e,g:
-//  QueueDeclare("alerts", true, false, false, false, nil)
-//  Publish("", "alerts", false, false, Publishing{Body: []byte("...")})
 //
-//  Delivery       Exchange  Key       Queue
-//  -----------------------------------------------
-//  key: alerts -> ""     -> alerts -> alerts
+//	QueueDeclare("alerts", true, false, false, false, nil)
+//	Publish("", "alerts", false, false, Publishing{Body: []byte("...")})
+//
+//	Delivery       Exchange  Key       Queue
+//	-----------------------------------------------
+//	key: alerts -> ""     -> alerts -> alerts
 //
 // 如果queueName为空，服务器会生成一个唯一的queueName并通过该Queue结构的Name字段返回
 //

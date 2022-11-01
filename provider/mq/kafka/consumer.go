@@ -2,7 +2,7 @@ package kafka
 
 import (
 	"context"
-	"github.com/hdget/hdsdk/types"
+	"hdsdk/types"
 	"strings"
 )
 

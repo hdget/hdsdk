@@ -1,9 +1,9 @@
 package neo4j
 
 import (
-	"github.com/hdget/hdsdk/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"hdsdk/types"
 )
 
 type ConfigNeo4j struct {
@@ -19,7 +19,7 @@ type Neo4jServerConf struct {
 	Port int    `mapstructure:"port"`
 }
 
-///////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////
 func parseConfig(rootConfiger types.Configer) (*ConfigNeo4j, error) {
 	if rootConfiger == nil {
 		return nil, types.ErrEmptyConfig

@@ -88,11 +88,12 @@ func (p *Pagination) GetLimitValues() (int64, int64) {
 // CalculatePages 计算页面，获取带有起始值的页面的数组
 // @return 返回一个二维数组， 第一维是多少页，第二维是每页[]int64{start, end}
 // e,g: 假设11个数的列表，分页pageSize是5，那么返回的是：
-// []int64{
-//    []int64{0, 5},
-//    []int64{5, 10},
-//    []int64{10, 11},
-// }
+//
+//	[]int64{
+//	   []int64{0, 5},
+//	   []int64{5, 10},
+//	   []int64{10, 11},
+//	}
 func CalculatePages(total, pageSize int64) [][]int64 {
 	totalPage := int64(math.Ceil(float64(total) / float64(pageSize)))
 

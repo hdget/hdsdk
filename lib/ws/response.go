@@ -3,8 +3,8 @@ package ws
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/hdget/hdsdk/lib/bizerr"
-	"github.com/hdget/hdsdk/utils"
+	"hdsdk/lib/bizerr"
+	"hdsdk/utils"
 	"net/http"
 )
 

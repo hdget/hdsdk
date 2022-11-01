@@ -3,9 +3,9 @@ package gokit
 import (
 	"context"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
-	"github.com/hdget/hdsdk/types"
-	"github.com/hdget/hdsdk/utils/parallel"
 	"google.golang.org/grpc"
+	"hdsdk/types"
+	"hdsdk/utils/parallel"
 	"net"
 	"syscall"
 )

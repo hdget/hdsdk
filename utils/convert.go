@@ -22,11 +22,13 @@ func BytesToString(b []byte) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 
-// String 尝试将值转换成字符串
-func String(value interface{}) (string, error) {
+// ToString 尝试将值转换成字符串
+func ToString(value interface{}) (string, error) {
 	switch reply := value.(type) {
 	case string:
 		return reply, nil
+	case []byte:
+		return BytesToString(reply), nil
 	}
 
 	bs, err := jsoniter.Marshal(value)

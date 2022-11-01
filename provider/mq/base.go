@@ -1,7 +1,7 @@
 package mq
 
 import (
-	"github.com/hdget/hdsdk/types"
+	"hdsdk/types"
 )
 
 type BaseMqProvider struct {

@@ -1,6 +1,6 @@
 package mbtree
 
-import "github.com/hdget/hdsdk/utils"
+import "hdsdk/utils"
 
 // Size get how many nodes in the tree
 func (t *SafeMultiBranchTree) Size() int {
@@ -61,20 +61,22 @@ func (t *SafeMultiBranchTree) Depth(args ...int64) int {
 // AllPaths use this function to get the identifiers allowing to go from the root nodes to each leaf.
 // @return: a list of list of identifiers, root being not omitted.
 // For example:
-//  Harry
-//  |___ Bill
-//  |___ Jane
-//  |    |___ Diane
-//  |         |___ George
-//  |              |___ Jill
-//  |         |___ Mary
-//  |    |___ Mark
+//
+//	Harry
+//	|___ Bill
+//	|___ Jane
+//	|    |___ Diane
+//	|         |___ George
+//	|              |___ Jill
+//	|         |___ Mary
+//	|    |___ Mark
 //
 // Expected result:
-//  [['harry', 'jane', 'diane', 'mary'],
-//	['harry', 'jane', 'mark'],
-//	['harry', 'jane', 'diane', 'george', 'jill'],
-//	['harry', 'bill']]
+//
+//	 [['harry', 'jane', 'diane', 'mary'],
+//		['harry', 'jane', 'mark'],
+//		['harry', 'jane', 'diane', 'george', 'jill'],
+//		['harry', 'bill']]
 func (t *SafeMultiBranchTree) AllPaths() [][]int64 {
 	paths := make([][]int64, 0)
 	for _, leafNode := range t.GetLeafNodes() {

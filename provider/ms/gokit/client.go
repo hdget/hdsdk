@@ -1,7 +1,7 @@
 package gokit
 
 import (
-	"github.com/hdget/hdsdk/types"
+	"hdsdk/types"
 )
 
 // ClientConfig 客户端配置

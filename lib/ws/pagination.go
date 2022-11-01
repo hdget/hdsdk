@@ -2,7 +2,7 @@ package ws
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/hdget/hdsdk/lib/pagination"
+	"hdsdk/lib/pagination"
 )
 
 type PaginationParam struct {

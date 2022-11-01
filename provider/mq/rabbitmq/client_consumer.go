@@ -1,8 +1,8 @@
 package rabbitmq
 
 import (
-	"github.com/hdget/hdsdk/types"
 	"github.com/pkg/errors"
+	"hdsdk/types"
 )
 
 type ConsumerClient struct {

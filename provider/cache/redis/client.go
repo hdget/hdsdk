@@ -3,8 +3,8 @@ package redis
 import (
 	"fmt"
 	"github.com/gomodule/redigo/redis"
-	"github.com/hdget/hdsdk/types"
-	"github.com/hdget/hdsdk/utils"
+	"hdsdk/types"
+	"hdsdk/utils"
 	"strconv"
 	"time"
 )
@@ -49,9 +49,9 @@ func NewRedisClient(conf *RedisConf) types.CacheClient {
 	return &RedisClient{pool: p}
 }
 
-///////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////
 // general purpose
-///////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////
 // Del 删除某个key
 func (r *RedisClient) Del(key string) error {
 	conn := r.pool.Get()
@@ -161,9 +161,9 @@ func (r *RedisClient) Shutdown() {
 	r.pool.Close()
 }
 
-//////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////
 // hash map operations
-//////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////
 // HDel 删除某个field
 func (r *RedisClient) HDel(key string, field interface{}) (int, error) {
 	conn := r.pool.Get()
@@ -239,7 +239,7 @@ func (r *RedisClient) HGetAll(key string) (map[string]string, error) {
 
 // HSet 设置某个field的值
 func (r *RedisClient) HSet(key string, field interface{}, value interface{}) (int, error) {
-	strValue, err := utils.String(value)
+	strValue, err := utils.ToString(value)
 	if err != nil {
 		return 0, err
 	}
@@ -258,9 +258,9 @@ func (r *RedisClient) HLen(key string) (int, error) {
 	return redis.Int(conn.Do("HLEN", key))
 }
 
-///////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////
 // set
-///////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////
 // 获取某个key的值，返回为[]byte
 func (r *RedisClient) Get(key string) ([]byte, error) {
 	conn := r.pool.Get()
@@ -294,7 +294,7 @@ func (r *RedisClient) GetString(key string) (string, error) {
 
 // Set 设置某个key为value
 func (r *RedisClient) Set(key string, value interface{}) error {
-	strValue, err := utils.String(value)
+	strValue, err := utils.ToString(value)
 	if err != nil {
 		return err
 	}
@@ -308,7 +308,7 @@ func (r *RedisClient) Set(key string, value interface{}) error {
 
 // SetEx 设置某个key为value,并设置过期时间(单位为秒)
 func (r *RedisClient) SetEx(key string, value interface{}, expire int) error {
-	strValue, err := utils.String(value)
+	strValue, err := utils.ToString(value)
 	if err != nil {
 		return err
 	}
@@ -318,9 +318,9 @@ func (r *RedisClient) SetEx(key string, value interface{}, expire int) error {
 	return err
 }
 
-///////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////
 // set
-///////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////
 // SIsMember 检查中成员是否出现在key中
 func (r *RedisClient) SIsMember(key string, member interface{}) (bool, error) {
 	conn := r.pool.Get()
@@ -374,9 +374,9 @@ func (r *RedisClient) SMembers(key string) ([]string, error) {
 	return redis.Strings(conn.Do("SMEMBERS", key))
 }
 
-///////////////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////////////
 // sorted set
-///////////////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////////////
 // ZRemRangeByScore
 func (r *RedisClient) ZRemRangeByScore(key string, min, max interface{}) error {
 	conn := r.pool.Get()
@@ -429,9 +429,9 @@ func (r *RedisClient) ZInterstore(destKey string, keys ...interface{}) (int64, e
 	return redis.Int64(conn.Do("ZINTERSTORE", redis.Args{}.Add(destKey).AddFlat(keys)...))
 }
 
-/////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////
 // list
-/////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////
 // RPop 移除列表的最后一个元素，返回值为移除的元素
 func (r *RedisClient) RPop(key string) ([]byte, error) {
 	conn := r.pool.Get()

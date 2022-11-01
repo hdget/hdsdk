@@ -8,10 +8,10 @@ package neo4j
 import (
 	"fmt"
 	"github.com/fatih/structs"
-	"github.com/hdget/hdsdk/provider/graph"
-	"github.com/hdget/hdsdk/types"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"github.com/spf13/cast"
+	"hdsdk/provider/graph"
+	"hdsdk/types"
 )
 
 type Neo4jProvider struct {
@@ -26,7 +26,7 @@ var (
 )
 
 const (
-	defaultMaxPoolSize = 1000
+	defaultMaxPoolSize = 500
 )
 
 // Init	implements types.Provider interface, used to initialize the capability

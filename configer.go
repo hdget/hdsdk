@@ -1,7 +1,7 @@
 package hdsdk
 
 import (
-	"github.com/hdget/hdsdk/types"
+	"hdsdk/types"
 )
 
 type Config struct {

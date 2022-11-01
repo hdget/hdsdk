@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
-	"github.com/hdget/hdsdk"
-	"github.com/hdget/hdsdk/lib/wx/typwx"
-	"github.com/hdget/hdsdk/lib/wx/wxmp/cache"
 	"github.com/pkg/errors"
+	"hdsdk"
+	"hdsdk/lib/wx/typwx"
+	"hdsdk/lib/wx/wxmp/cache"
 )
 
 type Wxmp interface {

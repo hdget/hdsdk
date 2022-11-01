@@ -1,9 +1,9 @@
 package log
 
 import (
-	"github.com/hdget/hdsdk/provider/log/typlog"
-	"github.com/hdget/hdsdk/provider/log/zerolog"
-	"github.com/hdget/hdsdk/types"
+	"hdsdk/provider/log/typlog"
+	"hdsdk/provider/log/zerolog"
+	"hdsdk/types"
 )
 
 type LoggerImpl struct {

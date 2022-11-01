@@ -3,16 +3,16 @@ package hdsdk
 import (
 	"bytes"
 	"fmt"
-	"github.com/hdget/hdsdk/lib/aliyun"
-	"github.com/hdget/hdsdk/provider/mq/rabbitmq"
-	"github.com/hdget/hdsdk/types"
-	"github.com/hdget/hdsdk/utils"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j/dbtype"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
+	"hdsdk/lib/aliyun"
+	"hdsdk/provider/mq/rabbitmq"
+	"hdsdk/types"
+	"hdsdk/utils"
 	"log"
+	"os"
 	"testing"
 	"time"
 )
@@ -730,7 +730,7 @@ func parseByHamba() {
 		utils.LogFatal("new alidts", "err", err)
 	}
 
-	data, err := ioutil.ReadFile("alidts.dump")
+	data, err := os.ReadFile("alidts.dump")
 	if err != nil {
 		utils.LogFatal("open alidts data", "err", err)
 	}
@@ -747,7 +747,7 @@ func TestUtilsAlidts(t *testing.T) {
 		utils.LogFatal("new alidts", "err", err)
 	}
 
-	data, err := ioutil.ReadFile("alidts.dump")
+	data, err := os.ReadFile("alidts.dump")
 	if err != nil {
 		utils.LogFatal("open alidts data", "err", err)
 	}

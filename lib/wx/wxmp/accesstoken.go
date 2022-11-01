@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
-	"github.com/hdget/hdsdk/lib/wx/typwx"
 	"github.com/pkg/errors"
+	"hdsdk/lib/wx/typwx"
 )
 
 func (impl *implWxmp) getAccessToken(appId, appSecret string) (string, error) {

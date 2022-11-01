@@ -2,7 +2,7 @@ package kafka
 
 import (
 	"github.com/Shopify/sarama"
-	"github.com/hdget/hdsdk/types"
+	"hdsdk/types"
 )
 
 type Producer struct {

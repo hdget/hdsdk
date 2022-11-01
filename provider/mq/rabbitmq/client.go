@@ -2,9 +2,9 @@ package rabbitmq
 
 import (
 	"fmt"
-	"github.com/hdget/hdsdk/types"
-	"github.com/hdget/hdsdk/utils"
 	"github.com/streadway/amqp"
+	"hdsdk/types"
+	"hdsdk/utils"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -136,7 +136,7 @@ func (c *BaseClient) addEventListener() {
 // @return exchangeType
 // @return error
 func (c *BaseClient) setupExchange(exchangeName, exchangeType string) error {
-	if !utils.StringSliceContains(SupportedExchangeTypes, strings.ToLower(exchangeType)) {
+	if !utils.Contains(SupportedExchangeTypes, strings.ToLower(exchangeType)) {
 		return fmt.Errorf("unsupported exchange type: %s", exchangeType)
 	}
 
@@ -149,7 +149,7 @@ func (c *BaseClient) setupExchange(exchangeName, exchangeType string) error {
 	option := GetExchangeOption(c.Options)
 	if strings.HasPrefix(exchangeType, "delay:") {
 		routeType := exchangeType[len("delay:"):]
-		if !utils.StringSliceContains(SupportedExchangeTypes, strings.ToLower(routeType)) {
+		if !utils.Contains(SupportedExchangeTypes, strings.ToLower(routeType)) {
 			return fmt.Errorf("unsupported route type: %s", routeType)
 		}
 

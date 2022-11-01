@@ -1,10 +1,10 @@
 package rabbitmq
 
 import (
-	"github.com/hdget/hdsdk/types"
-	"github.com/hdget/hdsdk/utils"
 	"github.com/mitchellh/mapstructure"
 	"github.com/streadway/amqp"
+	"hdsdk/types"
+	"hdsdk/utils"
 	"sync/atomic"
 )
 
@@ -185,7 +185,7 @@ func parseConsumerParameter(params map[string]interface{}) (*ConsumerParameter, 
 		return nil, err
 	}
 
-	if consumerParams.ExchangeName == "" || !utils.StringSliceContains(SupportedExchangeTypes, consumerParams.ExchangeType) {
+	if consumerParams.ExchangeName == "" || !utils.Contains(SupportedExchangeTypes, consumerParams.ExchangeType) {
 		return nil, ErrInvalidProducerParam
 	}
 

@@ -1,9 +1,9 @@
 package mysql
 
 import (
-	"github.com/hdget/hdsdk/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
+	"hdsdk/types"
 )
 
 type ConfigMysql struct {
@@ -23,7 +23,7 @@ type MySqlConf struct {
 	Timeout  int    `mapstructure:"timeout"`
 }
 
-///////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////
 func parseConfig(rootConfiger types.Configer) (*ConfigMysql, error) {
 	if rootConfiger == nil {
 		return nil, types.ErrEmptyConfig

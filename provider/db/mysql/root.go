@@ -8,9 +8,9 @@ package mysql
 import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/hdget/hdsdk/provider/db"
-	"github.com/hdget/hdsdk/types"
 	"github.com/jmoiron/sqlx"
+	"hdsdk/provider/db"
+	"hdsdk/types"
 	"time"
 )
 

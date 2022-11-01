@@ -2,11 +2,11 @@ package hdsdk
 
 import (
 	"fmt"
-	"github.com/hdget/hdsdk/types"
-	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
+	"hdsdk/types"
+	"hdsdk/utils"
 	"path"
 )
 
@@ -101,9 +101,9 @@ func LoadConfig(app, cliEnv, cliFile string, args ...ConfigOption) *viper.Viper 
 	return v
 }
 
-/////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////
 // private functions
-////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////
 func loadFromDefault(v *viper.Viper) {
 }
 

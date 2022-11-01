@@ -3,10 +3,10 @@ package dapr
 import (
 	"encoding/json"
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/hdget/hdsdk/lib/bizerr"
-	"github.com/hdget/hdsdk/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"hdsdk/lib/bizerr"
+	"hdsdk/utils"
 )
 
 func Error(err error) (*common.Content, error) {

@@ -3,28 +3,27 @@
 //
 // 首先必须创建一个继承自sdk.BaseConfig的配置struct
 // e,g:
-//    import hdget
 //
-//		type XXXConfig struct {
-//			*sdk.Config `mapstructure:",squash"`
-//      }
+//	   import hdget
 //
-//
+//			type XXXConfig struct {
+//				*sdk.Config `mapstructure:",squash"`
+//	     }
 package hdsdk
 
 import (
-	"github.com/hdget/hdsdk/provider/cache/redis"
-	"github.com/hdget/hdsdk/provider/db/mysql"
-	"github.com/hdget/hdsdk/provider/graph/neo4j"
-	"github.com/hdget/hdsdk/provider/log"
-	"github.com/hdget/hdsdk/provider/mq/kafka"
-	"github.com/hdget/hdsdk/provider/mq/rabbitmq"
-	"github.com/hdget/hdsdk/provider/ms/gokit"
-	"github.com/hdget/hdsdk/types"
 	"github.com/pkg/errors"
+	"hdsdk/provider/cache/redis"
+	"hdsdk/provider/db/mysql"
+	"hdsdk/provider/graph/neo4j"
+	"hdsdk/provider/log"
+	"hdsdk/provider/mq/kafka"
+	"hdsdk/provider/mq/rabbitmq"
+	"hdsdk/provider/ms/gokit"
+	"hdsdk/types"
 )
 
-// 底层能力实例
+// SdkProvider 底层能力实例
 type SdkProvider struct {
 	Kind     types.SdkType  // 底层能力类型
 	Name     string         // 底层能力名字

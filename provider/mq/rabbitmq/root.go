@@ -5,8 +5,8 @@
 package rabbitmq
 
 import (
-	"github.com/hdget/hdsdk/provider/mq"
-	"github.com/hdget/hdsdk/types"
+	"hdsdk/provider/mq"
+	"hdsdk/types"
 )
 
 type RabbitmqProvider struct {

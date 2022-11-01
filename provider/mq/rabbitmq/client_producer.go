@@ -1,7 +1,7 @@
 package rabbitmq
 
 import (
-	"github.com/hdget/hdsdk/types"
+	"hdsdk/types"
 )
 
 type ProducerClient struct {

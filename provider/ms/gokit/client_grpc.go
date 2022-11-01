@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
-	"github.com/hdget/hdsdk/types"
 	"google.golang.org/grpc"
+	"hdsdk/types"
 )
 
 type GrpcClientManager struct {
