@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"encoding/json"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"strings"
 	"unsafe"
@@ -36,6 +38,23 @@ func ToString(value interface{}) (string, error) {
 		return "", err
 	}
 	return BytesToString(bs), nil
+}
+
+func ToBytes(value interface{}) ([]byte, error) {
+	var data []byte
+	switch t := value.(type) {
+	case string:
+		data = StringToBytes(t)
+	case []byte:
+		data = t
+	default:
+		v, err := json.Marshal(value)
+		if err != nil {
+			return nil, errors.Wrapf(err, "marshal value, value: %v", value)
+		}
+		data = v
+	}
+	return data, nil
 }
 
 // CsvToInt64s 将逗号分隔的string尝试转换成[1,2,3...]的int64 slice

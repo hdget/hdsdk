@@ -2,26 +2,16 @@ package dapr
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/dapr/go-sdk/client"
 	"github.com/pkg/errors"
 	"hdsdk/utils"
 )
 
 // SaveState 保存状态
-func SaveState(storeName, key string, data interface{}) error {
-	var value []byte
-	switch t := data.(type) {
-	case string:
-		value = utils.StringToBytes(t)
-	case []byte:
-		value = t
-	default:
-		v, err := json.Marshal(data)
-		if err != nil {
-			return errors.Wrap(err, "marshal invoke data")
-		}
-		value = v
+func SaveState(storeName, key string, value interface{}) error {
+	data, err := utils.ToBytes(value)
+	if err != nil {
+		return err
 	}
 
 	daprClient, err := client.NewClient()
@@ -35,7 +25,7 @@ func SaveState(storeName, key string, data interface{}) error {
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
 	//defer daprClient.Close()
 
-	err = daprClient.SaveState(context.Background(), storeName, key, value)
+	err = daprClient.SaveState(context.Background(), storeName, key, data, nil)
 	if err != nil {
 		return errors.Wrapf(err, "save state, store: %s, key: %s, value: %s", storeName, key, value)
 	}
@@ -55,7 +45,7 @@ func GetState(storeName, key string) ([]byte, error) {
 
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
 	//defer daprClient.Close()
-	item, err := daprClient.GetState(context.Background(), storeName, key)
+	item, err := daprClient.GetState(context.Background(), storeName, key, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get state, store: %s, key: %s", storeName, key)
 	}
@@ -75,7 +65,7 @@ func DeleteState(storeName, key string) error {
 
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
 	//defer daprClient.Close()
-	err = daprClient.DeleteState(context.Background(), storeName, key)
+	err = daprClient.DeleteState(context.Background(), storeName, key, nil)
 	if err != nil {
 		return errors.Wrapf(err, "delete state, store: %s, key: %s", storeName, key)
 	}
