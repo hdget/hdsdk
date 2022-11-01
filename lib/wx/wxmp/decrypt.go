@@ -5,8 +5,8 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 	"encoding/json"
+	"github.com/hdget/hdsdk/lib/wx/typwx"
 	"github.com/pkg/errors"
-	"hdsdk/lib/wx/typwx"
 )
 
 var (

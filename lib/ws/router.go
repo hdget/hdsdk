@@ -2,7 +2,7 @@ package ws
 
 import (
 	"github.com/gin-gonic/gin"
-	"hdsdk/types"
+	"github.com/hdget/hdsdk/types"
 	"io"
 )
 

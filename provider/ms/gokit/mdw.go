@@ -2,7 +2,7 @@ package gokit
 
 import (
 	"github.com/go-kit/kit/endpoint"
-	"hdsdk/types"
+	"github.com/hdget/hdsdk/types"
 )
 
 type InjectFunction func(logger types.LogProvider, endpointName string) (clientOptions []interface{}, serverOptions []interface{})

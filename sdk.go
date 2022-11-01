@@ -12,15 +12,15 @@
 package hdsdk
 
 import (
+	"github.com/hdget/hdsdk/provider/cache/redis"
+	"github.com/hdget/hdsdk/provider/db/mysql"
+	"github.com/hdget/hdsdk/provider/graph/neo4j"
+	"github.com/hdget/hdsdk/provider/log"
+	"github.com/hdget/hdsdk/provider/mq/kafka"
+	"github.com/hdget/hdsdk/provider/mq/rabbitmq"
+	"github.com/hdget/hdsdk/provider/ms/gokit"
+	"github.com/hdget/hdsdk/types"
 	"github.com/pkg/errors"
-	"hdsdk/provider/cache/redis"
-	"hdsdk/provider/db/mysql"
-	"hdsdk/provider/graph/neo4j"
-	"hdsdk/provider/log"
-	"hdsdk/provider/mq/kafka"
-	"hdsdk/provider/mq/rabbitmq"
-	"hdsdk/provider/ms/gokit"
-	"hdsdk/types"
 )
 
 // SdkProvider 底层能力实例

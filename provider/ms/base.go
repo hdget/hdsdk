@@ -2,7 +2,7 @@
 package ms
 
 import (
-	"hdsdk/types"
+	"github.com/hdget/hdsdk/types"
 )
 
 type BaseMsProvider struct {

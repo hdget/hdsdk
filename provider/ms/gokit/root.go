@@ -4,10 +4,10 @@
 package gokit
 
 import (
+	"github.com/hdget/hdsdk/provider/ms"
+	"github.com/hdget/hdsdk/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
-	"hdsdk/provider/ms"
-	"hdsdk/types"
 )
 
 type GokitProviderConfig struct {

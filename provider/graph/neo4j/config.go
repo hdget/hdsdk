@@ -1,9 +1,9 @@
 package neo4j
 
 import (
+	"github.com/hdget/hdsdk/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
-	"hdsdk/types"
 )
 
 type ConfigNeo4j struct {

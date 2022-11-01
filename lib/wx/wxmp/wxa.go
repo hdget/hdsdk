@@ -3,9 +3,9 @@ package wxmp
 import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/hdget/hdsdk/lib/wx/typwx"
+	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
-	"hdsdk/lib/wx/typwx"
-	"hdsdk/utils"
 )
 
 type Param func(param *typwx.CommonWxaCodeParam)

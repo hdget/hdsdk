@@ -3,10 +3,10 @@ package ws
 import (
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/hdget/hdsdk"
+	"github.com/hdget/hdsdk/types"
+	"github.com/hdget/hdsdk/utils/parallel"
 	"github.com/pkg/errors"
-	"hdsdk"
-	"hdsdk/types"
-	"hdsdk/utils/parallel"
 	"net/http"
 	"syscall"
 )

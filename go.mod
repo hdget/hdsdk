@@ -1,4 +1,4 @@
-module hdsdk
+module github.com/hdget/hdsdk
 
 go 1.19
 
@@ -32,7 +32,6 @@ require (
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/time v0.1.0
 	google.golang.org/grpc v1.50.1
-	gopkg.in/resty.v1 v1.12.0
 )
 
 require (

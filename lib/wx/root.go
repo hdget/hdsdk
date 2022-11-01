@@ -1,11 +1,11 @@
 package wx
 
 import (
+	"github.com/hdget/hdsdk/lib/wx/typwx"
+	"github.com/hdget/hdsdk/lib/wx/wxmp"
+	"github.com/hdget/hdsdk/lib/wx/wxoa"
+	"github.com/hdget/hdsdk/lib/wx/wxqr"
 	"github.com/pkg/errors"
-	"hdsdk/lib/wx/typwx"
-	"hdsdk/lib/wx/wxmp"
-	"hdsdk/lib/wx/wxoa"
-	"hdsdk/lib/wx/wxqr"
 )
 
 var (

@@ -2,9 +2,9 @@ package kafka
 
 import (
 	"github.com/Shopify/sarama"
+	"github.com/hdget/hdsdk/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
-	"hdsdk/types"
 )
 
 type ProducerClient struct {
