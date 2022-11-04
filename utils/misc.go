@@ -64,11 +64,12 @@ func GetSliceData(data interface{}) []interface{} {
 // GetPagePositions 获取分页的起始值列表
 // @return 返回一个二维数组， 第一维是多少页，第二维是每页[]int{start, end}
 // e,g: 假设11个数的列表，分页pageSize是5，那么返回的是：
-// []int{
-//    []int{0, 5},
-//    []int{5, 10},
-//    []int{10, 11},
-// }
+//
+//	[]int{
+//	   []int{0, 5},
+//	   []int{5, 10},
+//	   []int{10, 11},
+//	}
 func GetPagePositions(data interface{}, pageSize int) [][]int {
 	listData := GetSliceData(data)
 	if listData == nil {
@@ -103,7 +104,7 @@ func GenerateRandString(n int) string {
 	return string(b)
 }
 
-//RemoveInvisibleCharacter 去除掉不能显示的字符
+// RemoveInvisibleCharacter 去除掉不能显示的字符
 func RemoveInvisibleCharacter(origStr string) string {
 	return strings.Map(func(r rune) rune {
 		if unicode.IsGraphic(r) {
@@ -171,4 +172,24 @@ func GetNeo4jPathPattern(args ...int32) string {
 		}
 	}
 	return expr
+}
+
+// CleanString 处理字符串, args[0]为是否转换为小写
+func CleanString(origStr string, args ...bool) string {
+	// 1. 去除前后空格
+	s := strings.TrimSpace(origStr)
+
+	// 2. 是否转换小写
+	toLower := false
+	if len(args) > 0 {
+		toLower = args[0]
+	}
+
+	if toLower {
+		s = strings.ToLower(s)
+	}
+
+	// 去除不可见字符
+	s = RemoveInvisibleCharacter(s)
+	return s
 }
