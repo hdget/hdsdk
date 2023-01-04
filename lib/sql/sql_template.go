@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/hdget/hdsdk"
 	"github.com/hdget/hdsdk/lib/pagination"
+	"github.com/hdget/hdsdk/protobuf"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"strings"
@@ -21,7 +22,7 @@ type sqlTemplate struct {
 }
 
 const (
-	defaultLimitClause = "LIMIT 1, 10"
+	defaultLimitClause = "LIMIT 0, 10"
 )
 
 func NewSqlTemplate() *sqlTemplate {
@@ -41,13 +42,10 @@ func (h *sqlTemplate) With(template string) *sqlTemplate {
 	return h
 }
 
-func (h *sqlTemplate) Limit(listParam any) *sqlTemplate {
+func (h *sqlTemplate) Limit(listParam *protobuf.ListParam) *sqlTemplate {
 	if listParam != nil {
-		param, ok := listParam.(*pagination.ListParam)
-		if ok {
-			h.limitClause = pagination.New(param.Page, param.PageSize).GetLimitClause()
-			return h
-		}
+		h.limitClause = pagination.New(listParam.Page, listParam.PageSize).GetLimitClause()
+		return h
 	}
 	h.limitClause = defaultLimitClause
 	return h
