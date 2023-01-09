@@ -20,6 +20,7 @@ type CacheClient interface {
 	Incr(key string) error
 	IncrBy(key string, number int) error
 	DecrBy(key string, number int) error
+	Ttl(key string) (int64, error)
 	Pipeline(commands []*CacheCommand) (reply interface{}, err error)
 	Ping() error
 
@@ -34,7 +35,7 @@ type CacheClient interface {
 	GetFloat64(key string) (float64, error)
 	GetString(key string) (string, error)
 
-	// HashMap get
+	// HashMap operations
 	HGetAll(key string) (map[string]string, error)
 	HGet(key string, field string) ([]byte, error)
 	HGetInt(key string, field string) (int, error)
@@ -65,6 +66,7 @@ type CacheClient interface {
 	ZRangeByScore(key string, min, max interface{}) ([]string, error)
 	ZScore(key string, member interface{}) (int64, error)
 	ZInterstore(newKey string, keys ...interface{}) (int64, error)
+	ZIncrBy(key string, increment int64, member interface{}) error
 
 	// list
 	RPop(key string) ([]byte, error)

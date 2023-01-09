@@ -18,10 +18,10 @@ func ParseStrTime(value string) (*time.Time, error) {
 
 	var layout string
 	switch len(tokens) {
-	case 0:
-		layout = "2006-01-02 15:04:05"
 	case 1:
 		layout = "2006-01-02"
+	case 2:
+		layout = "2006-01-02 15:04:05"
 	default:
 		return nil, errors.New("invalid time format, it is 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM:SS'")
 	}
@@ -118,4 +118,158 @@ func DeltaDays(t1, t2 time.Time) int {
 			return int(hours/24) + 1
 		}
 	}
+}
+
+// GetBeginUnixTS 给出字符串的日期，例如2006-01或者2006-01-02, 返回对应的时间戳
+func GetBeginUnixTS(beginDate string) int64 {
+	var t time.Time
+	tokens := strings.Split(beginDate, "-")
+	switch len(tokens) {
+	case 1:
+		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-01-01 00:00:00", tokens[0]), DEFAULT_TIME_LOCATION)
+	case 2:
+		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-01 00:00:00", tokens[0], tokens[1]), DEFAULT_TIME_LOCATION)
+	case 3:
+		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-%s 00:00:00", tokens[0], tokens[1], tokens[2]), DEFAULT_TIME_LOCATION)
+	}
+	return t.Unix()
+}
+
+func GetEndUnixTS(endDate string) int64 {
+	var t time.Time
+	tokens := strings.Split(endDate, "-")
+	switch len(tokens) {
+	// 提供了年
+	case 1:
+		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-12-31 23:59:59", tokens[0]), DEFAULT_TIME_LOCATION)
+	// 提供了年和月
+	case 2:
+		// 获取该月的第一天
+		firstDay, _ := time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-01 00:00:00", tokens[0], tokens[1]), DEFAULT_TIME_LOCATION)
+		// 获取该月的最后一天
+		lastDay := firstDay.AddDate(0, 1, -1)
+		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-%d 23:59:59", tokens[0], tokens[1], lastDay.Day()), DEFAULT_TIME_LOCATION)
+	// 提供了年、月和日
+	case 3:
+		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-%s 23:59:59", tokens[0], tokens[1], tokens[2]), DEFAULT_TIME_LOCATION)
+	}
+	return t.Unix()
+}
+
+// GetMonthBeginTime 获取当前时间所在月份指定月份的第一天的开始时间，
+// 即某月第一天的0点
+// 如果nmonth=-1, 则是上一个月的第一天的00:00:00,
+// 如果nmonth=0, 则是本月的第一天的00:00:00
+// 如果nmonth=1, 则是下个月的第一天的00:00:00
+func GetMonthBeginTime(nmonth int) time.Time {
+	now := time.Now()
+	theFirstDay := now.AddDate(0, 0+nmonth, -now.Day()+1)
+	theFirstDayTime := time.Date(theFirstDay.Year(), theFirstDay.Month(), theFirstDay.Day(), 0, 0, 0, 0, DEFAULT_TIME_LOCATION)
+	return theFirstDayTime
+}
+
+// GetMonthEndTime 获取当前时间的指定月份的最后一天的23:59:59
+// 即某月最后一天的23:59:59
+// 如果nmonth=-1, 则是上一个月的最后一天的23:59:59
+// 如果nmonth=0, 则是本月的最后一天的23:59:59
+// 如果nmonth=1, 则是下个月的最后一天的23:59:59
+func GetMonthEndTime(nmonth int) time.Time {
+	// 获取指定月的下一个月的第一天00:00:00
+	nextMonthFirstDay := GetMonthBeginTime(nmonth + 1)
+	// 下一个月的第一天倒退一天就是上个月的最后一天
+	theLastDay := nextMonthFirstDay.AddDate(0, 0, -1)
+	theLastDayTime := time.Date(theLastDay.Year(), theLastDay.Month(), theLastDay.Day(), 23, 59, 59, 0, DEFAULT_TIME_LOCATION)
+	return theLastDayTime
+}
+
+// GetYearBeginTime 获取当前时间所在年份指定年的第一天的开始时间，
+// 即某年第一天的0点
+// 如果nyear=-1, 则是上一年的第一天的00:00:00,
+// 如果nyear=0, 则是本年的第一天的00:00:00
+// 如果nyear=1, 则是下一年的第一天的00:00:00
+func GetYearBeginTime(nyear int) time.Time {
+	now := time.Now()
+	theFirstDay := now.AddDate(0+nyear, -int(now.Month())+1, -now.Day()+1)
+	theFirstDayTime := time.Date(theFirstDay.Year(), theFirstDay.Month(), theFirstDay.Day(), 0, 0, 0, 0, DEFAULT_TIME_LOCATION)
+	return theFirstDayTime
+}
+
+// GetYearEndTime 获取当前时间的指定年份的最后一天的23:59:59
+// 即某年最后一天的23:59:59
+// 如果nyear=-1, 则是上一个年的最后一天的23:59:59
+// 如果nyear=0, 则是本年的最后一天的23:59:59
+// 如果nyear=1, 则是下一年的最后一天的23:59:59
+func GetYearEndTime(nyear int) time.Time {
+	// 获取指定年的下一年的第一天00:00:00
+	nextMonthFirstDay := GetYearBeginTime(nyear + 1)
+	// 下一年的第一年倒退一天就是上一年的最后一天
+	theLastDay := nextMonthFirstDay.AddDate(0, 0, -1)
+	theLastDayTime := time.Date(theLastDay.Year(), theLastDay.Month(), theLastDay.Day(), 23, 59, 59, 0, DEFAULT_TIME_LOCATION)
+	return theLastDayTime
+}
+
+// GetDayEndDate 获取当前时间n天后最后一秒的时间, 当前时间后n天后的日期23:59:59时间戳
+// ndays: -1表示前一天，0表示今天，1表示后一天
+func GetDayEndTime(ndays int) time.Time {
+	now := time.Now()
+
+	endTime := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, DEFAULT_TIME_LOCATION).AddDate(0, 0, ndays)
+	return endTime
+}
+
+// GetDayEndTimeSince 获取从某个时间n天后最后一秒的时间, 指定时间之前的日期23:59:59时间戳
+// ndays: -1表示前一天，0表示今天，1表示后一天
+func GetDayEndTimeSince(ts int64, ndays int) time.Time {
+	tm := time.Unix(ts, 0)
+	endTime := time.Date(tm.Year(), tm.Month(), tm.Day(), 23, 59, 59, 0, DEFAULT_TIME_LOCATION).AddDate(0, 0, ndays)
+	return endTime
+}
+
+// GetDayBeginTimeSince 获取从某个时间n天后第一秒的时间, 指定时间之前的日期00:00:00时间戳
+// ndays: -1表示前一天，0表示今天，1表示后一天
+func GetDayBeginTimeSince(ts int64, ndays int) time.Time {
+	tm := time.Unix(ts, 0)
+	beginTime := time.Date(tm.Year(), tm.Month(), tm.Day(), 00, 00, 00, 0, DEFAULT_TIME_LOCATION).AddDate(0, 0, ndays)
+	return beginTime
+}
+
+// GetMonthEndTimeSince 获取从某个时间n个月后第一天第一秒的时间
+// nmonth: -1表示前一个月，0表示本月，1表示后一个月
+func GetMonthBeginTimeSince(ts int64, nmonth int) time.Time {
+	tm := time.Unix(ts, 0)
+	theFirstDay := tm.AddDate(0, 0+nmonth, -tm.Day()+1)
+	theFirstDayTime := time.Date(theFirstDay.Year(), theFirstDay.Month(), theFirstDay.Day(), 0, 0, 0, 0, DEFAULT_TIME_LOCATION)
+	return theFirstDayTime
+}
+
+// GetMonthEndTimeSince 获取从某个时间n个月最后一天最后一秒的时间, 指定时间之前的日期23:59:59时间戳
+// nmonth: -1表示前一个月，0表示本月，1表示后一个月
+func GetMonthEndTimeSince(ts int64, nmonth int) time.Time {
+	// 获取指定月的下一个月的第一天00:00:00
+	nextMonthFirstDay := GetMonthBeginTimeSince(ts, nmonth+1)
+	// 下一个月的第一天倒退一天就是上个月的最后一天
+	theLastDay := nextMonthFirstDay.AddDate(0, 0, -1)
+	theLastDayTime := time.Date(theLastDay.Year(), theLastDay.Month(), theLastDay.Day(), 23, 59, 59, 0, DEFAULT_TIME_LOCATION)
+	return theLastDayTime
+}
+
+// Get1stDayOfWeek 获取本周第一天
+func Get1stDayOfWeek() string {
+	now := time.Now()
+
+	offset := int(time.Monday - now.Weekday())
+	if offset > 0 {
+		offset = -6
+	}
+
+	weekStartDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local).AddDate(0, 0, offset)
+	return weekStartDate.Format("2006-01-02")
+}
+
+func FromUnixTime(ts int64, format string) string {
+	if ts <= 0 {
+		return ""
+	}
+	tm := time.Unix(ts, 0)
+	return tm.Format(format)
 }

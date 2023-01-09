@@ -49,9 +49,10 @@ func NewRedisClient(conf *RedisConf) types.CacheClient {
 	return &RedisClient{pool: p}
 }
 
-// /////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
 // general purpose
-// /////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////
+
 // Del 删除某个key
 func (r *RedisClient) Del(key string) error {
 	conn := r.pool.Get()
@@ -93,6 +94,14 @@ func (r *RedisClient) Expire(key string, expire int) error {
 
 	_, err := conn.Do("Expire", key, expire)
 	return err
+}
+
+// Ttl 获取某个key的过期时间
+func (r *RedisClient) Ttl(key string) (int64, error) {
+	conn := r.pool.Get()
+	defer conn.Close()
+
+	return redis.Int64(conn.Do("TTL", key))
 }
 
 // Incr 将某个key中的值加1
@@ -164,6 +173,7 @@ func (r *RedisClient) Shutdown() {
 // ////////////////////////////////////////////////////////////////////
 // hash map operations
 // ////////////////////////////////////////////////////////////////////
+
 // HDel 删除某个field
 func (r *RedisClient) HDel(key string, field interface{}) (int, error) {
 	conn := r.pool.Get()
@@ -261,7 +271,8 @@ func (r *RedisClient) HLen(key string) (int, error) {
 // /////////////////////////////////////////////////////////////////////////
 // set
 // /////////////////////////////////////////////////////////////////////////
-// 获取某个key的值，返回为[]byte
+
+// Get 获取某个key的值，返回为[]byte
 func (r *RedisClient) Get(key string) ([]byte, error) {
 	conn := r.pool.Get()
 	defer conn.Close()
@@ -321,6 +332,7 @@ func (r *RedisClient) SetEx(key string, value interface{}, expire int) error {
 // /////////////////////////////////////////////////////////////////////////////
 // set
 // /////////////////////////////////////////////////////////////////////////////
+
 // SIsMember 检查中成员是否出现在key中
 func (r *RedisClient) SIsMember(key string, member interface{}) (bool, error) {
 	conn := r.pool.Get()
@@ -377,7 +389,8 @@ func (r *RedisClient) SMembers(key string) ([]string, error) {
 // /////////////////////////////////////////////////////////////////////////////////////
 // sorted set
 // /////////////////////////////////////////////////////////////////////////////////////
-// ZRemRangeByScore
+
+// ZRemRangeByScore delete members by score
 func (r *RedisClient) ZRemRangeByScore(key string, min, max interface{}) error {
 	conn := r.pool.Get()
 	defer conn.Close()
@@ -386,21 +399,21 @@ func (r *RedisClient) ZRemRangeByScore(key string, min, max interface{}) error {
 	return err
 }
 
-// ZRangeByScore
+// ZRangeByScore get members by score
 func (r *RedisClient) ZRangeByScore(key string, min, max interface{}) ([]string, error) {
 	conn := r.pool.Get()
 	defer conn.Close()
 	return redis.Strings(conn.Do("ZRANGEBYSCORE", key, min, max))
 }
 
-// ZRange
+// ZRange get members
 func (r *RedisClient) ZRange(key string, min, max int64) (map[string]string, error) {
 	conn := r.pool.Get()
 	defer conn.Close()
 	return redis.StringMap(conn.Do("ZRANGE", key, min, max))
 }
 
-// ZAdd
+// ZAdd add a member
 func (r *RedisClient) ZAdd(key string, score int64, member interface{}) error {
 	conn := r.pool.Get()
 	defer conn.Close()
@@ -408,21 +421,29 @@ func (r *RedisClient) ZAdd(key string, score int64, member interface{}) error {
 	return err
 }
 
-// ZCard
+// ZIncrBy add increment to member's score
+func (r *RedisClient) ZIncrBy(key string, increment int64, member interface{}) error {
+	conn := r.pool.Get()
+	defer conn.Close()
+	_, err := conn.Do("ZINCRBY", key, increment, member)
+	return err
+}
+
+// ZCard get members total
 func (r *RedisClient) ZCard(key string) (int, error) {
 	conn := r.pool.Get()
 	defer conn.Close()
 	return redis.Int(conn.Do("ZCARD", key))
 }
 
-// ZScore
+// ZScore get score of member
 func (r *RedisClient) ZScore(key string, member interface{}) (int64, error) {
 	conn := r.pool.Get()
 	defer conn.Close()
 	return redis.Int64(conn.Do("ZSCORE", key, member))
 }
 
-// ZInterstore
+// ZInterstore get intersect of set
 func (r *RedisClient) ZInterstore(destKey string, keys ...interface{}) (int64, error) {
 	conn := r.pool.Get()
 	defer conn.Close()
@@ -432,6 +453,7 @@ func (r *RedisClient) ZInterstore(destKey string, keys ...interface{}) (int64, e
 // ///////////////////////////////////////////////////////////
 // list
 // ///////////////////////////////////////////////////////////
+
 // RPop 移除列表的最后一个元素，返回值为移除的元素
 func (r *RedisClient) RPop(key string) ([]byte, error) {
 	conn := r.pool.Get()
