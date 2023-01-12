@@ -450,6 +450,13 @@ func (r *RedisClient) ZInterstore(destKey string, keys ...interface{}) (int64, e
 	return redis.Int64(conn.Do("ZINTERSTORE", redis.Args{}.Add(destKey).AddFlat(keys)...))
 }
 
+// ZRem delete members
+func (r *RedisClient) ZRem(destKey string, members ...interface{}) (int64, error) {
+	conn := r.pool.Get()
+	defer conn.Close()
+	return redis.Int64(conn.Do("ZREM", redis.Args{}.Add(destKey).AddFlat(members)...))
+}
+
 // ///////////////////////////////////////////////////////////
 // list
 // ///////////////////////////////////////////////////////////
