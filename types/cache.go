@@ -67,6 +67,7 @@ type CacheClient interface {
 	ZScore(key string, member interface{}) (int64, error)
 	ZInterstore(newKey string, keys ...interface{}) (int64, error)
 	ZIncrBy(key string, increment int64, member interface{}) error
+	ZRem(destKey string, members ...interface{}) (int64, error)
 
 	// list
 	RPop(key string) ([]byte, error)
