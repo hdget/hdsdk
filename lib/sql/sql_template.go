@@ -42,7 +42,7 @@ func (h *sqlTemplate) With(template string) *sqlTemplate {
 	return h
 }
 
-func (h *sqlTemplate) Limit(listParam *protobuf.LimitParam) *sqlTemplate {
+func (h *sqlTemplate) Limit(listParam *protobuf.ListParam) *sqlTemplate {
 	if listParam != nil {
 		h.limitClause = pagination.New(listParam.Page, listParam.PageSize).GetLimitClause()
 		return h
