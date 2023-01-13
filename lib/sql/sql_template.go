@@ -42,7 +42,7 @@ func (h *sqlTemplate) With(template string) *sqlTemplate {
 	return h
 }
 
-func (h *sqlTemplate) Limit(listParam *protobuf.ListParam) *sqlTemplate {
+func (h *sqlTemplate) Limit(listParam *protobuf.LimitParam) *sqlTemplate {
 	if listParam != nil {
 		h.limitClause = pagination.New(listParam.Page, listParam.PageSize).GetLimitClause()
 		return h
@@ -63,6 +63,7 @@ func (h *sqlTemplate) Next(pkName string, nextParam *protobuf.NextParam) *sqlTem
 	default:
 		h.Where(fmt.Sprintf("%s > %d", pkName, nextParam.LastPk))
 	}
+	h.limitClause = fmt.Sprintf("LIMIT %d", nextParam.PageSize)
 	return h
 }
 
