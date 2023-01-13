@@ -51,6 +51,21 @@ func (h *sqlTemplate) Limit(listParam *protobuf.ListParam) *sqlTemplate {
 	return h
 }
 
+func (h *sqlTemplate) Next(pkName string, nextParam *protobuf.NextParam) *sqlTemplate {
+	// do nothing
+	if nextParam == nil {
+		return h
+	}
+
+	switch nextParam.Direction {
+	case protobuf.SortDirection_Desc:
+		h.Where(fmt.Sprintf("%s < %d", pkName, nextParam.LastPk))
+	default:
+		h.Where(fmt.Sprintf("%s > %d", pkName, nextParam.LastPk))
+	}
+	return h
+}
+
 func (h *sqlTemplate) OrderBy(orderBy string) *sqlTemplate {
 	h.orderBy = fmt.Sprintf("ORDER BY %s", orderBy)
 	return h
