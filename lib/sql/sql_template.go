@@ -22,6 +22,7 @@ type sqlTemplate struct {
 }
 
 const (
+	defaultNextClause  = "LIMIT 10"
 	defaultLimitClause = "LIMIT 0, 10"
 )
 
@@ -52,17 +53,20 @@ func (h *sqlTemplate) Limit(listParam *protobuf.ListParam) *sqlTemplate {
 }
 
 func (h *sqlTemplate) Next(pkName string, nextParam *protobuf.NextParam) *sqlTemplate {
-	// do nothing
 	if nextParam == nil {
+		h.limitClause = defaultNextClause
 		return h
 	}
 
-	switch nextParam.Direction {
-	case protobuf.SortDirection_Desc:
-		h.Where(fmt.Sprintf("%s < %d", pkName, nextParam.LastPk))
-	default:
-		h.Where(fmt.Sprintf("%s > %d", pkName, nextParam.LastPk))
+	if nextParam.LastPk > 0 {
+		switch nextParam.Direction {
+		case protobuf.SortDirection_Desc:
+			h.Where(fmt.Sprintf("%s < %d", pkName, nextParam.LastPk))
+		default:
+			h.Where(fmt.Sprintf("%s > %d", pkName, nextParam.LastPk))
+		}
 	}
+
 	h.limitClause = fmt.Sprintf("LIMIT %d", nextParam.PageSize)
 	return h
 }
