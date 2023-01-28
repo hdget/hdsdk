@@ -268,7 +268,7 @@ func TestEmptyLogger(t *testing.T) {
 
 // nolint:errcheck
 func TestLogger(t *testing.T) {
-	v := LoadConfig("test", "local", "")
+	v := NewConfig("test", "local").Load()
 
 	// try merge config from string
 	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_LOG)))
@@ -330,7 +330,7 @@ func TestLogger(t *testing.T) {
 
 // nolint:errcheck
 func TestMysql(t *testing.T) {
-	v := LoadConfig("demo", "local", "")
+	v := NewConfig("test", "local").Load()
 
 	// merge config from string
 	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_MYSQL)))
@@ -396,7 +396,7 @@ return 1
 
 // nolint:errcheck
 func TestRedis(t *testing.T) {
-	v := LoadConfig("demo", "local", "")
+	v := NewConfig("test", "local").Load()
 
 	// merge config from string
 	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_REDIS)))
@@ -496,7 +496,7 @@ func TestRedis(t *testing.T) {
 
 // nolint:errcheck
 func TestRabbitmqSend(t *testing.T) {
-	v := LoadConfig("demo", "local", "")
+	v := NewConfig("test", "local").Load()
 
 	// merge config from string
 	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_RABBITMQ)))
@@ -535,7 +535,7 @@ func TestRabbitmqSend(t *testing.T) {
 }
 
 func TestRabbitmqSendDelay(t *testing.T) {
-	v := LoadConfig("demo", "local", "")
+	v := NewConfig("test", "local").Load()
 
 	// merge config from string
 	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_RABBITMQ_DELAY)))
@@ -579,7 +579,7 @@ func msgProcess(data []byte) types.MqMsgAction {
 
 // nolint:errcheck
 func TestRabbitmqRecv(t *testing.T) {
-	v := LoadConfig("demo", "local", "")
+	v := NewConfig("test", "local").Load()
 
 	// merge config from string
 	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_RABBITMQ)))
@@ -618,7 +618,7 @@ func TestRabbitmqRecv(t *testing.T) {
 
 // nolint:errcheck
 func TestRabbitmqRecvDelay(t *testing.T) {
-	v := LoadConfig("demo", "local", "")
+	v := NewConfig("test", "local").Load()
 
 	// merge config from string
 	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_RABBITMQ)))
@@ -658,7 +658,7 @@ func TestRabbitmqRecvDelay(t *testing.T) {
 
 // nolint:errcheck
 func TestKafkaSend(t *testing.T) {
-	v := LoadConfig("demo", "local", "")
+	v := NewConfig("test", "local").Load()
 
 	// merge config from string
 	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_KAFKA)))
@@ -692,7 +692,7 @@ func TestKafkaSend(t *testing.T) {
 
 // nolint:errcheck
 func TestKafkaRecv(t *testing.T) {
-	v := LoadConfig("demo", "local", "")
+	v := NewConfig("test", "local").Load()
 
 	// merge config from string
 	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_KAFKA)))
@@ -789,7 +789,7 @@ func parseDtsData(data []byte) *aliyun.DtsRecord {
 
 // nolint:errcheck
 func TestDts(t *testing.T) {
-	v := LoadConfig("demo", "local", "")
+	v := NewConfig("test", "local").Load()
 
 	// merge config from string
 	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_ALIYUN_DTS)))
@@ -816,7 +816,7 @@ func TestDts(t *testing.T) {
 
 // nolint:errcheck
 func TestNeo4j(t *testing.T) {
-	v := LoadConfig("demo", "local", "")
+	v := NewConfig("test", "local").Load()
 
 	// merge config from string
 	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_NEO4J)))
