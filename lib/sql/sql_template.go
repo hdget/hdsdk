@@ -132,6 +132,16 @@ func (h *sqlTemplate) Count() (int64, error) {
 	return total, nil
 }
 
+func (h *sqlTemplate) InsertArgs(extraArgs ...any) *sqlTemplate {
+	h.args = append(extraArgs, h.args...)
+	return h
+}
+
+func (h *sqlTemplate) AppendArgs(extraArgs ...any) *sqlTemplate {
+	h.args = append(h.args, extraArgs...)
+	return h
+}
+
 func (h *sqlTemplate) getWhereClause() string {
 	if len(h.wheres) == 0 {
 		return ""
