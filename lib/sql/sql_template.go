@@ -146,18 +146,13 @@ func (h *sqlTemplate) getWhereClause() string {
 	if len(h.wheres) == 0 {
 		return ""
 	}
-
-	whereClause := fmt.Sprintf("WHERE %s", strings.Join(h.wheres, " AND "))
-	if strings.Contains(strings.ToUpper(whereClause), " IN ") {
-		h.hasInSymbol = true
-	}
-	return whereClause
+	return fmt.Sprintf("WHERE %s", strings.Join(h.wheres, " AND "))
 }
 
 // process 后期处理，现在暂时只处理SQL中的IN关键字
 func (h *sqlTemplate) process(query string) (string, []any, error) {
 	// 发现如果where里面有IN, 需要特殊处理
-	if h.hasInSymbol {
+	if strings.Contains(strings.ToUpper(query), " IN ") {
 		newQuery, newArgs, err := sqlx.In(query, h.args...)
 		if err != nil {
 			return "", nil, errors.Wrap(err, "sqlx.In")
