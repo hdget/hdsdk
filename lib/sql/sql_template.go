@@ -133,7 +133,7 @@ func (h *sqlTemplate) Count() (int64, error) {
 }
 
 func (h *sqlTemplate) InsertArgs(extraArgs ...any) *sqlTemplate {
-	h.args = append(extraArgs, h.args)
+	h.args = append(extraArgs, h.args...)
 	return h
 }
 
