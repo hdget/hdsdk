@@ -15,7 +15,6 @@ type sqlTemplate struct {
 	template    string
 	wheres      []string
 	args        []any
-	hasInSymbol bool // 是否条件里面有"in"
 	limitClause string
 	orderBy     string
 	groupBy     string
