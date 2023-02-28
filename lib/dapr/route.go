@@ -113,7 +113,7 @@ func parseRouteAnnotation(app, receiver, handler string, comments []string) (*Ro
 			def.Version = version
 			def.Namespace = namespace
 			def.Handler = handler
-			def.Comment = strings.Join(plainComments, "")
+			def.Comment = strings.Join(plainComments, "\r")
 			break
 		}
 	}
