@@ -43,7 +43,7 @@ type RouteAnnotation struct {
 	CallerId      int64
 	IsRawResponse bool
 	IsPublic      bool
-	Comment       string
+	Comments      []string
 }
 
 // 路由注解的前缀
@@ -113,7 +113,7 @@ func parseRouteAnnotation(app, receiver, handler string, comments []string) (*Ro
 			def.Version = version
 			def.Namespace = namespace
 			def.Handler = handler
-			def.Comment = strings.Join(plainComments, "\r")
+			def.Comments = plainComments
 			break
 		}
 	}
