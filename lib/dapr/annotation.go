@@ -32,93 +32,165 @@ type serviceHandlerComment struct {
 	Comments []string
 }
 
-// RouteAnnotation 路由注解
-type RouteAnnotation struct {
+// Annotation 路由注解
+type Annotation struct {
+	Name  string
+	Value string
+}
+
+type Route struct {
 	App           string
+	Handler       string
 	Namespace     string
 	Version       int32
-	Handler       string
 	Endpoint      string
-	Methods       []string
+	HttpMethods   []string
 	CallerId      int64
 	IsRawResponse bool
 	IsPublic      bool
 	Comments      []string
 }
 
-// 路由注解的前缀
-const routeAnnotationPrefix = "@hd.route"
+type HandlerAnnotation struct {
+	App         string
+	Handler     string
+	Receiver    string
+	Annotations map[string]*Annotation // annotationName->*Annotation
+	Comments    []string
+}
 
-// ParseRouteAnnotations 尝试从函数的注释中获取路由注解
-func ParseRouteAnnotations(app string, args ...string) ([]*RouteAnnotation, error) {
+// 注解的前缀
+const annotationPrefix = "@hd."
+const annotationRoute = annotationPrefix + "route"
+const annotationHandler = annotationPrefix + "handler"
+
+// GetHandlerRoutes 获取handler routes
+func GetHandlerRoutes(app string, args ...string) (map[string]*Route, error) {
+	annotations, err := GetHandlerAnnotations(app, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	routes := make(map[string]*Route)
+	for handler, handlerAnnotation := range annotations {
+		r, err := handlerAnnotation.getRoute()
+		if err != nil {
+			return nil, err
+		}
+		routes[handler] = r
+	}
+
+	return routes, nil
+}
+
+func (ha *HandlerAnnotation) getRoute() (*Route, error) {
+	ann := ha.Annotations[annotationRoute]
+	if ann == nil {
+		return nil, nil
+	}
+
+	var route *Route
+	if ann.Value == "" || ann.Value == "{}" {
+		route = &Route{}
+	} else {
+		if strings.HasPrefix(ann.Value, "{") && strings.HasSuffix(ann.Value, "}") {
+			// 如果定义不为空，尝试unmarshal
+			err := json.Unmarshal(utils.StringToBytes(ann.Value), &route)
+			if err != nil {
+				return nil, errors.Wrapf(err, "parse route, annotation: %s", ann.Value)
+			}
+		}
+	}
+
+	// 从receiver中解析出namespace和version
+	// 如果第一个注解不合法，尝试去解析下一个
+	if route != nil {
+		// 如果找到有效的路由定义，直接跳出循环
+		version, namespace, err := parseNamespaceAndVersion(ha.Receiver)
+		if err != nil {
+			return nil, errors.Wrap(err, "parse namespace and version")
+		}
+
+		// 固定值
+		route.Version = version
+		route.Namespace = namespace
+		route.App = ha.App
+		route.Handler = ha.Handler
+		route.Comments = ha.Comments
+	}
+	return route, nil
+}
+
+// GetHandlerAnnotations 尝试从函数的注释中获取注解以及备注
+func GetHandlerAnnotations(app string, args ...string) (map[string]*HandlerAnnotation, error) {
 	// 默认从src/app/pkg/service目录开始解析
 	destPath := path.Join([]string{"src", app, "pkg", "service"}...)
 	if len(args) > 0 {
 		destPath = args[0]
 	}
 
-	handlerRoutes := make([]*RouteAnnotation, 0)
+	handlerAnnotations := make(map[string]*HandlerAnnotation)
 	for _, fnComment := range getDaprServiceHandlerComments(destPath) {
-		route, err := parseRouteAnnotation(app, fnComment.Receiver, fnComment.Handler, fnComment.Comments)
+		annotations, comments, err := parseAnnotations(app, fnComment.Receiver, fnComment.Handler, fnComment.Comments)
 		if err != nil {
 			return nil, err
 		}
-		handlerRoutes = append(handlerRoutes, route)
+
+		handlerAnnotations[fnComment.Handler] = &HandlerAnnotation{
+			App:         app,
+			Handler:     fnComment.Handler,
+			Receiver:    fnComment.Receiver,
+			Annotations: annotations,
+			Comments:    comments,
+		}
 	}
 
-	return handlerRoutes, nil
+	return handlerAnnotations, nil
 }
 
-// parseRouteAnnotation 从函数备注中解析路由备注
-func parseRouteAnnotation(app, receiver, handler string, comments []string) (*RouteAnnotation, error) {
+// parseAnnotations 从函数备注中解析路由备注
+func parseAnnotations(app, receiver, handler string, comments []string) (map[string]*Annotation, []string, error) {
 	plainComments := make([]string, 0)
-	annotations := make([]string, 0)
+	annotations := make(map[string]*Annotation, 0)
 	for _, s := range comments {
-		idxRoute := strings.Index(s, routeAnnotationPrefix)
-		if idxRoute < 0 {
+		idxAnnotation := strings.Index(s, annotationPrefix)
+		// 找不到annotation前缀则直接添加到注释中
+		if idxAnnotation < 0 {
 			s = strings.Replace(s, "//", "", 1)
 			s = strings.TrimSpace(s)
 			plainComments = append(plainComments, s)
 		} else {
-			routeAnnotation := strings.TrimSpace(s[idxRoute+len(routeAnnotationPrefix):])
-			annotations = append(annotations, routeAnnotation)
-		}
-	}
+			// 去除掉前面的slash
+			s = s[idxAnnotation:]
 
-	var def *RouteAnnotation
-	for _, annotation := range annotations {
-		// @hd.route后面为空或者@hd.route后面接空的{}都是有效的, 全部取默认值
-		if annotation == "" || annotation == "{}" {
-			def = &RouteAnnotation{}
-		} else {
-			if strings.HasPrefix(annotation, "{") && strings.HasSuffix(annotation, "}") {
-				// 如果定义不为空，尝试unmarshal
-				err := json.Unmarshal(utils.StringToBytes(annotation), &def)
-				if err != nil {
-					return nil, errors.Wrapf(err, "parse route, annotation: %s", annotation)
+			// 尝试找到annotation name
+			fields := strings.Fields(s)
+			nameIndex := -1
+			for i, field := range fields {
+				if strings.HasPrefix(field, annotationPrefix) {
+					nameIndex = i
+					break
+				}
+			}
+
+			// 没找到
+			if nameIndex == -1 {
+				return nil, nil, fmt.Errorf("annotation name not found, line: %s", s)
+			}
+
+			// 只将第一个找到的annotation加入到map
+			annotationName := fields[nameIndex]
+			if _, exist := annotations[annotationName]; !exist && annotationName != "" {
+
+				annotations[annotationName] = &Annotation{
+					Name:  annotationName,
+					Value: strings.Join(fields[nameIndex+1:], ""),
 				}
 			}
 		}
-
-		// 如果第一个注解不合法，尝试去解析下一个
-		if def != nil {
-			// 如果找到有效的路由定义，直接跳出循环
-			version, namespace, err := parseNamespaceAndVersion(receiver)
-			if err != nil {
-				return nil, errors.Wrap(err, "parse namespace and version")
-			}
-
-			// 固定值
-			def.App = app
-			def.Version = version
-			def.Namespace = namespace
-			def.Handler = handler
-			def.Comments = plainComments
-			break
-		}
 	}
 
-	return def, nil
+	return annotations, plainComments, nil
 }
 
 // parseNamespaceAndVersion 从函数的receiver中按v<version>_<namespace>的格式解析出API版本号和命名空间
@@ -209,6 +281,9 @@ func getFuncReceiverStructName(fn *ast.FuncDecl) string {
 		for _, field := range fn.Recv.List {
 			if x, ok := field.Type.(*ast.StarExpr); ok {
 				return fmt.Sprintf("%v", x.X)
+			}
+			if x, ok := field.Type.(*ast.Ident); ok {
+				return x.String()
 			}
 		}
 	}

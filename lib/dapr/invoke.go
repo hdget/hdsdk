@@ -140,21 +140,21 @@ func GetMetaValue(ctx context.Context, key string) string {
 	return values[0]
 }
 
-// RegisterHandlers register namespace's method to global registry
-func RegisterHandlers(app string, holder interface{}, methods map[string]common.ServiceInvocationHandler, registry map[string]map[string]common.ServiceInvocationHandler) error {
-	if registry == nil {
-		return errors.New("registry is nil")
-	}
-	namespace := getNamespaceName(holder)
-	if namespace != "" {
-		newMethods := make(map[string]common.ServiceInvocationHandler)
-		for name, handler := range methods {
-			newMethods[name] = wrapRecoverHandler(app, handler)
-		}
-		registry[namespace] = newMethods
-	}
-	return nil
-}
+//// RegisterHandlers register namespace's method to global registry
+//func RegisterHandlers(app string, holder interface{}, methods map[string]common.ServiceInvocationHandler, registry map[string]map[string]common.ServiceInvocationHandler) error {
+//	if registry == nil {
+//		return errors.New("registry is nil")
+//	}
+//	namespace := getNamespaceName(holder)
+//	if namespace != "" {
+//		newMethods := make(map[string]common.ServiceInvocationHandler)
+//		for name, handler := range methods {
+//			newMethods[name] = wrapRecoverHandler(app, handler)
+//		}
+//		registry[namespace] = newMethods
+//	}
+//	return nil
+//}
 
 // ParseHandlers parse handlers from registry
 func ParseHandlers(registry map[string]map[string]common.ServiceInvocationHandler) map[string]common.ServiceInvocationHandler {
