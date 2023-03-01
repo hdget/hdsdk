@@ -210,6 +210,9 @@ func getFuncReceiverStructName(fn *ast.FuncDecl) string {
 			if x, ok := field.Type.(*ast.StarExpr); ok {
 				return fmt.Sprintf("%v", x.X)
 			}
+			if x, ok := field.Type.(*ast.Ident); ok {
+				return x.String()
+			}
 		}
 	}
 	return ""

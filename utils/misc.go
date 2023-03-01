@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"os"
 	"reflect"
+	"runtime"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -192,4 +193,10 @@ func CleanString(origStr string, args ...bool) string {
 	// 去除不可见字符
 	s = RemoveInvisibleCharacter(s)
 	return s
+}
+
+// GetFuncName 从函数实例获取函数名
+func GetFuncName(fn func()) string {
+	tokens := strings.Split(runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name(), ".")
+	return strings.Split(tokens[len(tokens)-1], "-")[0]
 }
