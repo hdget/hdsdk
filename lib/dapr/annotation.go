@@ -1,111 +1,129 @@
 package dapr
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/hdget/hdsdk/utils"
-	"github.com/pkg/errors"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"log"
+	"path"
 	"strings"
 )
 
-type serviceModuleRoute struct {
-	App           string
-	Handler       string
-	Namespace     string
-	Version       int
-	Endpoint      string
-	HttpMethods   []string
-	CallerId      int64
-	IsRawResponse bool
-	IsPublic      bool
-	Comments      []string
+// funcInfo ast解析出来的函数的基本信息
+type funcInfo struct {
+	FuncName      string
+	FuncReceiver  string
+	Pos           token.Pos
+	End           token.Pos
+	IsHandlerFunc bool
 }
 
-// GetRoutes 获取路由
-func (sm *ServiceModule) GetRoutes(args ...string) ([]*serviceModuleRoute, error) {
-	annotations, err := sm.GetAnnotations(args...)
-	if err != nil {
-		return nil, err
+// funcComment ast解析出来的注释
+type funcComment struct {
+	PkgName  string
+	FileName string
+	Handler  string
+	Comments []string
+}
+
+// annotation 注释中的注解
+type annotation struct {
+	Name  string
+	Value string
+}
+
+type serviceModuleHandlerAnnotation struct {
+	HandlerName string
+	Annotations map[string]*annotation // annotationName->*annotation
+	Comments    []string
+}
+
+// 注解的前缀
+const annotationPrefix = "@hd."
+const annotationRoute = annotationPrefix + "route"
+
+// GetAnnotations 解析服务模块中的所有注解和注释
+// handlerName=>*serviceModuleHandlerAnnotation
+func (sm *ServiceModule) GetAnnotations(args ...string) ([]*serviceModuleHandlerAnnotation, error) {
+	// 默认从src/app/pkg/service目录开始解析
+	destPath := path.Join([]string{"src", sm.app, "pkg", "service"}...)
+	if len(args) > 0 {
+		destPath = args[0]
 	}
 
-	routes := make([]*serviceModuleRoute, 0)
-	for _, handlerAnnotation := range annotations {
-		// 获取该handler的路由注解
-		ann := handlerAnnotation.Annotations[annotationRoute]
-		if ann == nil {
-			continue
-		}
-
-		route, err := sm.buildRoute(handlerAnnotation.HandlerName, ann, handlerAnnotation.Comments)
+	handlerAnnotations := make([]*serviceModuleHandlerAnnotation, 0)
+	for _, fnComment := range getServiceModuleComments(destPath) {
+		annotations, comments, err := parseAnnotations(fnComment.Comments)
 		if err != nil {
 			return nil, err
 		}
 
-		routes = append(routes, route)
+		handlerAnnotations = append(handlerAnnotations, &serviceModuleHandlerAnnotation{
+			HandlerName: fnComment.Handler,
+			Annotations: annotations,
+			Comments:    comments,
+		})
 	}
 
-	return routes, nil
+	return handlerAnnotations, nil
 }
 
-func (sm *ServiceModule) buildRoute(handlerName string, ann *annotation, comments []string) (*serviceModuleRoute, error) {
-	handler := sm.handlers[handlerName]
-	if handler == nil {
-		return nil, fmt.Errorf("handler not found, handler: %s", handlerName)
-	}
+// parseAnnotations 从函数备注中解析路由备注
+// annotationName => annotation
+func parseAnnotations(comments []string) (map[string]*annotation, []string, error) {
+	plainComments := make([]string, 0)
+	annotations := make(map[string]*annotation, 0)
+	for _, s := range comments {
+		idxAnnotation := strings.Index(s, annotationPrefix)
+		// 找不到annotation前缀则直接添加到注释中
+		if idxAnnotation < 0 {
+			s = strings.Replace(s, "//", "", 1)
+			s = strings.TrimSpace(s)
+			plainComments = append(plainComments, s)
+		} else {
+			// 去除掉前面的slash
+			s = s[idxAnnotation:]
 
-	// 尝试将注解后的值进行jsonUnmarshal
-	var route *serviceModuleRoute
-	v := strings.TrimSpace(ann.Value)
-	if strings.HasPrefix(v, "{") && strings.HasSuffix(v, "}") {
-		// 如果定义不为空，尝试unmarshal
-		err := json.Unmarshal(utils.StringToBytes(ann.Value), &route)
-		if err != nil {
-			return nil, errors.Wrapf(err, "parse route annotation, annotation: %s", ann.Value)
+			// 尝试找到annotation name
+			fields := strings.Fields(s)
+			nameIndex := -1
+			for i, field := range fields {
+				if strings.HasPrefix(field, annotationPrefix) {
+					nameIndex = i
+					break
+				}
+			}
+
+			// 没找到annotation name
+			if nameIndex == -1 {
+				return nil, nil, fmt.Errorf("annotation name not found, line: %s", s)
+			}
+
+			// 只将第一个找到的annotation加入到map
+			annotationName := fields[nameIndex]
+			if _, exist := annotations[annotationName]; !exist && annotationName != "" {
+
+				annotations[annotationName] = &annotation{
+					Name:  annotationName,
+					Value: strings.Join(fields[nameIndex+1:], ""),
+				}
+			}
 		}
-	} else {
-		route = &serviceModuleRoute{}
 	}
 
-<<<<<<< HEAD
-	route.Version = sm.version
-	route.Namespace = sm.namespace
-	route.App = sm.app
-	route.Handler = handler.name
-	route.Comments = comments
-	return route, nil
-=======
-	return def, nil
+	return annotations, plainComments, nil
 }
 
-// parseNamespaceAndVersion 从函数的receiver中按v<version>_<namespace>的格式解析出API版本号和命名空间
-func parseNamespaceAndVersion(receiver string) (int32, string, error) {
-	tokens := strings.Split(receiver, "_")
-	if len(tokens) != 2 {
-		return 0, "", fmt.Errorf("invalid module, it should be: v<number>_<namespace>, module: %s", receiver)
-	}
-
-	if !strings.HasPrefix(tokens[0], "v") {
-		return 0, "", errors.New("invalid module version, it should be: v<number>")
-	}
-
-	version := cast.ToInt32(tokens[0][1:])
-	namespace := tokens[1]
-	if version == 0 || namespace == "" {
-		return 0, "", fmt.Errorf("invalid namespace and version, receiver: %s", receiver)
-	}
-
-	return version, namespace, nil
-}
-
-// getDaprServiceHandlerComments 获取Dapr ServiceHandler的注释
-func getDaprServiceHandlerComments(destPath string) []serviceHandlerComment {
+// getServiceModuleComments 获取DaprServiceHandler的注释
+func getServiceModuleComments(destPath string) []funcComment {
 	fs := token.NewFileSet()
 	pkgAsts, err := parser.ParseDir(fs, destPath, nil, parser.ParseComments)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	fnComments := make([]serviceHandlerComment, 0)
+	fnComments := make([]funcComment, 0)
 	for pkgName, pkgAst := range pkgAsts {
 		// 遍历每个包的每个文件
 		for filename, f := range pkgAst.Files {
@@ -115,7 +133,7 @@ func getDaprServiceHandlerComments(destPath string) []serviceHandlerComment {
 				if fn, ok := decl.(*ast.FuncDecl); ok {
 					fnInfos = append(fnInfos, funcInfo{
 						FuncName:      fn.Name.Name,
-						Receiver:      getFuncReceiverStructName(fn),
+						FuncReceiver:  getFuncReceiverStructName(fn),
 						Pos:           fn.Pos(),
 						End:           fn.End(),
 						IsHandlerFunc: isDaprServiceHandlerFuncType(fn.Type),
@@ -129,10 +147,9 @@ func getDaprServiceHandlerComments(destPath string) []serviceHandlerComment {
 					continue
 				}
 
-				comment := serviceHandlerComment{
+				comment := funcComment{
 					PkgName:  pkgName,
 					FileName: filename,
-					Receiver: fn.Receiver,
 					Handler:  fn.FuncName,
 					Comments: make([]string, 0),
 				}
@@ -221,5 +238,4 @@ func isDaprServiceHandlerFuncType(fnType *ast.FuncType) bool {
 	}
 
 	return true
->>>>>>> origin/main
 }

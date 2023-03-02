@@ -196,7 +196,15 @@ func CleanString(origStr string, args ...bool) string {
 }
 
 // GetFuncName 从函数实例获取函数名
-func GetFuncName(fn func()) string {
+func GetFuncName(fn any) string {
 	tokens := strings.Split(runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name(), ".")
 	return strings.Split(tokens[len(tokens)-1], "-")[0]
+}
+
+func GetStructName(myvar interface{}) string {
+	if t := reflect.TypeOf(myvar); t.Kind() == reflect.Ptr {
+		return t.Elem().Name()
+	} else {
+		return t.Name()
+	}
 }
