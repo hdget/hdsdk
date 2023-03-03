@@ -6,7 +6,6 @@
 package neo4j
 
 import (
-	"fmt"
 	"github.com/fatih/structs"
 	"github.com/hdget/hdsdk/provider/graph"
 	"github.com/hdget/hdsdk/types"
@@ -83,8 +82,6 @@ func (np *Neo4jProvider) Get(cypher string, args ...interface{}) (interface{}, e
 		param = structs.Map(args[0])
 	}
 
-	fmt.Println(param)
-
 	result, err := session.Run(cypher, param)
 	if err != nil {
 		return nil, err
@@ -110,8 +107,6 @@ func (np *Neo4jProvider) Select(cypher string, args ...interface{}) ([]interface
 	if len(args) > 0 {
 		param = structs.Map(args[0])
 	}
-
-	fmt.Println(param)
 
 	result, err := session.Run(cypher, param)
 	if err != nil {

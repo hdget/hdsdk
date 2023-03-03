@@ -30,13 +30,17 @@ func (sm *ServiceModule) GetRoutes(args ...string) ([]*ServiceModuleRoute, error
 
 	routes := make([]*ServiceModuleRoute, 0)
 	for _, handlerAnnotation := range annotations {
+		if handlerAnnotation.ModuleName != sm.name {
+			continue
+		}
+
 		// 获取该handler的路由注解
 		ann := handlerAnnotation.Annotations[annotationRoute]
 		if ann == nil {
 			continue
 		}
 
-		route, err := sm.buildRoute(handlerAnnotation.ModuleName, handlerAnnotation.HandlerName, ann, handlerAnnotation.Comments)
+		route, err := sm.buildRoute(handlerAnnotation.HandlerName, ann, handlerAnnotation.Comments)
 		if err != nil {
 			return nil, err
 		}
@@ -47,8 +51,8 @@ func (sm *ServiceModule) GetRoutes(args ...string) ([]*ServiceModuleRoute, error
 	return routes, nil
 }
 
-func (sm *ServiceModule) buildRoute(moduleName, handlerName string, ann *annotation, comments []string) (*ServiceModuleRoute, error) {
-	k := getFullHandlerName(moduleName, handlerName)
+func (sm *ServiceModule) buildRoute(handlerName string, ann *annotation, comments []string) (*ServiceModuleRoute, error) {
+	k := getFullHandlerName(sm.name, handlerName)
 	handler := sm.handlers[k]
 	if handler == nil {
 		return nil, fmt.Errorf("handler not found, handler: %s", k)

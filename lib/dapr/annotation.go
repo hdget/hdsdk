@@ -118,7 +118,7 @@ func parseAnnotations(comments []string) (map[string]*annotation, []string, erro
 	return annotations, plainComments, nil
 }
 
-// getServiceModuleComments 获取DaprServiceHandler的注释
+// getServiceModuleComments 获取DaprServiceHandler的注释, moduleName => []funcComment
 func getServiceModuleComments(destPath string) []funcComment {
 	fs := token.NewFileSet()
 	pkgAsts, err := parser.ParseDir(fs, destPath, nil, parser.ParseComments)
