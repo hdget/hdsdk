@@ -21,10 +21,11 @@ type funcInfo struct {
 
 // funcComment ast解析出来的注释
 type funcComment struct {
-	PkgName  string
-	FileName string
-	Handler  string
-	Comments []string
+	PkgName     string
+	FileName    string
+	ModuleName  string
+	HandlerName string
+	Comments    []string
 }
 
 // annotation 注释中的注解
@@ -34,6 +35,7 @@ type annotation struct {
 }
 
 type serviceModuleHandlerAnnotation struct {
+	ModuleName  string
 	HandlerName string
 	Annotations map[string]*annotation // annotationName->*annotation
 	Comments    []string
@@ -60,7 +62,8 @@ func (sm *ServiceModule) GetAnnotations(args ...string) ([]*serviceModuleHandler
 		}
 
 		handlerAnnotations = append(handlerAnnotations, &serviceModuleHandlerAnnotation{
-			HandlerName: fnComment.Handler,
+			ModuleName:  fnComment.ModuleName,
+			HandlerName: fnComment.HandlerName,
 			Annotations: annotations,
 			Comments:    comments,
 		})
@@ -148,10 +151,11 @@ func getServiceModuleComments(destPath string) []funcComment {
 				}
 
 				comment := funcComment{
-					PkgName:  pkgName,
-					FileName: filename,
-					Handler:  fn.FuncName,
-					Comments: make([]string, 0),
+					PkgName:     pkgName,
+					FileName:    filename,
+					ModuleName:  fn.FuncReceiver,
+					HandlerName: fn.FuncName,
+					Comments:    make([]string, 0),
 				}
 
 				// 因为下面需要比较Comment的位置是否是在上一个函数之后，当前函数的开始之前

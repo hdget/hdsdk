@@ -39,7 +39,10 @@ func New(rows []interface{}, args ...string) (Excel, error) {
 		sheetName = args[0]
 	}
 
-	sheet := f.NewSheet(sheetName)
+	sheet, err := f.NewSheet(sheetName)
+	if err != nil {
+		return nil, err
+	}
 	f.SetActiveSheet(sheet)
 
 	// 通过反射获取表头type定义

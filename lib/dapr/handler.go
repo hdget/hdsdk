@@ -17,7 +17,7 @@ type serviceModuleHandler struct {
 
 func (sm *ServiceModule) registerHandlers(methods map[string]common.ServiceInvocationHandler) error {
 	for methodName, handler := range methods {
-		k := sm.getFullHandlerName(utils.GetFuncName(handler))
+		k := getFullHandlerName(sm.name, utils.GetFuncName(handler))
 		if _, exist := sm.handlers[k]; exist {
 			return fmt.Errorf("duplicate handler registered, handler: %s", k)
 		}
@@ -32,8 +32,8 @@ func (sm *ServiceModule) registerHandlers(methods map[string]common.ServiceInvoc
 }
 
 // getFullHandlerName 获取完整的receiver.funcName
-func (sm ServiceModule) getFullHandlerName(handlerName string) string {
-	return strings.Join([]string{sm.name, handlerName}, "_")
+func getFullHandlerName(moduleName, handlerName string) string {
+	return strings.Join([]string{moduleName, handlerName}, "_")
 }
 
 // wrapRecoverHandler 将panic recover处理逻辑封装进去

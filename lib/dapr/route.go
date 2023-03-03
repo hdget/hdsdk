@@ -36,7 +36,7 @@ func (sm *ServiceModule) GetRoutes(args ...string) ([]*ServiceModuleRoute, error
 			continue
 		}
 
-		route, err := sm.buildRoute(handlerAnnotation.HandlerName, ann, handlerAnnotation.Comments)
+		route, err := sm.buildRoute(handlerAnnotation.ModuleName, handlerAnnotation.HandlerName, ann, handlerAnnotation.Comments)
 		if err != nil {
 			return nil, err
 		}
@@ -47,8 +47,8 @@ func (sm *ServiceModule) GetRoutes(args ...string) ([]*ServiceModuleRoute, error
 	return routes, nil
 }
 
-func (sm *ServiceModule) buildRoute(handlerName string, ann *annotation, comments []string) (*ServiceModuleRoute, error) {
-	k := sm.getFullHandlerName(handlerName)
+func (sm *ServiceModule) buildRoute(moduleName, handlerName string, ann *annotation, comments []string) (*ServiceModuleRoute, error) {
+	k := getFullHandlerName(moduleName, handlerName)
 	handler := sm.handlers[k]
 	if handler == nil {
 		return nil, fmt.Errorf("handler not found, handler: %s", k)
