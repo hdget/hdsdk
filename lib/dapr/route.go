@@ -48,9 +48,10 @@ func (sm *ServiceModule) GetRoutes(args ...string) ([]*ServiceModuleRoute, error
 }
 
 func (sm *ServiceModule) buildRoute(handlerName string, ann *annotation, comments []string) (*ServiceModuleRoute, error) {
-	handler := sm.handlers[handlerName]
+	k := sm.getFullHandlerName(handlerName)
+	handler := sm.handlers[k]
 	if handler == nil {
-		return nil, fmt.Errorf("handler not found, handler: %s", handlerName)
+		return nil, fmt.Errorf("handler not found, handler: %s", k)
 	}
 
 	// 尝试将注解后的值进行jsonUnmarshal

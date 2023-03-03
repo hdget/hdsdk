@@ -127,7 +127,10 @@ func RegisterHandlers(app string, module interface{}, methods map[string]common.
 	}
 
 	// 注册handlers
-	svcModule.registerHandlers(methods)
+	err = svcModule.registerHandlers(methods)
+	if err != nil {
+		return err
+	}
 
 	registry[moduleName] = svcModule
 	return nil
