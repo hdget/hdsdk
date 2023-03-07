@@ -12,6 +12,7 @@ type ServiceModuleRoute struct {
 	App           string   // app name
 	Handler       string   // dapr method
 	Namespace     string   // namespace
+	Client        string   // 客户端
 	Version       int      // version
 	Endpoint      string   // endpoint
 	Methods       []string // http methods
@@ -74,6 +75,7 @@ func (sm *ServiceModule) buildRoute(handlerName string, ann *annotation, comment
 
 	route.Version = sm.version
 	route.Namespace = sm.namespace
+	route.Client = sm.client
 	route.App = sm.app
 	route.Handler = handler.name
 	route.Comments = comments
