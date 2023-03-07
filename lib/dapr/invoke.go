@@ -161,21 +161,24 @@ func getFullMethodName(version int, namespace, client, method string) string {
 
 // newServiceModule 从函数的receiver即moduleName中按v<version>_<namespace>的格式解析出API版本号和命名空间
 func newServiceModule(app, moduleName string) (*ServiceModule, error) {
-	tokens := strings.Split(moduleName, "_")
-
 	var partVersion, partNamespace, partClient string
-	switch len(tokens) {
-	case 2:
-		partVersion = tokens[0]
-		partNamespace = tokens[1]
-	case 3:
-		partVersion = tokens[0]
-		partNamespace = tokens[1]
-		partClient = tokens[2]
-	default:
+	tokens := strings.Split(moduleName, "_")
+	countTokens := len(tokens)
+	if countTokens <= 1 {
 		return nil, errors.New("invalid module, it should be: v<number>_<namespace> or v<number>_<namespace>_<client>")
 	}
 
+	// 解析version, namespace和client
+	if countTokens == 2 {
+		partVersion = tokens[0]
+		partNamespace = tokens[1]
+	} else if countTokens > 2 {
+		partVersion = tokens[0]
+		partNamespace = strings.Join(tokens[1:countTokens-1], "_")
+		partClient = tokens[countTokens-1]
+	}
+
+	// 校验version和namespace, client可以为空
 	strVersion := partVersion[1:]
 	if !strings.HasPrefix(partVersion, "v") || strVersion == "" {
 		return nil, errors.New("invalid version, it should be: v<number>")
