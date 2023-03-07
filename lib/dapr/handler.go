@@ -33,7 +33,7 @@ func (sm *ServiceModule) registerHandlers(methods map[string]common.ServiceInvoc
 
 // getFullHandlerName 获取完整的receiver.funcName
 func (sm *ServiceModule) getFullHandlerName(handlerName string) string {
-	return strings.Join([]string{sm.name, handlerName}, "_")
+	return strings.Join([]string{sm.name, handlerName, sm.client}, "_")
 }
 
 // wrapRecoverHandler 将panic recover处理逻辑封装进去
