@@ -103,15 +103,18 @@ func parseAnnotations(comments []string) (map[string]*annotation, []string, erro
 				return nil, nil, fmt.Errorf("annotation name not found, line: %s", s)
 			}
 
-			// 只将第一个找到的annotation加入到map
+			// 总是将找到的annotation加入到map，即保证最后一个生效
 			annotationName := fields[nameIndex]
-			if _, exist := annotations[annotationName]; !exist && annotationName != "" {
-
-				annotations[annotationName] = &annotation{
-					Name:  annotationName,
-					Value: strings.Join(fields[nameIndex+1:], ""),
-				}
+			annotations[annotationName] = &annotation{
+				Name:  annotationName,
+				Value: strings.Join(fields[nameIndex+1:], ""),
 			}
+			//if _, exist := annotations[annotationName]; !exist && annotationName != "" {
+			//	annotations[annotationName] = &annotation{
+			//		Name:  annotationName,
+			//		Value: strings.Join(fields[nameIndex+1:], ""),
+			//	}
+			//}
 		}
 	}
 
