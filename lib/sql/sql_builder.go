@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/hdget/hdsdk"
 	"github.com/hdget/hdsdk/lib/pagination"
+	"github.com/hdget/hdsdk/protobuf"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"strings"
@@ -83,7 +84,7 @@ func (b *SqlBuilder) OrderBy(orderBy string) *SqlBuilder {
 
 func (b *SqlBuilder) Limit(listParam any) *SqlBuilder {
 	if listParam != nil {
-		param, ok := listParam.(*pagination.ListParam)
+		param, ok := listParam.(*protobuf.ListParam)
 		if ok {
 			b.limitClause = pagination.New(param.Page, param.PageSize).GetLimitClause()
 			return b
