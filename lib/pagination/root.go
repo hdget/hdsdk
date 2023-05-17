@@ -2,11 +2,15 @@ package pagination
 
 import (
 	"fmt"
+	"github.com/hdget/hdsdk/protobuf"
 	"math"
 	"reflect"
 )
 
-const DefaultPageSize = 10
+const (
+	DefaultPageSize    = 10
+	defaultLimitClause = "LIMIT 0, 10"
+)
 
 type Pagination struct {
 	page     int64 // 第几页
@@ -141,4 +145,12 @@ func convertToSlice(data interface{}) []interface{} {
 	}
 
 	return sliceData
+}
+
+// NewLimitClause 从protobuf.ListParam生成limit语句
+func NewLimitClause(listParam *protobuf.ListParam) string {
+	if listParam != nil {
+		return New(listParam.Page, listParam.PageSize).GetLimitClause()
+	}
+	return defaultLimitClause
 }
