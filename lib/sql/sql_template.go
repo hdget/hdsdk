@@ -19,7 +19,7 @@ type SqlTemplate interface {
 	GroupBy(groupBy string) SqlTemplate
 	InsertArgs(extraArgs ...any) SqlTemplate
 	AppendArgs(extraArgs ...any) SqlTemplate
-	JoinSubQuery(subQuery *joinSubQuery) SqlTemplate
+	JoinSubQuery(tpl SqlTemplate) SqlTemplate
 
 	Where(condition string, args ...any)
 	Generate() (string, []any, error)
@@ -82,8 +82,10 @@ func NewJoinSubQuery(template, alias, on string) *joinSubQuery {
 
 /* query */
 
-func (q *query) JoinSubQuery(subQuery *joinSubQuery) SqlTemplate {
-	q.joinSubQuerys = append(q.joinSubQuerys, subQuery)
+func (q *query) JoinSubQuery(tpl SqlTemplate) SqlTemplate {
+	if jsq, ok := tpl.(*joinSubQuery); ok {
+		q.joinSubQuerys = append(q.joinSubQuerys, jsq)
+	}
 	return q
 }
 
@@ -215,8 +217,8 @@ func (b *baseQuery) AppendArgs(extraArgs ...any) SqlTemplate {
 	return b
 }
 
-func (b *baseQuery) JoinSubQuery(subQuery *joinSubQuery) SqlTemplate {
-	return b.concrete.JoinSubQuery(subQuery)
+func (b *baseQuery) JoinSubQuery(tpl SqlTemplate) SqlTemplate {
+	return b.concrete.JoinSubQuery(tpl)
 }
 
 func (b *baseQuery) Generate() (string, []any, error) {
