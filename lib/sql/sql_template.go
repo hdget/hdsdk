@@ -58,14 +58,14 @@ const (
 )
 
 func NewSqlTemplate() SqlTemplate {
-	q := &query{
+	me := &query{
 		baseQuery: &baseQuery{
 			wheres: make([]string, 0),
 			args:   make([]any, 0),
 		},
 	}
-	q.concrete = q
-	return q
+	me.concrete = me
+	return me
 }
 
 func NewJoinSubQuery(template, alias, on string) *joinSubQuery {
