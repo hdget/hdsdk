@@ -19,11 +19,19 @@ type SqlTemplate interface {
 	GroupBy(groupBy string) SqlTemplate
 	InsertArgs(extraArgs ...any) SqlTemplate
 	AppendArgs(extraArgs ...any) SqlTemplate
+	JoinSubQuery(subQuery *joinSubQuery) SqlTemplate
+
 	Where(condition string, args ...any)
-	GetWheres() ([]string, []any)
+	Generate() (string, []any, error)
+	Get(v any) error
+	Select(v any) error
+	Count() (int64, error)
+	ExportConditions() ([]string, []any) // 导出where条件
+	ImportConditions([]string, []any)    // 导入where条件
 }
 
 type baseQuery struct {
+	concrete    SqlTemplate
 	template    string
 	wheres      []string
 	args        []any
@@ -50,15 +58,17 @@ const (
 )
 
 func NewSqlTemplate() SqlTemplate {
-	return &query{
+	q := &query{
 		baseQuery: &baseQuery{
 			wheres: make([]string, 0),
 			args:   make([]any, 0),
 		},
 	}
+	q.concrete = q
+	return q
 }
 
-func NewJoinSubQuery(template, alias, on string) SqlTemplate {
+func NewJoinSubQuery(template, alias, on string) *joinSubQuery {
 	return &joinSubQuery{
 		baseQuery: &baseQuery{
 			template: template,
@@ -72,49 +82,9 @@ func NewJoinSubQuery(template, alias, on string) SqlTemplate {
 
 /* query */
 
-func (q *query) JoinSubQuery(joinSubQuery *joinSubQuery) SqlTemplate {
-	q.joinSubQuerys = append(q.joinSubQuerys, joinSubQuery)
+func (q *query) JoinSubQuery(subQuery *joinSubQuery) SqlTemplate {
+	q.joinSubQuerys = append(q.joinSubQuerys, subQuery)
 	return q
-}
-
-func (q *query) Count() (int64, error) {
-	// 获取total
-	xquery, xargs, err := q.Generate()
-	if err != nil {
-		return 0, errors.Wrap(err, "build query")
-	}
-	var total int64
-	err = hdsdk.Mysql.My().Get(&total, xquery, xargs...)
-	if err != nil {
-		return 0, errors.Wrap(err, "db count")
-	}
-	return total, nil
-}
-
-func (q *query) Get(v any) error {
-	xquery, xargs, err := q.Generate()
-	if err != nil {
-		return errors.Wrap(err, "build query")
-	}
-
-	err = hdsdk.Mysql.My().Get(v, xquery, xargs...)
-	if err != nil {
-		return errors.Wrap(err, "db get")
-	}
-	return nil
-}
-
-func (q *query) Select(v any) error {
-	xquery, xargs, err := q.Generate()
-	if err != nil {
-		return errors.Wrap(err, "build query")
-	}
-
-	err = hdsdk.Mysql.My().Select(v, xquery, xargs...)
-	if err != nil {
-		return errors.Wrap(err, "db select")
-	}
-	return nil
 }
 
 // Generate 最终生成SQL语句
@@ -127,7 +97,8 @@ func (q *query) Generate() (string, []any, error) {
 		if err != nil {
 			return "", nil, err
 		}
-		parts = append(parts, "INNER JOIN (%s) AS %s ON %s", subQuerySql, sq.alias, sq.on)
+
+		parts = append(parts, fmt.Sprintf("INNER JOIN (%s) AS %s ON %s", subQuerySql, sq.alias, sq.on))
 		q.InsertArgs(subQueryArgs...)
 	}
 
@@ -183,8 +154,12 @@ func (b *baseQuery) Where(condition string, args ...any) {
 	b.args = append(b.args, args...)
 }
 
-func (b *baseQuery) GetWheres() ([]string, []any) {
+func (b *baseQuery) ExportConditions() ([]string, []any) {
 	return b.wheres, b.args
+}
+
+func (b *baseQuery) ImportConditions(wheres []string, args []any) {
+	b.wheres, b.args = wheres, args
 }
 
 func (b *baseQuery) With(template string) SqlTemplate {
@@ -238,6 +213,55 @@ func (b *baseQuery) InsertArgs(extraArgs ...any) SqlTemplate {
 func (b *baseQuery) AppendArgs(extraArgs ...any) SqlTemplate {
 	b.args = append(b.args, extraArgs...)
 	return b
+}
+
+func (b *baseQuery) JoinSubQuery(subQuery *joinSubQuery) SqlTemplate {
+	return b.concrete.JoinSubQuery(subQuery)
+}
+
+func (b *baseQuery) Generate() (string, []any, error) {
+	return b.concrete.Generate()
+}
+
+func (b *baseQuery) Get(v any) error {
+	xquery, xargs, err := b.concrete.Generate()
+	if err != nil {
+		return errors.Wrap(err, "generate sql")
+	}
+
+	err = hdsdk.Mysql.My().Get(v, xquery, xargs...)
+	if err != nil {
+		return errors.Wrap(err, "db get")
+	}
+	return nil
+}
+
+func (b *baseQuery) Select(v any) error {
+	xquery, xargs, err := b.concrete.Generate()
+	if err != nil {
+		return errors.Wrap(err, "generate sql")
+	}
+
+	err = hdsdk.Mysql.My().Select(v, xquery, xargs...)
+	if err != nil {
+		return errors.Wrap(err, "db select")
+	}
+	return nil
+}
+
+func (b *baseQuery) Count() (int64, error) {
+	// 获取total
+	xquery, xargs, err := b.concrete.Generate()
+	if err != nil {
+		return 0, errors.Wrap(err, "generate sql")
+	}
+
+	var total int64
+	err = hdsdk.Mysql.My().Get(&total, xquery, xargs...)
+	if err != nil {
+		return 0, errors.Wrap(err, "db count")
+	}
+	return total, nil
 }
 
 func (b *baseQuery) getWhereClause() string {
