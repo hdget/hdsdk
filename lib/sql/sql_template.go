@@ -68,8 +68,8 @@ func NewSqlTemplate() SqlTemplate {
 	return me
 }
 
-func NewJoinSubQuery(template, alias, on string) *joinSubQuery {
-	return &joinSubQuery{
+func NewJoinSubQuery(template, alias, on string) SqlTemplate {
+	me := &joinSubQuery{
 		baseQuery: &baseQuery{
 			template: template,
 			wheres:   make([]string, 0),
@@ -78,6 +78,8 @@ func NewJoinSubQuery(template, alias, on string) *joinSubQuery {
 		alias: alias,
 		on:    on,
 	}
+	me.concrete = me
+	return me
 }
 
 /* query */
@@ -166,22 +168,22 @@ func (b *baseQuery) ImportConditions(wheres []string, args []any) {
 
 func (b *baseQuery) With(template string) SqlTemplate {
 	b.template = template
-	return b
+	return b.concrete
 }
 
 func (b *baseQuery) Limit(listParam *protobuf.ListParam) SqlTemplate {
 	if listParam != nil {
 		b.limitClause = pagination.New(listParam.Page, listParam.PageSize).GetLimitClause()
-		return b
+		return b.concrete
 	}
 	b.limitClause = defaultLimitClause
-	return b
+	return b.concrete
 }
 
 func (b *baseQuery) Next(pkName string, nextParam *protobuf.NextParam) SqlTemplate {
 	if nextParam == nil {
 		b.limitClause = defaultNextClause
-		return b
+		return b.concrete
 	}
 
 	if nextParam.LastPk > 0 {
@@ -194,27 +196,27 @@ func (b *baseQuery) Next(pkName string, nextParam *protobuf.NextParam) SqlTempla
 	}
 
 	b.limitClause = fmt.Sprintf("LIMIT %d", nextParam.PageSize)
-	return b
+	return b.concrete
 }
 
 func (b *baseQuery) OrderBy(orderBy string) SqlTemplate {
 	b.orderBy = fmt.Sprintf("ORDER BY %s", orderBy)
-	return b
+	return b.concrete
 }
 
 func (b *baseQuery) GroupBy(groupBy string) SqlTemplate {
 	b.groupBy = fmt.Sprintf("GROUP BY %s", groupBy)
-	return b
+	return b.concrete
 }
 
 func (b *baseQuery) InsertArgs(extraArgs ...any) SqlTemplate {
 	b.args = append(extraArgs, b.args...)
-	return b
+	return b.concrete
 }
 
 func (b *baseQuery) AppendArgs(extraArgs ...any) SqlTemplate {
 	b.args = append(b.args, extraArgs...)
-	return b
+	return b.concrete
 }
 
 func (b *baseQuery) JoinSubQuery(tpl SqlTemplate) SqlTemplate {
