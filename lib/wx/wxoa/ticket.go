@@ -43,7 +43,7 @@ func (w *implWxoa) getTicket(appId, appSecret string) (string, error) {
 	return wxTicket.Value, nil
 }
 
-// requestTicket 二维码ticket
+// requestTicket jssdk获取凭证
 func (w *implWxoa) requestTicket(accessToken string) (*WxoaTicket, error) {
 	wxUserTicketTmpl := "https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%s&type=jsapi"
 	wxUserTicketURL := fmt.Sprintf(wxUserTicketTmpl, accessToken)
