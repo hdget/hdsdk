@@ -39,13 +39,13 @@ type WxmpSession struct {
 	UnionId    string `json:"unionid"`
 }
 
-type WxmpAccessToken struct {
+type WxAccessToken struct {
 	AccessToken string `json:"access_token"`
 	ExpiresIn   int    `json:"expires_in"`
 }
 
-type WxmpAccessTokenResult struct {
-	WxmpAccessToken
+type WxAccessTokenResult struct {
+	WxAccessToken
 	Errcode int    `json:"errcode"`
 	Errmsg  string `json:"errmsg"`
 }

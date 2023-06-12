@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/hdget/hdsdk"
+	"github.com/hdget/hdsdk/lib/wx/common"
 	"github.com/hdget/hdsdk/lib/wx/typwx"
 	"github.com/hdget/hdsdk/lib/wx/wxmp/cache"
 	"github.com/pkg/errors"
 )
 
 type Wxmp interface {
-	// 校验凭证
-	Auth(appId, appSecret, code string) (*typwx.WxmpSession, error)
+	Auth(appId, appSecret, code string) (*typwx.WxmpSession, error) // 校验凭证
 	DecryptUserInfo(appId, encryptedData, iv string) (*typwx.WxmpUserInfo, error)
 	DecryptMobileInfo(appId, encryptedData, iv string) (*typwx.WxmpMobileInfo, error)
 	CreateLimitedWxaCode(appId, appSecret, path string, width int, args ...Param) ([]byte, error)
@@ -81,7 +81,7 @@ func (w *implWxmp) Auth(appId, appSecret, code string) (*typwx.WxmpSession, erro
 }
 
 func (impl *implWxmp) GetUserPhoneNumber(appId, appSecret, code string) (*typwx.WxmpMobileInfo, error) {
-	accessToken, err := impl.getAccessToken(appId, appSecret)
+	accessToken, err := impl.GetAccessToken(appId, appSecret)
 	if err != nil {
 		return nil, errors.Wrap(err, "get access token")
 	}
@@ -114,5 +114,22 @@ func (impl *implWxmp) GetUserPhoneNumber(appId, appSecret, code string) (*typwx.
 }
 
 func (impl *implWxmp) GetAccessToken(appId, appSecret string) (string, error) {
-	return impl.getAccessToken(appId, appSecret)
+	// 尝试从缓存中获取access token
+	cachedAccessToken, _ := _cache.GetAccessToken(appId)
+	if cachedAccessToken != "" {
+		return cachedAccessToken, nil
+	}
+
+	// 如果从缓存中获取不到，尝试请求access token
+	wxAccessToken, err := common.RequestAccessToken(appId, appSecret)
+	if err != nil {
+		return "", err
+	}
+
+	err = _cache.SetAccessToken(appId, wxAccessToken.AccessToken, wxAccessToken.ExpiresIn-1000)
+	if err != nil {
+		return "", err
+	}
+
+	return wxAccessToken.AccessToken, nil
 }

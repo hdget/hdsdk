@@ -6,7 +6,8 @@ import (
 )
 
 type Wxoa interface {
-	GetSignature(appId, appSecret, url string) (*typwx.WxoaSignature, error)
+	GetSignature(appId, appSecret, url string) (*typwx.WxoaSignature, error) // jsapi_ticket获取签名
+	GetAccessToken(appId, appSecret string) (string, error)
 }
 
 type implWxoa struct{}
