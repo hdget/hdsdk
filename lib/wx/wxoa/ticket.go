@@ -24,7 +24,7 @@ func (w *implWxoa) getTicket(appId, appSecret string) (string, error) {
 		return cachedTicket, nil
 	}
 
-	accessToken, err := w.getAccessToken(appId, appSecret)
+	accessToken, err := w.GetAccessToken(appId, appSecret)
 	if err != nil {
 		return "", err
 	}
@@ -43,6 +43,7 @@ func (w *implWxoa) getTicket(appId, appSecret string) (string, error) {
 	return wxTicket.Value, nil
 }
 
+// requestTicket jssdk获取凭证
 func (w *implWxoa) requestTicket(accessToken string) (*WxoaTicket, error) {
 	wxUserTicketTmpl := "https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%s&type=jsapi"
 	wxUserTicketURL := fmt.Sprintf(wxUserTicketTmpl, accessToken)

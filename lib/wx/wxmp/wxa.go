@@ -12,7 +12,7 @@ type Param func(param *typwx.CommonWxaCodeParam)
 
 // CreateLimitedWxaCode 创建小程序码
 func (impl *implWxmp) CreateLimitedWxaCode(appId, appSecret, path string, width int, args ...Param) ([]byte, error) {
-	accessToken, err := impl.getAccessToken(appId, appSecret)
+	accessToken, err := impl.GetAccessToken(appId, appSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (impl *implWxmp) CreateLimitedWxaCode(appId, appSecret, path string, width 
 
 // CreateUnLimitedWxaCode 创建小程序码
 func (impl *implWxmp) CreateUnLimitedWxaCode(appId, appSecret, scene, page string, width int, args ...Param) ([]byte, error) {
-	accessToken, err := impl.getAccessToken(appId, appSecret)
+	accessToken, err := impl.GetAccessToken(appId, appSecret)
 	if err != nil {
 		return nil, err
 	}

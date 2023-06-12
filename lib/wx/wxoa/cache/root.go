@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	WXOA_ACCESS_TOKEN = "wxoa:%s:access_token" // string
-	WXOA_TICKET       = "wxoa:ticket"          // string
+	WXOA_ACCESS_TOKEN = "wxoa:%s:accesstoken" // string
+	WXOA_TICKET       = "wxoa:ticket"         // string
 )
 
 type Cache interface {
