@@ -8,7 +8,7 @@ var (
 )
 
 // JsonArray 将slice转换成[]byte数据，如果slice为nil或空则返回空json array bytes
-func JsonArray[T []any](args ...T) []byte {
+func JsonArray[T any](args ...[]T) []byte {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return EmptyJsonArray
 	}
