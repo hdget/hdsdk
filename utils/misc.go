@@ -8,11 +8,9 @@ import (
 	"math/rand"
 	"os"
 	"reflect"
-	"runtime"
 	"runtime/debug"
 	"strings"
 	"time"
-	"unicode"
 )
 
 // RecordErrorStack 将错误信息保存到错误日志文件中
@@ -105,16 +103,6 @@ func GenerateRandString(n int) string {
 	return string(b)
 }
 
-// RemoveInvisibleCharacter 去除掉不能显示的字符
-func RemoveInvisibleCharacter(origStr string) string {
-	return strings.Map(func(r rune) rune {
-		if unicode.IsGraphic(r) {
-			return r
-		}
-		return -1
-	}, origStr)
-}
-
 // IsImageData 是否是图像数据
 func IsImageData(data []byte) bool {
 	// image formats and magic numbers
@@ -131,25 +119,6 @@ func IsImageData(data []byte) bool {
 		}
 	}
 	return false
-}
-
-func round(num float64) int {
-	return int(num + math.Copysign(0.5, num))
-}
-
-// ToFixed 浮点数到指定小数位
-func ToFixed(num float64, precision int) float64 {
-	output := math.Pow(10, float64(precision))
-	return float64(round(num*output)) / output
-}
-
-// GetVarName 获取变量的名字
-func GetVarName(myvar interface{}) string {
-	if t := reflect.TypeOf(myvar); t.Kind() == reflect.Ptr {
-		return "*" + t.Elem().Name()
-	} else {
-		return t.Name()
-	}
 }
 
 // GetNeo4jPathPattern 解析Neo4j语法的Variable-length pattern
@@ -173,38 +142,4 @@ func GetNeo4jPathPattern(args ...int32) string {
 		}
 	}
 	return expr
-}
-
-// CleanString 处理字符串, args[0]为是否转换为小写
-func CleanString(origStr string, args ...bool) string {
-	// 1. 去除前后空格
-	s := strings.TrimSpace(origStr)
-
-	// 2. 是否转换小写
-	toLower := false
-	if len(args) > 0 {
-		toLower = args[0]
-	}
-
-	if toLower {
-		s = strings.ToLower(s)
-	}
-
-	// 去除不可见字符
-	s = RemoveInvisibleCharacter(s)
-	return s
-}
-
-// GetFuncName 从函数实例获取函数名
-func GetFuncName(fn any) string {
-	tokens := strings.Split(runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name(), ".")
-	return strings.Split(tokens[len(tokens)-1], "-")[0]
-}
-
-func GetStructName(myvar interface{}) string {
-	if t := reflect.TypeOf(myvar); t.Kind() == reflect.Ptr {
-		return t.Elem().Name()
-	} else {
-		return t.Name()
-	}
 }
