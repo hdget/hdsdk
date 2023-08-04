@@ -7,9 +7,9 @@ import (
 )
 
 var (
-	nonNumericRegex      = regexp.MustCompile(`[^0-9 ]+`)
-	nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]+`) // 英文字符和数字
-	nonChineseRegex      = regexp.MustCompile(`[^\p{Han}]+`)
+	nonNumericRegex      = regexp.MustCompile(`[^0-9 ]+`)       // 非数字
+	nonAlphanumericRegex = regexp.MustCompile(`[^a-zA-Z0-9 ]+`) // 非英文字符和数字
+	nonChineseRegex      = regexp.MustCompile(`[^\p{Han}]+`)    // 非汉字
 )
 
 // Numeric 去除数字以外的所有字符
