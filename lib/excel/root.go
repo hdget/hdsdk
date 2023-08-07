@@ -9,11 +9,12 @@ import (
 )
 
 type ec struct {
-	sheetName string
-	header    reflect.Type
-	f         *excelize.File
-	style     int
-	rows      []interface{}
+	sheetName  string
+	header     reflect.Type
+	f          *excelize.File
+	colStyle   int
+	rows       []interface{}
+	cellStyles map[string]int // 单元格样式， axis=>style value
 }
 
 type Excel interface {
@@ -26,24 +27,12 @@ const (
 	defaultSheetName      = "Sheet1"
 )
 
-func New(rows []interface{}, args ...string) (Excel, error) {
+type Option func(*ec)
+
+func New(rows []interface{}, options ...Option) (Excel, error) {
 	if len(rows) == 0 {
 		return nil, fmt.Errorf("empty rows")
 	}
-
-	// 创建表格
-	f := excelize.NewFile()
-
-	sheetName := defaultSheetName
-	if len(args) > 0 {
-		sheetName = args[0]
-	}
-
-	sheet, err := f.NewSheet(sheetName)
-	if err != nil {
-		return nil, err
-	}
-	f.SetActiveSheet(sheet)
 
 	// 通过反射获取表头type定义
 	headerType, err := getExcelHeaderType(rows)
@@ -51,18 +40,31 @@ func New(rows []interface{}, args ...string) (Excel, error) {
 		return nil, errors.Wrap(err, "get excel header type")
 	}
 
-	// 创建一个默认文本类型的style
-	style, _ := f.NewStyle(&excelize.Style{
-		NumFmt: numFmtTextPlaceHolder,
-	})
-
-	return &ec{
-		sheetName: sheetName,
+	ex := &ec{
+		sheetName: defaultSheetName,
 		header:    headerType,
-		f:         f,
-		style:     style,
 		rows:      rows,
-	}, nil
+		f:         excelize.NewFile(),
+	}
+
+	for _, option := range options {
+		option(ex)
+	}
+
+	// 如果没有设置style, 默认文本类型的style
+	if ex.colStyle == 0 {
+		ex.colStyle, _ = ex.f.NewStyle(&excelize.Style{
+			NumFmt: numFmtTextPlaceHolder,
+		})
+	}
+
+	sheet, err := ex.f.NewSheet(ex.sheetName)
+	if err != nil {
+		return nil, err
+	}
+	ex.f.SetActiveSheet(sheet)
+
+	return ex, nil
 }
 
 func (ec *ec) Close() error {
@@ -100,6 +102,26 @@ func (ec *ec) GetBytes() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+func WithColStyle(style *excelize.Style) Option {
+	return func(e *ec) {
+		e.colStyle, _ = e.f.NewStyle(style)
+	}
+}
+
+func WithCellStyles(styles map[string]*excelize.Style) Option {
+	return func(e *ec) {
+		for axis, style := range styles {
+			e.cellStyles[axis], _ = e.f.NewStyle(style)
+		}
+	}
+}
+
+func WithSheetName(name string) Option {
+	return func(e *ec) {
+		e.sheetName = name
+	}
+}
+
 // process 处理数据
 func (ec *ec) process(rows []interface{}) error {
 	// 输出数据
@@ -119,19 +141,23 @@ func (ec *ec) process(rows []interface{}) error {
 
 		// 设置所有有效列的格式为文本类型
 		if colAxis != "" {
-			err := ec.f.SetColStyle(ec.sheetName, colAxis, ec.style)
+			err := ec.f.SetColStyle(ec.sheetName, colAxis, ec.colStyle)
 			if err != nil {
-				return errors.Wrap(err, "set col style")
+				return errors.Wrap(err, "set col colStyle")
 			}
 		}
 
 		// 如果有列坐标的输出行数据
 		if colAxis != "" {
-			for j, r := range rows {
-				axis := fmt.Sprintf("%s%d", colAxis, j+2)
+			for line, r := range rows {
+				axis := fmt.Sprintf("%s%d", colAxis, line+2)
 				value := reflect.ValueOf(r).Elem().FieldByName(ec.header.Field(i).Name)
-				err := ec.f.SetCellValue(ec.sheetName, axis, value)
 
+				if cellStyle, exist := ec.cellStyles[axis]; exist {
+					_ = ec.f.SetCellStyle(ec.sheetName, axis, axis, cellStyle)
+				}
+
+				err := ec.f.SetCellValue(ec.sheetName, axis, value)
 				if err != nil {
 					return errors.Wrap(err, "generate row")
 				}
