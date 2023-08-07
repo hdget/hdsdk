@@ -8,12 +8,21 @@ var (
 )
 
 // JsonArray 将slice转换成[]byte数据，如果slice为nil或空则返回空json array bytes
-func JsonArray[T any](args ...[]T) []byte {
-	if len(args) == 0 || len(args[0]) == 0 {
+func JsonArray(args ...any) []byte {
+	if len(args) == 0 || args[0] == nil {
 		return EmptyJsonArray
 	}
 
-	jsonData, _ := json.Marshal(args[0])
+	v, ok := args[0].([]any)
+	if !ok {
+		return EmptyJsonArray
+	}
+
+	if len(v) == 0 {
+		return EmptyJsonArray
+	}
+
+	jsonData, _ := json.Marshal(v)
 	return jsonData
 }
 
