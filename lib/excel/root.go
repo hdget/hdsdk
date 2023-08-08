@@ -41,10 +41,11 @@ func New(rows []interface{}, options ...Option) (Excel, error) {
 	}
 
 	ex := &ec{
-		sheetName: defaultSheetName,
-		header:    headerType,
-		rows:      rows,
-		f:         excelize.NewFile(),
+		sheetName:  defaultSheetName,
+		header:     headerType,
+		rows:       rows,
+		f:          excelize.NewFile(),
+		cellStyles: make(map[string]int),
 	}
 
 	for _, option := range options {
