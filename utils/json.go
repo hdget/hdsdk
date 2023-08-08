@@ -1,6 +1,9 @@
 package utils
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"reflect"
+)
 
 var (
 	EmptyJsonArray  = StringToBytes("[]")
@@ -13,26 +16,21 @@ func JsonArray(args ...any) []byte {
 		return EmptyJsonArray
 	}
 
-	v, ok := args[0].([]any)
-	if !ok {
+	if reflect.TypeOf(args[0]).Kind() != reflect.Slice {
 		return EmptyJsonArray
 	}
 
-	if len(v) == 0 {
-		return EmptyJsonArray
-	}
-
-	jsonData, _ := json.Marshal(v)
+	jsonData, _ := json.Marshal(args[0])
 	return jsonData
 }
 
 // JsonObject 将object转换成[]byte数据，如果object为nil或空则返回空json object bytes
 func JsonObject(args ...any) []byte {
-	if len(args) == 0 {
+	if len(args) == 0 || args[0] == nil {
 		return EmptyJsonObject
 	}
 
-	if args[0] == nil {
+	if reflect.TypeOf(args[0]).Kind() != reflect.Map {
 		return EmptyJsonObject
 	}
 
