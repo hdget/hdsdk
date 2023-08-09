@@ -30,7 +30,8 @@ func JsonObject(args ...any) []byte {
 		return EmptyJsonObject
 	}
 
-	if reflect.TypeOf(args[0]).Kind() != reflect.Map {
+	// 如果传入值为slice,则返回empty object
+	if reflect.TypeOf(args[0]).Kind() == reflect.Slice {
 		return EmptyJsonObject
 	}
 
