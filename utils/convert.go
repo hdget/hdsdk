@@ -2,7 +2,6 @@ package utils
 
 import (
 	"encoding/json"
-	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 	"strings"
@@ -33,7 +32,7 @@ func ToString(value interface{}) (string, error) {
 		return BytesToString(reply), nil
 	}
 
-	bs, err := jsoniter.Marshal(value)
+	bs, err := json.Marshal(value)
 	if err != nil {
 		return "", err
 	}

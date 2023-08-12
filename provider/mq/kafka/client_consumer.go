@@ -2,7 +2,7 @@ package kafka
 
 import (
 	"fmt"
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/hdget/hdsdk/types"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
