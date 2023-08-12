@@ -18,7 +18,6 @@ import (
 	"github.com/hdget/hdsdk/provider/log"
 	"github.com/hdget/hdsdk/provider/mq/kafka"
 	"github.com/hdget/hdsdk/provider/mq/rabbitmq"
-	"github.com/hdget/hdsdk/provider/ms/gokit"
 	"github.com/hdget/hdsdk/types"
 	"github.com/pkg/errors"
 )
@@ -31,13 +30,12 @@ type SdkProvider struct {
 }
 
 var (
-	Logger       types.LogProvider   // 日志能力
-	Mysql        types.DbProvider    // mysql数据库能力
-	Redis        types.CacheProvider // redis缓存能力
-	Rabbitmq     types.MqProvider    // rabbitmq能力
-	Kafka        types.MqProvider    // kafka能力
-	MicroService types.MsProvider    // 微服务能力
-	Neo4j        types.GraphProvider // 图数据库能力
+	Logger   types.LogProvider   // 日志能力
+	Mysql    types.DbProvider    // mysql数据库能力
+	Redis    types.CacheProvider // redis缓存能力
+	Rabbitmq types.MqProvider    // rabbitmq能力
+	Kafka    types.MqProvider    // kafka能力
+	Neo4j    types.GraphProvider // 图数据库能力
 )
 
 var (
@@ -68,11 +66,6 @@ var (
 			Kind:     types.SdkTypeMqKafka,
 			Name:     "kafka",
 			Instance: &kafka.KafkaProvider{},
-		},
-		&SdkProvider{
-			Kind:     types.SdkTypeMsGokit,
-			Name:     "gokit",
-			Instance: &gokit.GokitProvider{},
 		},
 		&SdkProvider{
 			Kind:     types.SdkTypeGraphNeo4j,
@@ -121,8 +114,6 @@ func setGlobalVars(p *SdkProvider) {
 		Rabbitmq = p.Instance.(*rabbitmq.RabbitmqProvider)
 	case types.SdkTypeMqKafka:
 		Kafka = p.Instance.(*kafka.KafkaProvider)
-	case types.SdkTypeMsGokit:
-		MicroService = p.Instance.(*gokit.GokitProvider)
 	case types.SdkTypeGraphNeo4j:
 		Neo4j = p.Instance.(*neo4j.Neo4jProvider)
 	}

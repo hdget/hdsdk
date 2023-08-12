@@ -1,11 +1,12 @@
 package rabbitmq
 
 import (
+	"context"
 	"errors"
 	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdsdk/utils"
 	"github.com/mitchellh/mapstructure"
-	"github.com/streadway/amqp"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"time"
 )
 
@@ -168,7 +169,8 @@ func (rmp RabbitMqProducer) Publish(data []byte, args ...interface{}) error {
 	}
 
 	// 尝试发送
-	errPublish := rmp.Client.Channel.Publish(
+	errPublish := rmp.Client.Channel.PublishWithContext(
+		context.Background(),
 		rmp.ExchangeName,
 		key,
 		rmp.Option.Mandatory,
@@ -197,7 +199,8 @@ func (rmp RabbitMqProducer) PublishDelay(data []byte, ttl int64, args ...interfa
 	}
 
 	// 尝试发送
-	errPublish := rmp.Client.Channel.Publish(
+	errPublish := rmp.Client.Channel.PublishWithContext(
+		context.Background(),
 		rmp.ExchangeName,
 		key,
 		rmp.Option.Mandatory,

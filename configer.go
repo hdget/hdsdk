@@ -55,15 +55,6 @@ func (c *Config) GetKafkaConfig() interface{} {
 	return c.Sdk.Kafka
 }
 
-// GetMicroServiceConfig 获取Gokit微服务配置
-func (c *Config) GetMicroServiceConfig() interface{} {
-	if c == nil || c.Sdk == nil {
-		return nil
-	}
-
-	return c.Sdk.MicroService
-}
-
 // GetNosqlConfig 获取非SQL配置
 func (c *Config) GetNosqlConfig() interface{} {
 	if c == nil || c.Sdk == nil {
