@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdsdk/utils"
-	"github.com/streadway/amqp"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"strings"
 	"sync/atomic"
 	"time"

@@ -2,7 +2,7 @@ package rabbitmq
 
 import (
 	"github.com/hdget/hdsdk/types"
-	"github.com/streadway/amqp"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 // 声明exchange, 注意：如果声明出错的话会导致关闭channel
