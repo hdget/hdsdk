@@ -468,6 +468,24 @@ func (r *RedisClient) RPop(key string) ([]byte, error) {
 	return redis.Bytes(conn.Do("RPOP", key))
 }
 
+func (r *RedisClient) LRangeInt64(key string, start, end int64) ([]int64, error) {
+	conn := r.pool.Get()
+	defer conn.Close()
+	return redis.Int64s(conn.Do("LRANGE", key, start, end))
+}
+
+func (r *RedisClient) LRangeString(key string, start, end int64) ([]string, error) {
+	conn := r.pool.Get()
+	defer conn.Close()
+	return redis.Strings(conn.Do("LRANGE", key, start, end))
+}
+
+func (r *RedisClient) LLen(key string) (int64, error) {
+	conn := r.pool.Get()
+	defer conn.Close()
+	return redis.Int64(conn.Do("LLEN", key))
+}
+
 func (r *RedisClient) Eval(scriptContent string, keys []interface{}, args []interface{}) (interface{}, error) {
 	script := redis.NewScript(len(keys), scriptContent)
 
