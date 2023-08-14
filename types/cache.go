@@ -71,6 +71,7 @@ type CacheClient interface {
 
 	// list
 	LPush(key string, values ...any) error
+	RPush(key string, values ...any) error
 	RPop(key string) ([]byte, error)
 	LRangeInt64(key string, start, end int64) ([]int64, error)
 	LRangeString(key string, start, end int64) ([]string, error)

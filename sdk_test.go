@@ -494,7 +494,7 @@ func TestRedis(t *testing.T) {
 	assert.Equal(t, k7v, 333.01)
 
 	Redis.My().Del("key8")
-	Redis.My().LPush("key8", 1, 2)
+	Redis.My().RPush("key8", 1, 2)
 	k8v, _ := Redis.My().LRangeInt64("key8", 0, 5)
 	assert.Equal(t, k8v[0], 1)
 	assert.Equal(t, k8v[1], 2)
