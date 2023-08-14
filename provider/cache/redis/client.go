@@ -463,7 +463,7 @@ func (r *RedisClient) ZRem(destKey string, members ...interface{}) (int64, error
 func (r *RedisClient) LPush(key string, values ...any) error {
 	conn := r.pool.Get()
 	defer conn.Close()
-	_, err := conn.Do("LPUSH", key, values)
+	_, err := conn.Do("LPUSH", redis.Args{}.Add(key).AddFlat(values)...)
 	return err
 }
 
