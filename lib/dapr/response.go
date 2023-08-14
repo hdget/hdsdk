@@ -21,7 +21,7 @@ func Error(err error) (*common.Content, error) {
 	return nil, err
 }
 
-func Success(event *common.InvocationEvent, resp interface{}) (*common.Content, error) {
+func Success(event *common.InvocationEvent, resp any) (*common.Content, error) {
 	var err error
 	var data []byte
 	switch t := resp.(type) {

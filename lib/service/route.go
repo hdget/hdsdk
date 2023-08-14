@@ -1,4 +1,4 @@
-package dapr
+package service
 
 import (
 	"encoding/json"
@@ -23,8 +23,8 @@ type ServiceModuleRoute struct {
 }
 
 // GetRoutes 获取路由
-func (sm *ServiceModule) GetRoutes(args ...string) ([]*ServiceModuleRoute, error) {
-	annotations, err := sm.GetAnnotations(args...)
+func (b *BaseModule) GetRoutes(args ...string) ([]*ServiceModuleRoute, error) {
+	annotations, err := b.GetAnnotations(args...)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (sm *ServiceModule) GetRoutes(args ...string) ([]*ServiceModuleRoute, error
 	routes := make([]*ServiceModuleRoute, 0)
 	for _, handlerAnnotation := range annotations {
 		// 忽略掉不是本模块的备注
-		if handlerAnnotation.ModuleName != sm.name {
+		if handlerAnnotation.ModuleName != b.Name {
 			continue
 		}
 
@@ -42,7 +42,7 @@ func (sm *ServiceModule) GetRoutes(args ...string) ([]*ServiceModuleRoute, error
 			continue
 		}
 
-		route, err := sm.buildRoute(handlerAnnotation.HandlerName, ann, handlerAnnotation.Comments)
+		route, err := b.buildRoute(handlerAnnotation.HandlerName, ann, handlerAnnotation.Comments)
 		if err != nil {
 			return nil, err
 		}
@@ -53,11 +53,10 @@ func (sm *ServiceModule) GetRoutes(args ...string) ([]*ServiceModuleRoute, error
 	return routes, nil
 }
 
-func (sm *ServiceModule) buildRoute(handlerName string, ann *annotation, comments []string) (*ServiceModuleRoute, error) {
-	k := sm.getFullHandlerName(handlerName)
-	handler := sm.handlers[k]
+func (b *BaseModule) buildRoute(handlerName string, ann *annotation, comments []string) (*ServiceModuleRoute, error) {
+	handler := b.Handlers[handlerName]
 	if handler == nil {
-		return nil, fmt.Errorf("handler not found, handler: %s", k)
+		return nil, fmt.Errorf("handler not found, handler: %s", handlerName)
 	}
 
 	// 尝试将注解后的值进行jsonUnmarshal
@@ -73,11 +72,10 @@ func (sm *ServiceModule) buildRoute(handlerName string, ann *annotation, comment
 		route = &ServiceModuleRoute{}
 	}
 
-	route.Version = sm.version
-	route.Namespace = sm.namespace
-	route.Client = sm.client
-	route.App = sm.app
-	route.Handler = handler.name
+	route.Version = b.Version
+	route.Namespace = b.Namespace
+	route.App = b.App
+	route.Handler = handlerName
 	route.Comments = comments
 	return route, nil
 }

@@ -1,4 +1,4 @@
-package dapr
+package service
 
 import (
 	"fmt"
@@ -47,9 +47,9 @@ const annotationRoute = annotationPrefix + "route"
 
 // GetAnnotations 解析服务模块中的所有注解和注释
 // handlerName=>*serviceModuleHandlerAnnotation
-func (sm *ServiceModule) GetAnnotations(args ...string) ([]*serviceModuleHandlerAnnotation, error) {
+func (b *BaseModule) GetAnnotations(args ...string) ([]*serviceModuleHandlerAnnotation, error) {
 	// 默认从src/app/pkg/service目录开始解析
-	destPath := path.Join([]string{"src", sm.app, "pkg", "service"}...)
+	destPath := path.Join("src", b.App, "pkg", "service")
 	if len(args) > 0 {
 		destPath = args[0]
 	}
