@@ -71,6 +71,9 @@ type CacheClient interface {
 
 	// list
 	RPop(key string) ([]byte, error)
+	LRangeInt64(key string, start, end int64) ([]int64, error)
+	LRangeString(key string, start, end int64) ([]string, error)
+	LLen(key string) (int64, error)
 	Eval(scriptContent string, keys []interface{}, args []interface{}) (interface{}, error)
 
 	// redis bloom
