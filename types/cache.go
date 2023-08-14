@@ -70,6 +70,7 @@ type CacheClient interface {
 	ZRem(destKey string, members ...interface{}) (int64, error)
 
 	// list
+	LPush(key string, values ...any) error
 	RPop(key string) ([]byte, error)
 	LRangeInt64(key string, start, end int64) ([]int64, error)
 	LRangeString(key string, start, end int64) ([]string, error)
