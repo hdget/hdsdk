@@ -4,7 +4,7 @@ import (
 	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdsdk/utils"
 	"github.com/mitchellh/mapstructure"
-	"github.com/streadway/amqp"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"sync/atomic"
 )
 

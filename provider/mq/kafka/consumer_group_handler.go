@@ -1,7 +1,7 @@
 package kafka
 
 import (
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/hdget/hdsdk/types"
 )
 
@@ -29,7 +29,7 @@ func (cgh ConsumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession
 	// NOTE:
 	// Do not move the code below to a goroutine.
 	// The `ConsumeClaim` itself is called within a goroutine, see:
-	// https://github.com/Shopify/sarama/blob/master/consumer_group.go#L27-L29
+	// https://github.com/IBM/sarama/blob/master/consumer_group.go#L27-L29
 	for msg := range claim.Messages() {
 		action := cgh.Process(msg.Value)
 		switch action {
