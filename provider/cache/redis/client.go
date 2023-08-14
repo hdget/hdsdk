@@ -460,6 +460,12 @@ func (r *RedisClient) ZRem(destKey string, members ...interface{}) (int64, error
 // ///////////////////////////////////////////////////////////
 // list
 // ///////////////////////////////////////////////////////////
+func (r *RedisClient) LPush(key string, values ...any) error {
+	conn := r.pool.Get()
+	defer conn.Close()
+	_, err := conn.Do("LPUSH", key, values)
+	return err
+}
 
 // RPop 移除列表的最后一个元素，返回值为移除的元素
 func (r *RedisClient) RPop(key string) ([]byte, error) {
