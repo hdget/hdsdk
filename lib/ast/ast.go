@@ -6,7 +6,6 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"reflect"
 	"strings"
 )
 
@@ -21,7 +20,7 @@ type astFuncInfo struct {
 
 // InspectFunctionByInOut 从源代码目录中获取fnParams和fnResults匹配的函数的信息,并解析函数对应的注解
 // handlerName=>*ModuleInfo
-func InspectFunctionByInOut(srcPath string, fnParams, fnResults []any, annotationPrefix string) ([]*FunctionInfo, error) {
+func InspectFunctionByInOut(srcPath string, fnParams, fnResults []string, annotationPrefix string) ([]*FunctionInfo, error) {
 	comments, err := GetComments(srcPath, fnParams, fnResults)
 	if err != nil {
 		return nil, err
@@ -46,9 +45,9 @@ func InspectFunctionByInOut(srcPath string, fnParams, fnResults []any, annotatio
 	return funcInfos, nil
 }
 
-// GetReceiverStructName 获取函数的receiver对应的结构名
+// GetFunctionReceiverName 获取函数的receiver名字
 // e,g: (*Person) hello() {}, 传入hello的ast.FuncDecl, 返回Person字符床
-func GetReceiverStructName(fn *ast.FuncDecl) string {
+func GetFunctionReceiverName(fn *ast.FuncDecl) string {
 	if fn.Recv != nil {
 		for _, field := range fn.Recv.List {
 			if x, ok := field.Type.(*ast.StarExpr); ok {
@@ -63,7 +62,7 @@ func GetReceiverStructName(fn *ast.FuncDecl) string {
 }
 
 // GetComments 获取函数注释
-func GetComments(srcPath string, fnParams []any, fnResults []any) ([]Comment, error) {
+func GetComments(srcPath string, fnParams, fnResults []string) ([]Comment, error) {
 	fs := token.NewFileSet()
 	pkgAsts, err := parser.ParseDir(fs, srcPath, nil, parser.ParseComments)
 	if err != nil {
@@ -78,12 +77,15 @@ func GetComments(srcPath string, fnParams []any, fnResults []any) ([]Comment, er
 			// 尝试获取文件中的所有函数定义，获取其函数名,receiver名,和位置信息
 			for _, decl := range f.Decls {
 				if fnDecl, ok := decl.(*ast.FuncDecl); ok {
+					funcName := fnDecl.Name.Name
+					recv := GetFunctionReceiverName(fnDecl)
+					matched := matchFunction(fnDecl, fnParams, fnResults)
 					fnInfos = append(fnInfos, astFuncInfo{
-						Name:          fnDecl.Name.Name,
-						Receiver:      GetReceiverStructName(fnDecl),
+						Name:          funcName,
+						Receiver:      recv,
 						Pos:           fnDecl.Pos(),
 						End:           fnDecl.End(),
-						IsMatchedFunc: matchFunction(fnDecl, fnParams, fnResults),
+						IsMatchedFunc: matched,
 					})
 				}
 			}
@@ -127,7 +129,7 @@ func GetComments(srcPath string, fnParams []any, fnResults []any) ([]Comment, er
 // matchFunction 校验函数声明是否是匹配的
 // e,g:
 // xxxHandler(ctx context.Context, event *common.InvocationEvent) (*common.Content, error)
-func matchFunction(fnDecl *ast.FuncDecl, params []any, results []any) bool {
+func matchFunction(fnDecl *ast.FuncDecl, params, results []string) bool {
 	// 首先校验参数个数和返回值个数
 	if len(fnDecl.Type.Params.List) != len(params) || len(fnDecl.Type.Results.List) != len(params) {
 		return false
@@ -146,31 +148,38 @@ func matchFunction(fnDecl *ast.FuncDecl, params []any, results []any) bool {
 	return true
 }
 
-func countMatchedField(fields []*ast.Field, values []any) int {
+func countMatchedField(fields []*ast.Field, typeNames []string) int {
 	// 校验入参
 	countValid := 0
 	for i, field := range fields {
-		v := reflect.TypeOf(values[i]).String()
-
-		if x, ok := field.Type.(*ast.SelectorExpr); ok {
-			if fmt.Sprintf("%s", x.X) == v {
-				countValid += 1
+		var fieldName string
+		switch v := field.Type.(type) {
+		case *ast.Ident:
+			fieldName = v.Name
+		case *ast.StarExpr:
+			if vv, ok := v.X.(*ast.SelectorExpr); ok {
+				fieldName = "*" + getIndentName(vv.X) + "." + vv.Sel.Name
+			} else {
+				fieldName = "*" + getIndentName(v.X)
 			}
+		case *ast.SelectorExpr:
+			fieldName = getIndentName(v.X) + "." + v.Sel.Name
 		}
 
-		if x, ok := field.Type.(*ast.StarExpr); ok {
-			if fmt.Sprintf("%s", x.X) == v {
-				countValid += 1
-			}
-		}
-
-		if x, ok := field.Type.(*ast.Ident); ok {
-			if x.String() == v {
-				countValid += 1
-			}
+		// 检查参数名或者返回结果名是否与typeNames中的值相等
+		if fieldName == typeNames[i] {
+			countValid += 1
 		}
 	}
 	return countValid
+}
+
+func getIndentName(expr ast.Expr) string {
+	id, ok := expr.(*ast.Ident)
+	if !ok {
+		return ""
+	}
+	return id.Name
 }
 
 // parseComments 从函数注释中解析注解

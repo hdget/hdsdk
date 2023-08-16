@@ -21,17 +21,6 @@ const ContentTypeJson = "application/json"
 
 // Invoke 调用dapr服务
 func Invoke(appId string, version int, namespace, method string, data interface{}, args ...string) ([]byte, error) {
-	fullMethodName := getFullMethodName(version, namespace, "", method)
-	return realInvoke(appId, fullMethodName, data, args...)
-}
-
-// InvokeWithClient 调用dapr服务
-func InvokeWithClient(appId string, version int, namespace, client, method string, data interface{}, args ...string) ([]byte, error) {
-	fullMethodName := getFullMethodName(version, namespace, client, method)
-	return realInvoke(appId, fullMethodName, data, args...)
-}
-
-func realInvoke(appId, fullMethodName string, data interface{}, args ...string) ([]byte, error) {
 	var value []byte
 	switch t := data.(type) {
 	case string:
@@ -68,6 +57,7 @@ func realInvoke(appId, fullMethodName string, data interface{}, args ...string) 
 		Data:        value,
 	}
 
+	fullMethodName := GetServiceMethodName(version, namespace, method)
 	resp, err := daprClient.InvokeMethodWithContent(ctx, appId, fullMethodName, "post", content)
 	if err != nil {
 		return nil, err
@@ -98,14 +88,7 @@ func GetMetaValue(ctx context.Context, key string) string {
 	return values[0]
 }
 
-// getFullMethodName 构造version:namespace:client:realMethod的方法名
-// 为了进行namespace和版本号的区分，组装method=version:namespace:clientName:realMethod
-// 其中client可能为空，这个说明该接口可以给任何client使用
-func getFullMethodName(version int, namespace, client, method string) string {
-	tokens := []string{fmt.Sprintf("v%d", version), namespace, method}
-	if client != "" {
-		tokens = []string{fmt.Sprintf("v%d", version), namespace, client, method}
-	}
-
-	return strings.Join(tokens, ":")
+// GetServiceMethodName 构造version:namespace:realMethod的方法名
+func GetServiceMethodName(version int, namespace, method string) string {
+	return strings.Join([]string{fmt.Sprintf("v%d", version), namespace, method}, ":")
 }
