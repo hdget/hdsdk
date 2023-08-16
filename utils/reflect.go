@@ -14,12 +14,21 @@ func GetFuncName(fn any) string {
 	return strings.Split(tokens[len(tokens)-1], "-")[0]
 }
 
-func GetStructName(myvar interface{}) string {
-	if t := reflect.TypeOf(myvar); t.Kind() == reflect.Ptr {
-		return t.Elem().Name()
-	} else {
-		return t.Name()
+func GetStructName(obj any) string {
+	if obj == nil {
+		return ""
 	}
+
+	var st reflect.Type
+	if t := reflect.TypeOf(obj); t.Kind() == reflect.Ptr {
+		st = t.Elem()
+	} else {
+		st = t
+	}
+	if st.Kind() != reflect.Struct {
+		return ""
+	}
+	return st.Name()
 }
 
 // GetVarName 获取变量的名字
@@ -31,41 +40,55 @@ func GetVarName(myvar interface{}) string {
 	}
 }
 
-// StructSet 将结构中的字段设置为某个值
-func StructSet(obj any, typ any, val any) error {
-	foundField := false
-	numField := reflect.TypeOf(obj).Elem().NumField()
-	for i := 0; i < numField; i++ {
-		field := reflect.ValueOf(obj).Field(i)
-		if field.Type() == reflect.TypeOf(typ) {
-			if !field.CanSet() {
-				return errors.New("can not set")
-			}
-			foundField = true
-			field.Set(reflect.ValueOf(val))
-		}
+// StructSetComplexField 将结构中的接口或者结构指针设置为某个值
+func StructSetComplexField(obj any, emptyFieldObj any, val any) error {
+	if obj == nil {
+		return errors.New("nil struct")
 	}
 
-	if !foundField {
-		return fmt.Errorf("module need inherits %#v", reflect.TypeOf(typ))
+	// struct有可能是指针
+	var st reflect.Type
+	var sv reflect.Value
+	if t := reflect.TypeOf(obj); t.Kind() == reflect.Ptr {
+		st = reflect.TypeOf(obj).Elem()
+		sv = reflect.ValueOf(obj).Elem()
+	} else {
+		st = reflect.TypeOf(obj)
+		sv = reflect.ValueOf(obj)
 	}
-	return nil
+
+	numField := st.NumField()
+	for i := 0; i < numField; i++ {
+		field := sv.Field(i)
+		fieldType := field.Type().String()
+		emptyFieldType := reflect.TypeOf(emptyFieldObj).String()
+		// 找到第一个匹配类型的field设置进去
+		if fieldType == emptyFieldType || "*"+fieldType == emptyFieldType {
+			if !field.CanSet() {
+				return errors.New("field can not set")
+			}
+			field.Set(reflect.ValueOf(val))
+			return nil
+		}
+	}
+	return fmt.Errorf("no field match %#v", reflect.TypeOf(emptyFieldObj))
 }
 
-func StructGetReceivers(obj any, fn any) map[string]any {
-	receivers := make(map[string]any)
-
-	// common.ServiceInvocationHandler(nil)
-	t := reflect.TypeOf(obj)
-	v := reflect.ValueOf(obj)
-	numMethod := v.NumField()
-	for i := 0; i < numMethod; i++ {
-		tt := t.Method(i)
-		vv := v.Method(i)
-		if vv.Type().ConvertibleTo(reflect.TypeOf(fn)) {
-			receivers[tt.Name] = vv.Interface()
-		}
+func StructGetReceiverMethodsByType(receiver any, fn any) map[string]any {
+	if receiver == nil {
+		return nil
 	}
 
+	st := reflect.TypeOf(receiver)
+	sv := reflect.ValueOf(receiver)
+	numMethod := sv.NumMethod()
+
+	receivers := make(map[string]any)
+	for i := 0; i < numMethod; i++ {
+		vv := sv.Method(i)
+		if vv.Type().ConvertibleTo(reflect.TypeOf(fn)) {
+			receivers[st.Method(i).Name] = vv.Interface()
+		}
+	}
 	return receivers
 }
