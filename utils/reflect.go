@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"github.com/pkg/errors"
 	"reflect"
 	"runtime"
@@ -40,10 +39,13 @@ func GetVarName(myvar interface{}) string {
 	}
 }
 
-// StructSetComplexField 将结构中的接口或者结构指针设置为某个值
-func StructSetComplexField(obj any, emptyFieldObj any, val any) error {
+func StructSetComplexField(obj any, nilField any, val any) error {
 	if obj == nil {
 		return errors.New("nil struct")
+	}
+
+	if val == nil {
+		return errors.New("cannot set to zero value")
 	}
 
 	// struct有可能是指针
@@ -61,17 +63,18 @@ func StructSetComplexField(obj any, emptyFieldObj any, val any) error {
 	for i := 0; i < numField; i++ {
 		field := sv.Field(i)
 		fieldType := field.Type().String()
-		emptyFieldType := reflect.TypeOf(emptyFieldObj).String()
+		emptyFieldType := reflect.TypeOf(nilField).String()
 		// 找到第一个匹配类型的field设置进去
 		if fieldType == emptyFieldType || "*"+fieldType == emptyFieldType {
 			if !field.CanSet() {
-				return errors.New("field can not set")
+				return errors.New("field cannot set")
 			}
+
 			field.Set(reflect.ValueOf(val))
 			return nil
 		}
 	}
-	return fmt.Errorf("no field match %#v", reflect.TypeOf(emptyFieldObj))
+	return errors.New("filed not found")
 }
 
 func StructGetReceiverMethodsByType(receiver any, fn any) map[string]any {

@@ -86,12 +86,11 @@ func (mp *MysqlProvider) connect(conf *MySqlConf) (*sqlx.DB, error) {
 	t := "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4,utf8"
 
 	// 构造连接参数
-	//params := make([]string, 0)
-	//timeout := fmt.Sprintf("timeout=%ds", dbConf.Timeout)
-	//params = append(params, timeout)
-	//strParams := strings.Join(params, "&")
 	connStr := fmt.Sprintf(t, conf.User, conf.Password, conf.Host, conf.Port, conf.Database)
 	instance, err := sqlx.Connect("mysql", connStr)
+	if err != nil {
+		return nil, err
+	}
 
 	// https://www.alexedwards.net/blog/configuring-sqldb
 	// https://making.pusher.com/production-ready-connection-pooling-in-go
@@ -99,9 +98,6 @@ func (mp *MysqlProvider) connect(conf *MySqlConf) (*sqlx.DB, error) {
 	// packets.go:123: closing bad idle connection: EOF
 	// connection.go:173: driver: bad connection
 	instance.SetConnMaxLifetime(3 * time.Minute)
-	if err != nil {
-		return nil, err
-	}
 
 	return instance, nil
 }

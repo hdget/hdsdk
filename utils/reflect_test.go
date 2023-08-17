@@ -5,14 +5,17 @@ import (
 	"testing"
 )
 
-func TestStructSetInterfaceField(t *testing.T) {
-	type TestInterface interface {
-		Get() string
-	}
+type TestInterface interface {
+	Get()
+}
+type testStruct struct {
+	TestInterface
+}
 
-	type testStruct struct {
-		TestInterface
-	}
+func (*testStruct) Get() {}
+
+func TestStructSetInterfaceField(t *testing.T) {
+
 	type args struct {
 		obj       any
 		filedType any
@@ -77,8 +80,6 @@ func TestStructSetStructField(t *testing.T) {
 		})
 	}
 }
-
-type testStruct struct{}
 
 func (*testStruct) Aaa(arg string) error {
 	println(arg)

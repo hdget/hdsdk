@@ -16,22 +16,39 @@ const annotationRoute = annotationPrefix + "route"
 
 // DaprModule 服务模块的方法信息
 type DaprModule struct {
-	*BaseModule
+	*baseModule
 }
 
 type Option func(module Module) Module
 
-func NewDaprModule(app, name string, version int, options ...Option) Module {
+func NewDaprModule(app string, svcHolder any, options ...Option) (Module, error) {
+	b, err := newBaseModule(app, svcHolder)
+	if err != nil {
+		return nil, err
+	}
+
 	m := &DaprModule{
-		BaseModule: NewBaseModule(app, name, version),
+		baseModule: b,
 	}
 
 	for _, option := range options {
 		option(m)
 	}
 
-	return m
+	// 将实例化的module设置入Module接口中
+	err = utils.StructSetComplexField(svcHolder, (*Module)(nil), m)
+	if err != nil {
+		return nil, errors.Wrapf(err, "install module for: %s ", m.GetName())
+	}
+
+	module, ok := svcHolder.(Module)
+	if !ok {
+		return nil, errors.New("not Module")
+	}
+
+	return module, nil
 }
+
 func (m *DaprModule) NewHandler(handler any) common.ServiceInvocationHandler {
 	realHandler, ok := handler.(func(ctx context.Context, in *common.InvocationEvent) (out *common.Content, err error))
 	if !ok {
@@ -56,8 +73,13 @@ func (m *DaprModule) NewHandler(handler any) common.ServiceInvocationHandler {
 	}
 }
 
-// GetServiceHandlers 获取Module作为receiver的所有MethodMatchFunction匹配的方法, MethodMatchFunction生成新的方法名和判断是否匹配
-func (m *DaprModule) GetServiceHandlers(args ...HandlerMatch) (map[string]any, error) {
+// GetHandlers 获取手动注册的handlers
+func (m *DaprModule) GetHandlers() map[string]any {
+	return m.handlers
+}
+
+// DiscoverHandlers 获取Module作为receiver的所有MethodMatchFunction匹配的方法, MethodMatchFunction生成新的方法名和判断是否匹配
+func (m *DaprModule) DiscoverHandlers(args ...HandlerMatch) (map[string]any, error) {
 	matchFn := defaultHandlerMatchFunction
 	if len(args) > 0 {
 		matchFn = args[0]
@@ -65,7 +87,7 @@ func (m *DaprModule) GetServiceHandlers(args ...HandlerMatch) (map[string]any, e
 
 	handlers := make(map[string]any)
 	// 这里需要传入当前实际正在使用的服务模块，即带有common.ServiceInvocationHandler的struct实例
-	for methodName, handler := range utils.StructGetReceiverMethodsByType(m.realModule, common.ServiceInvocationHandler(nil)) {
+	for methodName, handler := range utils.StructGetReceiverMethodsByType(m.self, common.ServiceInvocationHandler(nil)) {
 		newHandler := m.NewHandler(handler)
 		if newHandler == nil {
 			return nil, errors.New("invalid common.ServiceInvocationHandler")

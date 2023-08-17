@@ -2,8 +2,9 @@ package svc
 
 type Module interface {
 	GetName() string
-	Super(m any)
 	GetRoutes(srcPath string, args ...HandlerMatch) ([]*Route, error)
-	GetServiceHandlers(args ...HandlerMatch) (map[string]any, error)
+	DiscoverHandlers(args ...HandlerMatch) (map[string]any, error) // 通过反射发现Handlers
+	RegisterHandlers(handlers map[string]any)
+	GetHandlers() map[string]any // 获取手动注册的handlers
 	//GetPermGroups(srcPath string) ([]*PermGroup, error)
 }
