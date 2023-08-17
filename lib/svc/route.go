@@ -107,8 +107,8 @@ func defaultHandlerMatchFunction(methodName string) (string, bool) {
 	if lastIndex <= 0 {
 		return "", false
 	}
-	// 确保以handler结尾
-	if lowerName[lastIndex:] != "" {
+	// handler字符串长度为7, 确保handler结尾
+	if lowerName[lastIndex+7:] != "" {
 		return "", false
 	}
 	return lowerName[:lastIndex], true

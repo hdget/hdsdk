@@ -19,6 +19,8 @@ type DaprModule struct {
 	*BaseModule
 }
 
+type Option func(module Module) Module
+
 func NewDaprModule(app, name string, version int, options ...Option) Module {
 	m := &DaprModule{
 		BaseModule: NewBaseModule(app, name, version),

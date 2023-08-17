@@ -7,5 +7,3 @@ type Module interface {
 	GetServiceHandlers(args ...HandlerMatch) (map[string]any, error)
 	//GetPermGroups(srcPath string) ([]*PermGroup, error)
 }
-
-type Option func(module Module) Module

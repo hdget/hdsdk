@@ -63,8 +63,7 @@ func GetFunctionReceiverName(fn *ast.FuncDecl) string {
 
 // GetComments 获取函数注释
 func GetComments(srcPath string, fnParams, fnResults []string) ([]Comment, error) {
-	fs := token.NewFileSet()
-	pkgAsts, err := parser.ParseDir(fs, srcPath, nil, parser.ParseComments)
+	pkgAsts, err := parser.ParseDir(token.NewFileSet(), srcPath, nil, parser.ParseComments)
 	if err != nil {
 		return nil, errors.Wrapf(err, "ast parse src code comments, dir: %s", srcPath)
 	}

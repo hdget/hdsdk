@@ -1,29 +1,16 @@
 package svc
 
 import (
-	"context"
-	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
 )
 
 var (
-	registry = make(map[string]Module)
-)
-
-type testModule struct {
-	Module
-}
-
-var (
+	registry           = make(map[string]Module)
 	errEmptyModuleName = errors.New("empty module name")
 )
 
-func (*testModule) GetSignatureHandler(ctx context.Context, event *common.InvocationEvent) (*common.Content, error) {
-	return nil, nil
-}
-
-func RegisterDaprModule(svcHolder any, app string, version int, options ...Option) error {
+func RegisterDaprModule(app string, version int, svcHolder any, module Module, options ...Option) error {
 	moduleName := utils.GetStructName(svcHolder)
 	if moduleName == "" {
 		return errEmptyModuleName
