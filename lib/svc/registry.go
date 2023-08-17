@@ -10,7 +10,7 @@ var (
 	errEmptyModuleName = errors.New("empty module name")
 )
 
-func RegisterDaprModule(app string, version int, svcHolder any, module Module, options ...Option) error {
+func RegisterDaprModule(app string, version int, svcHolder any, options ...Option) error {
 	moduleName := utils.GetStructName(svcHolder)
 	if moduleName == "" {
 		return errEmptyModuleName
