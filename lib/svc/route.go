@@ -80,10 +80,15 @@ func (b *baseModule) ParseRoutes(srcPath, annotationPrefix string, fnParams, fnR
 func (b *baseModule) buildRoute(handlerName string, fnInfo *ast.FunctionInfo, ann *ast.Annotation) (*Route, error) {
 	// 尝试将注解后的值进行jsonUnmarshal
 	var routeAnnotation *RouteAnnotation
-	// 如果定义不为空，尝试unmarshal
-	err := json.Unmarshal(utils.StringToBytes(ann.Value), &routeAnnotation)
-	if err != nil {
-		return nil, errors.Wrapf(err, "parse route Annotation, Annotation: %s", ann.Value)
+	v := strings.TrimSpace(ann.Value)
+	if strings.HasPrefix(v, "{") && strings.HasSuffix(v, "}") {
+		// 如果定义不为空，尝试unmarshal
+		err := json.Unmarshal(utils.StringToBytes(ann.Value), &routeAnnotation)
+		if err != nil {
+			return nil, errors.Wrapf(err, "parse route annotation, annotation: %s", ann.Value)
+		}
+	} else {
+		routeAnnotation = &RouteAnnotation{}
 	}
 
 	return &Route{

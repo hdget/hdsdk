@@ -122,7 +122,7 @@ func (m *DaprModule) DiscoverHandlers(args ...HandlerMatch) (map[string]any, err
 //}
 
 func (m *DaprModule) ValidateHandler(handlerName string, handler any) error {
-	if _, ok := handler.(DaprServiceInvocationHandler); !ok {
+	if utils.GetFuncSignature(handler) != utils.GetFuncSignature(DaprServiceInvocationHandler(nil)) {
 		return fmt.Errorf("invalid handler: %s, it should be: func(ctx context.Context, event *common.InvocationEvent) (any, error)", handlerName)
 	}
 	return nil

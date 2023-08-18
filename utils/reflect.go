@@ -95,3 +95,39 @@ func StructGetReceiverMethodsByType(receiver any, fn any) map[string]any {
 	}
 	return receivers
 }
+
+// GetFuncSignature 获取函数签名信息
+func GetFuncSignature(fn any) string {
+	t := reflect.TypeOf(fn)
+	if t.Kind() != reflect.Func {
+		return ""
+	}
+
+	buf := strings.Builder{}
+	buf.WriteString("func (")
+	for i := 0; i < t.NumIn(); i++ {
+		if i > 0 {
+			buf.WriteString(", ")
+		}
+		buf.WriteString(t.In(i).String())
+	}
+	buf.WriteString(")")
+	if numOut := t.NumOut(); numOut > 0 {
+		if numOut > 1 {
+			buf.WriteString(" (")
+		} else {
+			buf.WriteString(" ")
+		}
+		for i := 0; i < t.NumOut(); i++ {
+			if i > 0 {
+				buf.WriteString(", ")
+			}
+			buf.WriteString(t.Out(i).String())
+		}
+		if numOut > 1 {
+			buf.WriteString(")")
+		}
+	}
+
+	return buf.String()
+}

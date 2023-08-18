@@ -220,11 +220,10 @@ func parseComments(comments []string, annPrefix string) (map[string]*Annotation,
 		annName := fields[nameIndex]
 		// 处理注解值
 		annValue := strings.Join(fields[nameIndex+1:], "")
-		annValue = strings.TrimSpace(annValue)
-		if annName != "" && strings.HasPrefix(annValue, "{") && strings.HasSuffix(annValue, "}") {
+		if annName != "" {
 			annotations[annName] = &Annotation{
 				Name:  annName,
-				Value: annValue,
+				Value: strings.TrimSpace(annValue),
 			}
 		}
 		//if _, exist := annotations[annotationName]; !exist && annotationName != "" {
