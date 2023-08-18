@@ -2,7 +2,6 @@ package svc
 
 import (
 	"github.com/pkg/errors"
-	"regexp"
 )
 
 type ServiceInvocationModule interface {
@@ -15,13 +14,15 @@ type ServiceInvocationModule interface {
 	//GetPermGroups(srcPath string) ([]*PermGroup, error)
 }
 
+type moduleInfo struct {
+	Name      string // 模块名
+	Namespace string // 命名空间， 命名空间模块名后去掉v<版本号>_的部分
+	Version   int    // 版本号
+}
+
 var (
 	moduleRegistry       = make(map[string]ServiceInvocationModule)
 	errInvalidModuleName = errors.New("invalid module name, it should be: v<number>_name, e,g: v1_abc")
-)
-
-var (
-	regModuleName = regexp.MustCompile(`^[vV]([0-9]+)_([a-zA-Z0-9]+)`)
 )
 
 func GetRegistry() map[string]ServiceInvocationModule {

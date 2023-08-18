@@ -49,8 +49,13 @@ func (b *baseModule) ParseRoutes(srcPath, annotationPrefix string, fnParams, fnR
 
 	routes := make([]*Route, 0)
 	for _, fnInfo := range funcInfos {
+		modInfo, err := getModuleInfo(fnInfo.Receiver)
+		if err != nil {
+			return nil, err
+		}
+
 		// 忽略掉不是本模块的备注
-		if fnInfo.Receiver != b.Name {
+		if modInfo.Namespace != b.Namespace {
 			continue
 		}
 
@@ -80,8 +85,7 @@ func (b *baseModule) ParseRoutes(srcPath, annotationPrefix string, fnParams, fnR
 func (b *baseModule) buildRoute(handlerName string, fnInfo *ast.FunctionInfo, ann *ast.Annotation) (*Route, error) {
 	// 尝试将注解后的值进行jsonUnmarshal
 	var routeAnnotation *RouteAnnotation
-	v := strings.TrimSpace(ann.Value)
-	if strings.HasPrefix(v, "{") && strings.HasSuffix(v, "}") {
+	if strings.HasPrefix(ann.Value, "{") && strings.HasSuffix(ann.Value, "}") {
 		// 如果定义不为空，尝试unmarshal
 		err := json.Unmarshal(utils.StringToBytes(ann.Value), &routeAnnotation)
 		if err != nil {
@@ -93,7 +97,7 @@ func (b *baseModule) buildRoute(handlerName string, fnInfo *ast.FunctionInfo, an
 
 	return &Route{
 		App:           b.App,
-		Namespace:     b.Name,
+		Namespace:     b.Namespace,
 		Version:       b.Version,
 		Handler:       handlerName,
 		Endpoint:      routeAnnotation.Endpoint,

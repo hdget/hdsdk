@@ -19,7 +19,7 @@ type astFuncInfo struct {
 }
 
 // InspectFunctionByInOut 从源代码目录中获取fnParams和fnResults匹配的函数的信息,并解析函数对应的注解
-// handlerName=>*ModuleInfo
+// handlerName=>*moduleInfo
 func InspectFunctionByInOut(srcPath string, fnParams, fnResults []string, annotationPrefix string) ([]*FunctionInfo, error) {
 	comments, err := GetComments(srcPath, fnParams, fnResults)
 	if err != nil {
@@ -218,12 +218,13 @@ func parseComments(comments []string, annPrefix string) (map[string]*Annotation,
 
 		// 总是将找到的annotation加入到map，即保证最后一个生效
 		annName := fields[nameIndex]
-		// 处理注解值
-		annValue := strings.Join(fields[nameIndex+1:], "")
 		if annName != "" {
+			// 处理注解值
+			annValue := strings.Join(fields[nameIndex+1:], "")
+			annValue = strings.TrimSpace(annValue)
 			annotations[annName] = &Annotation{
 				Name:  annName,
-				Value: strings.TrimSpace(annValue),
+				Value: annValue,
 			}
 		}
 		//if _, exist := annotations[annotationName]; !exist && annotationName != "" {

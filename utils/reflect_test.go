@@ -114,3 +114,33 @@ func TestStructGetReceiverMethods(t *testing.T) {
 		})
 	}
 }
+
+func TestGetFuncSignature(t *testing.T) {
+	type anyFn func(interface{}) any
+	type anyFn1 func(any) interface{}
+	type args struct {
+		fn any
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "",
+			args: args{
+				fn: anyFn(nil),
+			},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GetFuncSignature(anyFn(nil))
+			got1 := GetFuncSignature(anyFn1(nil))
+			if got != got1 {
+				t.Errorf("GetFuncSignature() not equal, got: %v, got1: %v", got, got1)
+			}
+		})
+	}
+}

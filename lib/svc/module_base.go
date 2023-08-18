@@ -3,24 +3,23 @@ package svc
 import "errors"
 
 type baseModule struct {
+	*moduleInfo
 	self     any // 实际module
 	App      string
-	Version  int    // 版本号
-	Name     string // 服务模块名
 	handlers map[string]any
 }
 
 func newBaseModule(app string, svcHolder any) (*baseModule, error) {
-	moduleName, version, err := getModuleNameAndVersion(svcHolder)
+	modInfo, err := getModuleInfo(svcHolder)
 	if err != nil {
 		return nil, err
 	}
 
 	return &baseModule{
-		App:     app,
-		Version: version,
-		Name:    moduleName,
-		self:    svcHolder,
+		moduleInfo: modInfo,
+		self:       svcHolder,
+		App:        app,
+		handlers:   nil,
 	}, nil
 }
 
