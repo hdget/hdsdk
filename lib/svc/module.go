@@ -5,8 +5,18 @@ import (
 	"regexp"
 )
 
+type ServiceInvocationModule interface {
+	GetName() string
+	GetRoutes(srcPath string, args ...HandlerMatch) ([]*Route, error)
+	DiscoverHandlers(args ...HandlerMatch) (map[string]any, error) // 通过反射发现Handlers
+	RegisterHandlers(handlers map[string]any) error
+	GetHandlers() map[string]any // 获取手动注册的handlers
+	ValidateHandler(name string, handler any) error
+	//GetPermGroups(srcPath string) ([]*PermGroup, error)
+}
+
 var (
-	moduleRegistry       = make(map[string]Module)
+	moduleRegistry       = make(map[string]ServiceInvocationModule)
 	errInvalidModuleName = errors.New("invalid module name, it should be: v<number>_name, e,g: v1_abc")
 )
 
@@ -14,21 +24,21 @@ var (
 	regModuleName = regexp.MustCompile(`^[vV]([0-9]+)_([a-zA-Z0-9]+)`)
 )
 
-func GetRegistry() map[string]Module {
+func GetRegistry() map[string]ServiceInvocationModule {
 	return moduleRegistry
 }
 
-func addRegistry(name string, module Module) {
+func addRegistry(name string, module ServiceInvocationModule) {
 	moduleRegistry[name] = module
 }
 
 //func RegisterDaprModule(app string, version int, svcHolder any, options ...Option) error {
-//	err := utils.StructSetComplexField(svcHolder, (*Module)(nil), NewDaprModule(app, moduleName, version, options...))
+//	err := utils.StructSetComplexField(svcHolder, (*ServiceInvocationModule)(nil), NewDaprModule(app, moduleName, version, options...))
 //	if err != nil {
 //		return errors.Wrapf(err, "set base module for: %s ", moduleName)
 //	}
 //
-//	module, ok := svcHolder.(Module)
+//	module, ok := svcHolder.(ServiceInvocationModule)
 //	if !ok {
 //		return errors.New("invalid module")
 //	}
