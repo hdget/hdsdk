@@ -57,7 +57,7 @@ func Invoke(appId string, version int, namespace, method string, data interface{
 		Data:        value,
 	}
 
-	fullMethodName := GetServiceMethodName(version, namespace, method)
+	fullMethodName := GetServiceInvocationName(version, namespace, method)
 	resp, err := daprClient.InvokeMethodWithContent(ctx, appId, fullMethodName, "post", content)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func GetMetaValue(ctx context.Context, key string) string {
 	return values[0]
 }
 
-// GetServiceMethodName 构造version:namespace:realMethod的方法名
-func GetServiceMethodName(version int, namespace, method string) string {
+// GetServiceInvocationName 构造version:namespace:realMethod的方法名
+func GetServiceInvocationName(version int, namespace, method string) string {
 	return strings.Join([]string{fmt.Sprintf("v%d", version), namespace, method}, ":")
 }

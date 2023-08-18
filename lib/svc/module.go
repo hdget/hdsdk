@@ -14,27 +14,6 @@ var (
 	regModuleName = regexp.MustCompile(`^[vV]([0-9]+)_([a-zA-Z0-9]+)`)
 )
 
-func RegisterAsDaprModule(app string, svcHolder any, args ...map[string]any) error {
-	module, err := NewDaprModule(app, svcHolder)
-	if err != nil {
-		return err
-	}
-
-	// 注册handlers
-	var handlers map[string]any
-	if len(args) > 0 {
-		handlers = args[0]
-	} else {
-		handlers, err = module.DiscoverHandlers()
-		if err != nil {
-			return errors.Wrap(err, "discover handlers")
-		}
-	}
-	module.RegisterHandlers(handlers)
-
-	return nil
-}
-
 func GetRegistry() map[string]Module {
 	return moduleRegistry
 }
