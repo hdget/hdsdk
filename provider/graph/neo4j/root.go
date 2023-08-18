@@ -1,4 +1,4 @@
-// Package mysql
+// Package neo4j
 // @Title  log capability of zerolog
 // @Description  zerolog implementation of log capability
 // @Author  Ryan Fan 2021-06-09
@@ -40,7 +40,7 @@ func (np *Neo4jProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 	}
 
 	// 检查配置是否合法
-	err = validateConf(types.PROVIDER_TYPE_DEFAULT, config)
+	err = validateConf(types.ProviderTypeDefault, config)
 	if err != nil {
 		logger.Fatal("validate neo4j config", "err", err)
 	}
@@ -75,7 +75,9 @@ func createDriverWithAddressResolver(virtualURI, username, password string, maxP
 
 func (np *Neo4jProvider) Get(cypher string, args ...interface{}) (interface{}, error) {
 	session := np.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close()
+	defer func(session neo4j.Session) {
+		_ = session.Close()
+	}(session)
 
 	var param map[string]interface{}
 	if len(args) > 0 {
@@ -101,7 +103,9 @@ func (np *Neo4jProvider) Get(cypher string, args ...interface{}) (interface{}, e
 
 func (np *Neo4jProvider) Select(cypher string, args ...interface{}) ([]interface{}, error) {
 	session := np.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
-	defer session.Close()
+	defer func(session neo4j.Session) {
+		_ = session.Close()
+	}(session)
 
 	var param map[string]interface{}
 	if len(args) > 0 {
@@ -127,7 +131,9 @@ func (np *Neo4jProvider) Select(cypher string, args ...interface{}) ([]interface
 
 func (np *Neo4jProvider) Exec(workFuncs []neo4j.TransactionWork, bookmarks ...string) (string, error) {
 	session := np.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite, Bookmarks: bookmarks})
-	defer session.Close()
+	defer func(session neo4j.Session) {
+		_ = session.Close()
+	}(session)
 
 	for _, fnWork := range workFuncs {
 		if _, err := session.WriteTransaction(fnWork); err != nil {

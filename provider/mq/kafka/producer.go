@@ -43,7 +43,7 @@ func (p *Producer) Close() {
 	p.Client.close()
 }
 
-func (p Producer) Publish(data []byte, args ...interface{}) error {
+func (p *Producer) Publish(data []byte, args ...interface{}) error {
 	msgs := make([]*sarama.ProducerMessage, 0)
 	for _, topic := range p.Client.Parameter.Topics {
 		m := &sarama.ProducerMessage{
@@ -58,6 +58,6 @@ func (p Producer) Publish(data []byte, args ...interface{}) error {
 	return p.Client.handler.SendMessages(msgs)
 }
 
-func (p Producer) PublishDelay(data []byte, ttl int64, args ...interface{}) error {
+func (p *Producer) PublishDelay(data []byte, ttl int64, args ...interface{}) error {
 	return nil
 }

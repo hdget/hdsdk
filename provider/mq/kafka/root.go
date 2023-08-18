@@ -35,18 +35,18 @@ func (kp *KafkaProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 	sarama.Logger = logger.GetStdLogger()
 
 	if config.Default != nil {
-		kp.Default, err = NewMq(types.PROVIDER_TYPE_DEFAULT, config.Default, logger)
+		kp.Default, err = NewMq(types.ProviderTypeDefault, config.Default, logger)
 		if err != nil {
-			logger.Error("initialize kafka", "type", types.PROVIDER_TYPE_DEFAULT, "brokers", config.Default.Brokers, "err", err)
+			logger.Error("initialize kafka", "type", types.ProviderTypeDefault, "brokers", config.Default.Brokers, "err", err)
 		} else {
-			logger.Debug("initialize kafka", "type", types.PROVIDER_TYPE_DEFAULT, "brokers", config.Default.Brokers, "err", err)
+			logger.Debug("initialize kafka", "type", types.ProviderTypeDefault, "brokers", config.Default.Brokers, "err", err)
 		}
 	}
 
 	// 额外的mq
 	kp.Items = make(map[string]types.Mq)
 	for _, otherConf := range config.Items {
-		instance, err := NewMq(types.PROVIDER_TYPE_OTHER, otherConf, logger)
+		instance, err := NewMq(types.ProviderTypeOther, otherConf, logger)
 		if err != nil {
 			logger.Error("initialize mq", "type", otherConf.Name, "brokers", otherConf.Brokers, "err", err)
 			continue

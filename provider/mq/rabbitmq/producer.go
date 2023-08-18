@@ -20,7 +20,7 @@ type RabbitMqProducer struct {
 	chanDelivery       chan error // 发送递达确认通道
 }
 
-const PUBLISH_CONFIRM_RETRY_TIMEOUT = 1 * time.Second
+const publishConfirmRetryTimeout = 1 * time.Second
 
 var (
 	ErrPublishNotConfirmed = errors.New("publish is not acknowledged")
@@ -89,7 +89,7 @@ func (rmp *RabbitMqProducer) addEventListener() {
 	//create a deadlock if you attempt to perform other operations on the Connection
 	//or Channel while confirms are in-flight.
 	chanPublishConfirm := rmp.Client.Channel.NotifyPublish(make(chan amqp.Confirmation, 1))
-	rmp.Client.Channel.Confirm(false)
+	_ = rmp.Client.Channel.Confirm(false)
 
 	// Publish Confirm事件监听
 	go func(confirms chan amqp.Confirmation) {
@@ -105,7 +105,7 @@ func (rmp *RabbitMqProducer) addEventListener() {
 				// 放置在这里因为每次channel关闭并且重连需要重新初始化channel并使新channel进入confirm模式
 				// 注意这里需要放在NotifyClose后面,因为这里执行出错会导致channel关闭，后面的select就会检测到并重连
 				confirms = rmp.Client.Channel.NotifyPublish(make(chan amqp.Confirmation, 1))
-				rmp.Client.Channel.Confirm(false)
+				_ = rmp.Client.Channel.Confirm(false)
 				// 在重新setup后需要返回给客户
 				rmp.chanDelivery <- ErrPublishAckLost
 
@@ -124,7 +124,7 @@ func (rmp *RabbitMqProducer) addEventListener() {
 					rmp.chanDelivery <- errAck
 				} else {
 					rmp.Logger.Debug("publish confirm: channel is closed")
-					time.Sleep(PUBLISH_CONFIRM_RETRY_TIMEOUT)
+					time.Sleep(publishConfirmRetryTimeout)
 				}
 
 			}
@@ -159,7 +159,7 @@ func (rmp *RabbitMqProducer) Close() {
 // 发布递交的标签和对应的确认从1开始, 当所有发布确认后会退出
 //
 // 当发布没有返回错误并且channel在confirm模式， DeliveryTags的内部计数器首先确认从1开始
-func (rmp RabbitMqProducer) Publish(data []byte, args ...interface{}) error {
+func (rmp *RabbitMqProducer) Publish(data []byte, args ...interface{}) error {
 	key := ""
 	if len(args) > 0 {
 		v, ok := args[0].(string)
@@ -189,7 +189,7 @@ func (rmp RabbitMqProducer) Publish(data []byte, args ...interface{}) error {
 	return errPublish
 }
 
-func (rmp RabbitMqProducer) PublishDelay(data []byte, ttl int64, args ...interface{}) error {
+func (rmp *RabbitMqProducer) PublishDelay(data []byte, ttl int64, args ...interface{}) error {
 	key := ""
 	if len(args) > 0 {
 		v, ok := args[0].(string)
@@ -230,7 +230,7 @@ func parseProducerParameter(params map[string]interface{}) (*ProducerParameter, 
 	}
 
 	if producerParams.ExchangeName == "" || !utils.Contains(SupportedExchangeTypes, producerParams.ExchangeType) {
-		return nil, ErrInvalidProducerParam
+		return nil, errInvalidProducerParam
 	}
 
 	return &producerParams, nil

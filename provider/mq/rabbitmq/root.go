@@ -29,17 +29,17 @@ func (rp *RabbitmqProvider) Init(rootConfiger types.Configer, logger types.LogPr
 		return err
 	}
 
-	rp.Default, err = NewMq(types.PROVIDER_TYPE_DEFAULT, config.Default, logger)
+	rp.Default, err = NewMq(types.ProviderTypeDefault, config.Default, logger)
 	if err != nil {
-		logger.Error("initialize mq", "type", types.PROVIDER_TYPE_DEFAULT, "host", config.Default.Host, "err", err)
+		logger.Error("initialize mq", "type", types.ProviderTypeDefault, "host", config.Default.Host, "err", err)
 	} else {
-		logger.Debug("initialize mq", "type", types.PROVIDER_TYPE_DEFAULT, "host", config.Default.Host, "err", err)
+		logger.Debug("initialize mq", "type", types.ProviderTypeDefault, "host", config.Default.Host, "err", err)
 	}
 
 	// 额外的mq
 	rp.Items = make(map[string]types.Mq)
 	for _, otherConf := range config.Items {
-		instance, err := NewMq(types.PROVIDER_TYPE_OTHER, otherConf, logger)
+		instance, err := NewMq(types.ProviderTypeOther, otherConf, logger)
 		if err != nil {
 			logger.Error("initialize mq", "type", otherConf.Name, "host", otherConf.Host, "err", err)
 			continue

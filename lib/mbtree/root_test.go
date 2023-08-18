@@ -20,12 +20,12 @@ type NodeData struct {
 }
 
 var parentChildren = map[int][]int{
-	0:  []int{1, 2, 3, 4},
-	2:  []int{5, 6, 7},
-	3:  []int{8, 9},
-	4:  []int{10, 11},
-	6:  []int{12, 13, 14, 15},
-	13: []int{16},
+	0:  {1, 2, 3, 4},
+	2:  {5, 6, 7},
+	3:  {8, 9},
+	4:  {10, 11},
+	6:  {12, 13, 14, 15},
+	13: {16},
 }
 
 var tree *SafeMultiBranchTree
@@ -65,25 +65,25 @@ func TestDepth(t *testing.T) {
 func TestPaths(t *testing.T) {
 	allPaths := tree.AllPaths()
 	assert.ElementsMatch(t, allPaths, [][]int64{
-		[]int64{0, 1},
-		[]int64{0, 2, 5}, []int64{0, 2, 6, 12}, []int64{0, 2, 6, 13, 16}, []int64{0, 2, 6, 14}, []int64{0, 2, 6, 15}, []int64{0, 2, 7},
-		[]int64{0, 3, 8}, []int64{0, 3, 9},
-		[]int64{0, 4, 10}, []int64{0, 4, 11},
+		{0, 1},
+		{0, 2, 5}, {0, 2, 6, 12}, {0, 2, 6, 13, 16}, {0, 2, 6, 14}, {0, 2, 6, 15}, {0, 2, 7},
+		{0, 3, 8}, {0, 3, 9},
+		{0, 4, 10}, {0, 4, 11},
 	})
 }
 
 func TestSubTree(t *testing.T) {
 	subtree1 := tree.SubTree(2)
 	assert.ElementsMatch(t, subtree1.AllPaths(), [][]int64{
-		[]int64{2, 6, 12}, []int64{2, 6, 14}, []int64{2, 5}, []int64{2, 6, 13, 16}, []int64{2, 7}, []int64{2, 6, 15}})
+		{2, 6, 12}, {2, 6, 14}, {2, 5}, {2, 6, 13, 16}, {2, 7}, {2, 6, 15}})
 
 	subtree2 := tree.SubTree(0)
 	assert.ElementsMatch(t, subtree2.AllPaths(), [][]int64{
-		[]int64{0, 2, 6, 12}, []int64{0, 2, 6, 14}, []int64{0, 1}, []int64{0, 3, 8}, []int64{0, 3, 9},
-		[]int64{0, 4, 11}, []int64{0, 2, 5}, []int64{0, 4, 10}, []int64{0, 2, 6, 13, 16}, []int64{0, 2, 7}, []int64{0, 2, 6, 15}})
+		{0, 2, 6, 12}, {0, 2, 6, 14}, {0, 1}, {0, 3, 8}, {0, 3, 9},
+		{0, 4, 11}, {0, 2, 5}, {0, 4, 10}, {0, 2, 6, 13, 16}, {0, 2, 7}, {0, 2, 6, 15}})
 
 	subtree3 := tree.SubTree(3)
-	assert.ElementsMatch(t, subtree3.AllPaths(), [][]int64{[]int64{3, 8}, []int64{3, 9}})
+	assert.ElementsMatch(t, subtree3.AllPaths(), [][]int64{{3, 8}, {3, 9}})
 
 	subtree4 := tree.SubTree(1)
 	assert.ElementsMatch(t, subtree4.AllPaths(), [][]int64{})
@@ -151,15 +151,15 @@ func TestGetChildIds(t *testing.T) {
 func TestGetPaths(t *testing.T) {
 	paths1 := tree.GetPaths(2)
 	assert.ElementsMatch(t, paths1, [][]int64{
-		[]int64{0, 2, 6, 12}, []int64{0, 2, 6, 14}, []int64{0, 2, 5}, []int64{0, 2, 6, 13, 16}, []int64{0, 2, 7}, []int64{0, 2, 6, 15}})
+		{0, 2, 6, 12}, {0, 2, 6, 14}, {0, 2, 5}, {0, 2, 6, 13, 16}, {0, 2, 7}, {0, 2, 6, 15}})
 
 	paths2 := tree.GetPaths(-1)
 	assert.ElementsMatch(t, paths2, nil)
 
 	paths3 := tree.GetPaths(0)
 	assert.ElementsMatch(t, paths3, [][]int64{
-		[]int64{0, 2, 6, 12}, []int64{0, 2, 6, 14}, []int64{0, 1}, []int64{0, 3, 8}, []int64{0, 3, 9},
-		[]int64{0, 4, 11}, []int64{0, 2, 5}, []int64{0, 4, 10}, []int64{0, 2, 6, 13, 16}, []int64{0, 2, 7}, []int64{0, 2, 6, 15}})
+		{0, 2, 6, 12}, {0, 2, 6, 14}, {0, 1}, {0, 3, 8}, {0, 3, 9},
+		{0, 4, 11}, {0, 2, 5}, {0, 4, 10}, {0, 2, 6, 13, 16}, {0, 2, 7}, {0, 2, 6, 15}})
 }
 
 func TestGetDescendantIds(t *testing.T) {

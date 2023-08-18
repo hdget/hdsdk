@@ -21,7 +21,7 @@ type TestConf struct {
 	Config `mapstructure:",squash"`
 }
 
-const TEST_CONFIG_LOG = `
+const configTestLog = `
 [sdk]
     [sdk.log]
         # "debug", "info", "warn", "error"
@@ -34,7 +34,7 @@ const TEST_CONFIG_LOG = `
             # 日志切割时间间隔24小时（单位hour)
             rotation_time=24`
 
-const TEST_CONFIG_MYSQL = `
+const configTestMysql = `
 [sdk]
 	[sdk.log]
         filename = "demo.log"
@@ -71,7 +71,7 @@ const TEST_CONFIG_MYSQL = `
 			port = 3306
 `
 
-const TEST_CONFIG_REDIS = `
+const configTestRedis = `
 [sdk]
 	[sdk.log]
         filename = "demo.log"
@@ -94,7 +94,7 @@ const TEST_CONFIG_REDIS = `
         	db = 0
 `
 
-const TEST_CONFIG_RABBITMQ = `
+const configTestRabbitmq = `
 [sdk]
 	[sdk.log]
         filename = "demo.log"
@@ -122,7 +122,7 @@ const TEST_CONFIG_RABBITMQ = `
 //	exchange_name="testexchange"
 //	exchange_type="direct"`
 
-const TEST_CONFIG_RABBITMQ_DELAY = `
+const configTestRabbitmqDelay = `
 [sdk]
 	[sdk.log]
         filename = "demo.log"
@@ -155,7 +155,7 @@ const TEST_CONFIG_RABBITMQ_DELAY = `
 				exchange_name="exchange_delay"
 				exchange_type="delay:topic"`
 
-const TEST_CONFIG_KAFKA = `
+const configTestKafka = `
 [sdk]
 	[sdk.log]
         filename = "demo.log"
@@ -176,7 +176,7 @@ const TEST_CONFIG_KAFKA = `
 				topic="testtopic1"
 `
 
-const TEST_CONFIG_ALIYUN_DTS = `
+const configTestAliyunDts = `
 [sdk]
 	[sdk.log]
         filename = "demo.log"
@@ -197,7 +197,7 @@ const TEST_CONFIG_ALIYUN_DTS = `
                 topic = "testtopic"
 `
 
-const TEST_CONFIG_NEO4J = `
+const configTestNeo4j = `
 [sdk]
 	[sdk.log]
         filename = "demo.log"
@@ -271,7 +271,7 @@ func TestLogger(t *testing.T) {
 	v := NewConfig("test", "local").Load()
 
 	// try merge config from string
-	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_LOG)))
+	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestLog)))
 
 	// 将配置信息转换成对应的数据结构
 	var conf TestConf
@@ -333,7 +333,7 @@ func TestMysql(t *testing.T) {
 	v := NewConfig("test", "local").Load()
 
 	// merge config from string
-	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_MYSQL)))
+	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestMysql)))
 
 	// 将配置信息转换成对应的数据结构
 	var conf TestConf
@@ -399,7 +399,7 @@ func TestRedis(t *testing.T) {
 	v := NewConfig("test", "local").Load()
 
 	// merge config from string
-	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_REDIS)))
+	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestRedis)))
 
 	// 将配置信息转换成对应的数据结构
 	var conf TestConf
@@ -419,9 +419,9 @@ func TestRedis(t *testing.T) {
 	}
 	fmt.Printf("eval result:%v", result)
 
-	Redis.My().Set("key1", 1)
-	Redis.My().Set("key2", "strvalue")
-	Redis.My().Set("key3", 123)
+	_ = Redis.My().Set("key1", 1)
+	_ = Redis.My().Set("key2", "strvalue")
+	_ = Redis.My().Set("key3", 123)
 
 	value1, _ := Redis.My().GetInt("key1")
 	assert.Equal(t, value1, 1)
@@ -435,36 +435,36 @@ func TestRedis(t *testing.T) {
 	k1exist, _ := Redis.My().Exists("key1")
 	assert.Equal(t, k1exist, true)
 
-	Redis.My().Del("key1")
+	_ = Redis.My().Del("key1")
 	k1exist, _ = Redis.My().Exists("key1")
 	assert.Equal(t, k1exist, false)
 
-	Redis.My().Expire("key2", 3)
+	_ = Redis.My().Expire("key2", 3)
 	k2exist, _ := Redis.My().Exists("key2")
 	assert.Equal(t, k2exist, true)
 	time.Sleep(time.Second * 4)
 	k2exist, _ = Redis.My().Exists("key2")
 	assert.Equal(t, k2exist, false)
 
-	Redis.My().Incr("key3")
+	_ = Redis.My().Incr("key3")
 	v3, _ := Redis.My().GetInt("key3")
 	assert.Equal(t, v3, 124)
 
 	err = Redis.My().Ping()
 	assert.Equal(t, err, nil)
 
-	Redis.My().SetEx("key4", 456, 3)
+	_ = Redis.My().SetEx("key4", 456, 3)
 	k4exist, _ := Redis.My().Exists("key4")
 	assert.Equal(t, k4exist, true)
 	time.Sleep(time.Second * 4)
 	k4exist, _ = Redis.My().Exists("key4")
 	assert.Equal(t, k4exist, false)
 
-	Redis.My().HSet("key5", "field1", 111)
+	_, _ = Redis.My().HSet("key5", "field1", 111)
 	k5f1, _ := Redis.My().HGetInt("key5", "field1")
 	assert.Equal(t, k5f1, 111)
 
-	Redis.My().HSet("key5", "field2", "field2value")
+	_, _ = Redis.My().HSet("key5", "field2", "field2value")
 	k5f2, _ := Redis.My().HGetString("key5", "field2")
 	assert.Equal(t, k5f2, "field2value")
 
@@ -474,7 +474,7 @@ func TestRedis(t *testing.T) {
 		"field2": "field2value",
 	})
 
-	Redis.My().HMSet("key6", map[string]interface{}{
+	_ = Redis.My().HMSet("key6", map[string]interface{}{
 		"field1": "v1",
 		"field2": "v2",
 		"field3": "v3",
@@ -483,18 +483,18 @@ func TestRedis(t *testing.T) {
 	assert.Equal(t, k6values[0], utils.StringToBytes("v1"))
 	assert.Equal(t, k6values[1], utils.StringToBytes("v2"))
 
-	Redis.My().HDels("key6", []interface{}{"field1", "field2"})
+	_, _ = Redis.My().HDels("key6", []interface{}{"field1", "field2"})
 	k61v, _ := Redis.My().HGet("key6", "field1")
 	assert.Equal(t, len(k61v), 0)
 	k63v, _ := Redis.My().HGet("key6", "field3")
 	assert.Equal(t, k63v, utils.StringToBytes("v3"))
 
-	Redis.By("extra1").Set("key7", 333.01)
+	_ = Redis.By("extra1").Set("key7", 333.01)
 	k7v, _ := Redis.By("extra1").GetFloat64("key7")
 	assert.Equal(t, k7v, 333.01)
 
-	Redis.My().Del("key8")
-	Redis.My().LPush("key8", 1, 2)
+	_ = Redis.My().Del("key8")
+	_ = Redis.My().LPush("key8", 1, 2)
 	k8v, _ := Redis.My().LRangeInt64("key8", 0, 5)
 	assert.Equal(t, k8v[0], 1)
 	assert.Equal(t, k8v[1], 2)
@@ -505,7 +505,7 @@ func TestRabbitmqSend(t *testing.T) {
 	v := NewConfig("test", "local").Load()
 
 	// merge config from string
-	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_RABBITMQ)))
+	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestRabbitmq)))
 
 	// 将配置信息转换成对应的数据结构
 	var conf TestConf
@@ -544,7 +544,7 @@ func TestRabbitmqSendDelay(t *testing.T) {
 	v := NewConfig("test", "local").Load()
 
 	// merge config from string
-	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_RABBITMQ_DELAY)))
+	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestRabbitmqDelay)))
 
 	// 将配置信息转换成对应的数据结构
 	var conf TestConf
@@ -588,7 +588,7 @@ func TestRabbitmqRecv(t *testing.T) {
 	v := NewConfig("test", "local").Load()
 
 	// merge config from string
-	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_RABBITMQ)))
+	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestRabbitmq)))
 
 	// 将配置信息转换成对应的数据结构
 	var conf TestConf
@@ -627,7 +627,7 @@ func TestRabbitmqRecvDelay(t *testing.T) {
 	v := NewConfig("test", "local").Load()
 
 	// merge config from string
-	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_RABBITMQ)))
+	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestRabbitmq)))
 
 	// 将配置信息转换成对应的数据结构
 	var conf TestConf
@@ -667,7 +667,7 @@ func TestKafkaSend(t *testing.T) {
 	v := NewConfig("test", "local").Load()
 
 	// merge config from string
-	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_KAFKA)))
+	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestKafka)))
 
 	// 将配置信息转换成对应的数据结构
 	var conf TestConf
@@ -701,7 +701,7 @@ func TestKafkaRecv(t *testing.T) {
 	v := NewConfig("test", "local").Load()
 
 	// merge config from string
-	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_KAFKA)))
+	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestKafka)))
 
 	// 将配置信息转换成对应的数据结构
 	var conf TestConf
@@ -798,7 +798,7 @@ func TestDts(t *testing.T) {
 	v := NewConfig("test", "local").Load()
 
 	// merge config from string
-	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_ALIYUN_DTS)))
+	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestAliyunDts)))
 
 	// 将配置信息转换成对应的数据结构
 	var conf TestConf
@@ -825,7 +825,7 @@ func TestNeo4j(t *testing.T) {
 	v := NewConfig("test", "local").Load()
 
 	// merge config from string
-	v.MergeConfig(bytes.NewReader(utils.StringToBytes(TEST_CONFIG_NEO4J)))
+	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestNeo4j)))
 
 	// 将配置信息转换成对应的数据结构
 	var conf TestConf

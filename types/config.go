@@ -11,7 +11,7 @@ type Configer interface {
 	GetGraphConfig() interface{}    // 图数据库配置
 }
 
-// items under sdk config
+// SdkConfigItem items under sdk config
 type SdkConfigItem struct {
 	Log      interface{} `mapstructure:"log"`      // 日志配置
 	Mysql    interface{} `mapstructure:"mysql"`    // 数据库配置

@@ -1,3 +1,4 @@
+// Package redis
 // @Title  log capability of zerolog
 // @Description  zerolog implementation of log capability
 // @Author  Ryan Fan 2021-06-09
@@ -20,11 +21,11 @@ var (
 	_ types.CacheProvider = (*RedisProvider)(nil)
 )
 
-// @desc	implements types.Provider interface, used to initialize the capability
+// Init implements types.Provider interface, used to initialize the capability
 // @author	Ryan Fan	(2021-06-09)
 // @param	baseconf.Configer	root config interface to extract config info
 // @return	error
-func (rp *RedisProvider) Init(rootConfiger types.Configer, logger types.LogProvider, args ...interface{}) error {
+func (rp *RedisProvider) Init(rootConfiger types.Configer, logger types.LogProvider, _ ...interface{}) error {
 	// 获取日志配置信息
 	config, err := parseConfig(rootConfiger)
 	if err != nil {
@@ -32,21 +33,21 @@ func (rp *RedisProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 	}
 
 	// 缺省redis必须要配置合法
-	err = validateConf(types.PROVIDER_TYPE_DEFAULT, config.Default)
+	err = validateConf(types.ProviderTypeDefault, config.Default)
 	if err != nil {
-		logger.Fatal("validate redis config", "type", types.PROVIDER_TYPE_DEFAULT, "err", err)
+		logger.Fatal("validate redis config", "type", types.ProviderTypeDefault, "err", err)
 	}
 
 	rp.Default, err = rp.connect(config.Default)
 	if err != nil {
-		logger.Fatal("connect redis", "type", types.PROVIDER_TYPE_DEFAULT, "host", config.Default.Host, "err", err)
+		logger.Fatal("connect redis", "type", types.ProviderTypeDefault, "host", config.Default.Host, "err", err)
 	}
-	logger.Debug("connect redis", "type", types.PROVIDER_TYPE_DEFAULT, "host", config.Default.Host)
+	logger.Debug("connect redis", "type", types.ProviderTypeDefault, "host", config.Default.Host)
 
 	// 额外的redis
 	rp.Items = make(map[string]types.CacheClient)
 	for _, otherConf := range config.Items {
-		if err := validateConf(types.PROVIDER_TYPE_OTHER, otherConf); err == nil {
+		if err := validateConf(types.ProviderTypeOther, otherConf); err == nil {
 			instance, err := rp.connect(otherConf)
 			if instance != nil {
 				rp.Items[otherConf.Name] = instance

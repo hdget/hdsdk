@@ -14,6 +14,6 @@ type GraphProvider interface {
 
 // database capability
 const (
-	_ SdkType = SdkCategoryGraph + iota
+	_ = SdkCategoryGraph + iota
 	SdkTypeGraphNeo4j
 )

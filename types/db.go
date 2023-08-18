@@ -2,7 +2,7 @@ package types
 
 import "github.com/jmoiron/sqlx"
 
-// database能力提供
+// DbProvider database能力提供
 type DbProvider interface {
 	Provider
 
@@ -22,6 +22,6 @@ type DbClient interface {
 
 // database capability
 const (
-	_ SdkType = SdkCategoryDb + iota
+	_ = SdkCategoryDb + iota
 	SdkTypeDbMysql
 )

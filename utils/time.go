@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	DEFAULT_TIME_LOCATION = time.FixedZone("CST", 8*3600)
-	ISO_DATE_TEMPLATE     = "2006-01-02"
+	DefaultTimeLocation = time.FixedZone("CST", 8*3600)
+	LayoutIsoDate       = "2006-01-02"
 )
 
 // ParseStrTime iso time string转化为时间，layout必须为 "2006-01-02 15:04:05"
@@ -26,7 +26,7 @@ func ParseStrTime(value string) (*time.Time, error) {
 		return nil, errors.New("invalid time format, it is 'YYYY-MM-DD' or 'YYYY-MM-DD HH:MM:SS'")
 	}
 
-	t, err := time.ParseInLocation(layout, value, DEFAULT_TIME_LOCATION)
+	t, err := time.ParseInLocation(layout, value, DefaultTimeLocation)
 	if err != nil {
 		return nil, errors.Wrap(err, "parse in location")
 	}
@@ -59,15 +59,15 @@ func IsValidBeginEndTime(strBeginTime, strEndTime string) error {
 // @param args ...string 如果指定了结束时间,则用结束时间,否则用当前时间,格式为：2020-04-01
 // @return 在这段日期时间内的所有天包含起始日期 []string,如:[2020-04-01 2020-04-02 2020-04-03]
 func GetBetweenDays(format, beginDate string, args ...string) ([]string, error) {
-	beginTime, err := time.ParseInLocation(ISO_DATE_TEMPLATE, beginDate, DEFAULT_TIME_LOCATION)
+	beginTime, err := time.ParseInLocation(LayoutIsoDate, beginDate, DefaultTimeLocation)
 	if err != nil {
 		return nil, errors.Wrapf(err, "invalid begin date, beginDate: %s", beginDate)
 	}
 
 	now := time.Now()
-	endTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, DEFAULT_TIME_LOCATION)
+	endTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, DefaultTimeLocation)
 	if len(args) > 0 {
-		endTime, err = time.ParseInLocation(ISO_DATE_TEMPLATE, args[0], DEFAULT_TIME_LOCATION)
+		endTime, err = time.ParseInLocation(LayoutIsoDate, args[0], DefaultTimeLocation)
 		if err != nil {
 			return nil, errors.Wrapf(err, "invalid end date, endDate: %s", args[0])
 		}
@@ -126,11 +126,11 @@ func GetBeginUnixTS(beginDate string) int64 {
 	tokens := strings.Split(beginDate, "-")
 	switch len(tokens) {
 	case 1:
-		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-01-01 00:00:00", tokens[0]), DEFAULT_TIME_LOCATION)
+		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-01-01 00:00:00", tokens[0]), DefaultTimeLocation)
 	case 2:
-		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-01 00:00:00", tokens[0], tokens[1]), DEFAULT_TIME_LOCATION)
+		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-01 00:00:00", tokens[0], tokens[1]), DefaultTimeLocation)
 	case 3:
-		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-%s 00:00:00", tokens[0], tokens[1], tokens[2]), DEFAULT_TIME_LOCATION)
+		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-%s 00:00:00", tokens[0], tokens[1], tokens[2]), DefaultTimeLocation)
 	}
 	return t.Unix()
 }
@@ -141,17 +141,17 @@ func GetEndUnixTS(endDate string) int64 {
 	switch len(tokens) {
 	// 提供了年
 	case 1:
-		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-12-31 23:59:59", tokens[0]), DEFAULT_TIME_LOCATION)
+		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-12-31 23:59:59", tokens[0]), DefaultTimeLocation)
 	// 提供了年和月
 	case 2:
 		// 获取该月的第一天
-		firstDay, _ := time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-01 00:00:00", tokens[0], tokens[1]), DEFAULT_TIME_LOCATION)
+		firstDay, _ := time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-01 00:00:00", tokens[0], tokens[1]), DefaultTimeLocation)
 		// 获取该月的最后一天
 		lastDay := firstDay.AddDate(0, 1, -1)
-		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-%d 23:59:59", tokens[0], tokens[1], lastDay.Day()), DEFAULT_TIME_LOCATION)
+		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-%d 23:59:59", tokens[0], tokens[1], lastDay.Day()), DefaultTimeLocation)
 	// 提供了年、月和日
 	case 3:
-		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-%s 23:59:59", tokens[0], tokens[1], tokens[2]), DEFAULT_TIME_LOCATION)
+		t, _ = time.ParseInLocation("2006-01-02 15:04:05", fmt.Sprintf("%s-%s-%s 23:59:59", tokens[0], tokens[1], tokens[2]), DefaultTimeLocation)
 	}
 	return t.Unix()
 }
@@ -164,7 +164,7 @@ func GetEndUnixTS(endDate string) int64 {
 func GetMonthBeginTime(nmonth int) time.Time {
 	now := time.Now()
 	theFirstDay := now.AddDate(0, 0+nmonth, -now.Day()+1)
-	theFirstDayTime := time.Date(theFirstDay.Year(), theFirstDay.Month(), theFirstDay.Day(), 0, 0, 0, 0, DEFAULT_TIME_LOCATION)
+	theFirstDayTime := time.Date(theFirstDay.Year(), theFirstDay.Month(), theFirstDay.Day(), 0, 0, 0, 0, DefaultTimeLocation)
 	return theFirstDayTime
 }
 
@@ -178,7 +178,7 @@ func GetMonthEndTime(nmonth int) time.Time {
 	nextMonthFirstDay := GetMonthBeginTime(nmonth + 1)
 	// 下一个月的第一天倒退一天就是上个月的最后一天
 	theLastDay := nextMonthFirstDay.AddDate(0, 0, -1)
-	theLastDayTime := time.Date(theLastDay.Year(), theLastDay.Month(), theLastDay.Day(), 23, 59, 59, 0, DEFAULT_TIME_LOCATION)
+	theLastDayTime := time.Date(theLastDay.Year(), theLastDay.Month(), theLastDay.Day(), 23, 59, 59, 0, DefaultTimeLocation)
 	return theLastDayTime
 }
 
@@ -190,7 +190,7 @@ func GetMonthEndTime(nmonth int) time.Time {
 func GetYearBeginTime(nyear int) time.Time {
 	now := time.Now()
 	theFirstDay := now.AddDate(0+nyear, -int(now.Month())+1, -now.Day()+1)
-	theFirstDayTime := time.Date(theFirstDay.Year(), theFirstDay.Month(), theFirstDay.Day(), 0, 0, 0, 0, DEFAULT_TIME_LOCATION)
+	theFirstDayTime := time.Date(theFirstDay.Year(), theFirstDay.Month(), theFirstDay.Day(), 0, 0, 0, 0, DefaultTimeLocation)
 	return theFirstDayTime
 }
 
@@ -204,16 +204,16 @@ func GetYearEndTime(nyear int) time.Time {
 	nextMonthFirstDay := GetYearBeginTime(nyear + 1)
 	// 下一年的第一年倒退一天就是上一年的最后一天
 	theLastDay := nextMonthFirstDay.AddDate(0, 0, -1)
-	theLastDayTime := time.Date(theLastDay.Year(), theLastDay.Month(), theLastDay.Day(), 23, 59, 59, 0, DEFAULT_TIME_LOCATION)
+	theLastDayTime := time.Date(theLastDay.Year(), theLastDay.Month(), theLastDay.Day(), 23, 59, 59, 0, DefaultTimeLocation)
 	return theLastDayTime
 }
 
-// GetDayEndDate 获取当前时间n天后最后一秒的时间, 当前时间后n天后的日期23:59:59时间戳
+// GetDayEndTime 获取当前时间n天后最后一秒的时间, 当前时间后n天后的日期23:59:59时间戳
 // ndays: -1表示前一天，0表示今天，1表示后一天
 func GetDayEndTime(ndays int) time.Time {
 	now := time.Now()
 
-	endTime := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, DEFAULT_TIME_LOCATION).AddDate(0, 0, ndays)
+	endTime := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, DefaultTimeLocation).AddDate(0, 0, ndays)
 	return endTime
 }
 
@@ -221,7 +221,7 @@ func GetDayEndTime(ndays int) time.Time {
 // ndays: -1表示前一天，0表示今天，1表示后一天
 func GetDayEndTimeSince(ts int64, ndays int) time.Time {
 	tm := time.Unix(ts, 0)
-	endTime := time.Date(tm.Year(), tm.Month(), tm.Day(), 23, 59, 59, 0, DEFAULT_TIME_LOCATION).AddDate(0, 0, ndays)
+	endTime := time.Date(tm.Year(), tm.Month(), tm.Day(), 23, 59, 59, 0, DefaultTimeLocation).AddDate(0, 0, ndays)
 	return endTime
 }
 
@@ -229,16 +229,16 @@ func GetDayEndTimeSince(ts int64, ndays int) time.Time {
 // ndays: -1表示前一天，0表示今天，1表示后一天
 func GetDayBeginTimeSince(ts int64, ndays int) time.Time {
 	tm := time.Unix(ts, 0)
-	beginTime := time.Date(tm.Year(), tm.Month(), tm.Day(), 00, 00, 00, 0, DEFAULT_TIME_LOCATION).AddDate(0, 0, ndays)
+	beginTime := time.Date(tm.Year(), tm.Month(), tm.Day(), 00, 00, 00, 0, DefaultTimeLocation).AddDate(0, 0, ndays)
 	return beginTime
 }
 
-// GetMonthEndTimeSince 获取从某个时间n个月后第一天第一秒的时间
+// GetMonthBeginTimeSince 获取从某个时间n个月后第一天第一秒的时间
 // nmonth: -1表示前一个月，0表示本月，1表示后一个月
 func GetMonthBeginTimeSince(ts int64, nmonth int) time.Time {
 	tm := time.Unix(ts, 0)
 	theFirstDay := tm.AddDate(0, 0+nmonth, -tm.Day()+1)
-	theFirstDayTime := time.Date(theFirstDay.Year(), theFirstDay.Month(), theFirstDay.Day(), 0, 0, 0, 0, DEFAULT_TIME_LOCATION)
+	theFirstDayTime := time.Date(theFirstDay.Year(), theFirstDay.Month(), theFirstDay.Day(), 0, 0, 0, 0, DefaultTimeLocation)
 	return theFirstDayTime
 }
 
@@ -249,7 +249,7 @@ func GetMonthEndTimeSince(ts int64, nmonth int) time.Time {
 	nextMonthFirstDay := GetMonthBeginTimeSince(ts, nmonth+1)
 	// 下一个月的第一天倒退一天就是上个月的最后一天
 	theLastDay := nextMonthFirstDay.AddDate(0, 0, -1)
-	theLastDayTime := time.Date(theLastDay.Year(), theLastDay.Month(), theLastDay.Day(), 23, 59, 59, 0, DEFAULT_TIME_LOCATION)
+	theLastDayTime := time.Date(theLastDay.Year(), theLastDay.Month(), theLastDay.Day(), 23, 59, 59, 0, DefaultTimeLocation)
 	return theLastDayTime
 }
 

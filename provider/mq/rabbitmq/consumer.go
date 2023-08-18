@@ -186,7 +186,7 @@ func parseConsumerParameter(params map[string]interface{}) (*ConsumerParameter, 
 	}
 
 	if consumerParams.ExchangeName == "" || !utils.Contains(SupportedExchangeTypes, consumerParams.ExchangeType) {
-		return nil, ErrInvalidProducerParam
+		return nil, errInvalidProducerParam
 	}
 
 	return &consumerParams, nil

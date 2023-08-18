@@ -2,6 +2,7 @@ package dapr
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/lib/bizerr"
 	"github.com/hdget/hdsdk/utils"
@@ -10,10 +11,11 @@ import (
 )
 
 func Error(err error) (*common.Content, error) {
-	be, ok := err.(*bizerr.BizError)
+	var be *bizerr.BizError
+	ok := errors.As(err, &be)
 	if ok {
 		st, _ := status.New(codes.Internal, "").WithDetails(&bizerr.Error{
-			Code: int32(be.Code),
+			Code: be.Code,
 			Msg:  be.Msg,
 		})
 		return nil, st.Err()

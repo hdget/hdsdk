@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// 消息队列客户端维护connection和channel
+// BaseClient 消息队列客户端维护connection和channel
 type BaseClient struct {
 	Logger types.LogProvider
 
@@ -25,9 +25,8 @@ type BaseClient struct {
 	chanReconnect chan interface{} // 发送确认通道
 }
 
-// 重连等待的最大等待时间
 const (
-	MAX_CLIENT_RECONNECT_WAIT_TIME = 10 * time.Second
+	maxClientReconnectWaitTime = 10 * time.Second // 重连等待的最大等待时间
 )
 
 // 支持的exchangeTypes
@@ -195,11 +194,11 @@ func (c *BaseClient) setupExchange(exchangeName, exchangeType string) error {
 }
 
 // 等待重连
-func (c BaseClient) wait(countRetry int) {
+func (c *BaseClient) wait(countRetry int) {
 	// 计算每次重连的等待时间
 	waitTime := time.Duration(countRetry) * time.Second
-	if waitTime > MAX_CLIENT_RECONNECT_WAIT_TIME {
-		waitTime = MAX_CLIENT_RECONNECT_WAIT_TIME
+	if waitTime > maxClientReconnectWaitTime {
+		waitTime = maxClientReconnectWaitTime
 	}
 	time.Sleep(waitTime)
 }

@@ -21,6 +21,6 @@ type LogProvider interface {
 
 // log ability
 const (
-	_ SdkType = SdkCategoryLog + iota
-	LibLogZerolog
+	_ = SdkCategoryLog + iota
+	SdkTypeLogZerolog
 )

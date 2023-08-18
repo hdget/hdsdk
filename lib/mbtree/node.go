@@ -17,7 +17,7 @@ type Node struct {
 	Data interface{}
 }
 
-const DEFAULT_ROOT_ID = 0
+const defaultRootId = 0
 
 // NewNode new node
 func NewNode(id int64, data interface{}) *Node {
@@ -32,7 +32,7 @@ func NewNode(id int64, data interface{}) *Node {
 
 // NewRootNode new root node
 func NewRootNode(data interface{}) *Node {
-	return NewNode(DEFAULT_ROOT_ID, data)
+	return NewNode(defaultRootId, data)
 }
 
 // IsLeaf return true if current node has no children

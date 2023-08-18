@@ -33,7 +33,7 @@ type RouteAnnotation struct {
 type HandlerMatch func(funcName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的method名
 
 // ParseRoutes 从源代码的注解中解析路由
-func (m *baseModule) ParseRoutes(srcPath, annotationPrefix string, fnParams, fnResults []string, args ...HandlerMatch) ([]*Route, error) {
+func (b *baseModule) ParseRoutes(srcPath, annotationPrefix string, fnParams, fnResults []string, args ...HandlerMatch) ([]*Route, error) {
 	matchFn := defaultHandlerMatchFunction
 	if len(args) > 0 {
 		matchFn = args[0]
@@ -50,7 +50,7 @@ func (m *baseModule) ParseRoutes(srcPath, annotationPrefix string, fnParams, fnR
 	routes := make([]*Route, 0)
 	for _, fnInfo := range funcInfos {
 		// 忽略掉不是本模块的备注
-		if fnInfo.Receiver != m.Name {
+		if fnInfo.Receiver != b.Name {
 			continue
 		}
 
@@ -66,7 +66,7 @@ func (m *baseModule) ParseRoutes(srcPath, annotationPrefix string, fnParams, fnR
 			continue
 		}
 
-		route, err := m.buildRoute(newHandlerName, fnInfo, ann)
+		route, err := b.buildRoute(newHandlerName, fnInfo, ann)
 		if err != nil {
 			return nil, err
 		}
@@ -77,7 +77,7 @@ func (m *baseModule) ParseRoutes(srcPath, annotationPrefix string, fnParams, fnR
 	return routes, nil
 }
 
-func (m *baseModule) buildRoute(handlerName string, fnInfo *ast.FunctionInfo, ann *ast.Annotation) (*Route, error) {
+func (b *baseModule) buildRoute(handlerName string, fnInfo *ast.FunctionInfo, ann *ast.Annotation) (*Route, error) {
 	// 尝试将注解后的值进行jsonUnmarshal
 	var routeAnnotation *RouteAnnotation
 	// 如果定义不为空，尝试unmarshal
@@ -87,9 +87,9 @@ func (m *baseModule) buildRoute(handlerName string, fnInfo *ast.FunctionInfo, an
 	}
 
 	return &Route{
-		App:           m.App,
-		Namespace:     m.Name,
-		Version:       m.Version,
+		App:           b.App,
+		Namespace:     b.Name,
+		Version:       b.Version,
 		Handler:       handlerName,
 		Endpoint:      routeAnnotation.Endpoint,
 		Methods:       routeAnnotation.Methods,

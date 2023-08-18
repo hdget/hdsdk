@@ -73,11 +73,11 @@ func (pc *ProducerClient) getSaramaConfig() *sarama.Config {
 
 func (pc *ProducerClient) close() {
 	if pc.handler != nil {
-		pc.handler.Close()
+		_ = pc.handler.Close()
 	}
 
 	if pc.saramaClient != nil {
-		pc.saramaClient.Close()
+		_ = pc.saramaClient.Close()
 	}
 }
 

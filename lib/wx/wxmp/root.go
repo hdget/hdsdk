@@ -80,8 +80,8 @@ func (w *implWxmp) Auth(appId, appSecret, code string) (*typwx.WxmpSession, erro
 	return session, nil
 }
 
-func (impl *implWxmp) GetUserPhoneNumber(appId, appSecret, code string) (*typwx.WxmpMobileInfo, error) {
-	accessToken, err := impl.GetAccessToken(appId, appSecret)
+func (w *implWxmp) GetUserPhoneNumber(appId, appSecret, code string) (*typwx.WxmpMobileInfo, error) {
+	accessToken, err := w.GetAccessToken(appId, appSecret)
 	if err != nil {
 		return nil, errors.Wrap(err, "get access token")
 	}
@@ -113,7 +113,7 @@ func (impl *implWxmp) GetUserPhoneNumber(appId, appSecret, code string) (*typwx.
 	return &result.PhoneInfo, nil
 }
 
-func (impl *implWxmp) GetAccessToken(appId, appSecret string) (string, error) {
+func (w *implWxmp) GetAccessToken(appId, appSecret string) (string, error) {
 	// 尝试从缓存中获取access token
 	cachedAccessToken, _ := _cache.GetAccessToken(appId)
 	if cachedAccessToken != "" {

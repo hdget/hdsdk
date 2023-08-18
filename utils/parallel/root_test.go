@@ -38,7 +38,7 @@ func TestOne(t *testing.T) {
 	go func() { res <- group.Run() }()
 	select {
 	case err := <-res:
-		if want, have := myError, err; want != have {
+		if want, have := myError, err; errors.Is(want, have) {
 			t.Errorf("want %v, have %v", want, have)
 		}
 	case <-time.After(100 * time.Millisecond):
@@ -56,7 +56,7 @@ func TestMany(t *testing.T) {
 	go func() { res <- group.Run() }()
 	select {
 	case err := <-res:
-		if want, have := interrupt, err; want != have {
+		if want, have := interrupt, err; errors.Is(err, want) {
 			t.Errorf("want %v, have %v", want, have)
 		}
 	case <-time.After(100 * time.Millisecond):
@@ -131,7 +131,7 @@ func TestAddListener(t *testing.T) {
 			defer fmt.Printf("http.Serve returned\n")
 			return http.Serve(ln, http.NewServeMux())
 		}, func(error) {
-			ln.Close()
+			_ = ln.Close()
 		})
 	}
 	{

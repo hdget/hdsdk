@@ -28,7 +28,7 @@ var (
 // @author	Ryan Fan	(2021-06-09)
 // @param	baseconf.Configer	root config interface to extract config info
 // @return	error
-func (mp *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvider, args ...interface{}) error {
+func (mp *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvider, _ ...interface{}) error {
 	// 获取数据库配置信息
 	config, err := parseConfig(rootConfiger)
 	if err != nil {
@@ -36,28 +36,28 @@ func (mp *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 	}
 
 	// 缺省数据库必须要配置合法
-	err = validateConf(types.PROVIDER_TYPE_DEFAULT, config.Default)
+	err = validateConf(types.ProviderTypeDefault, config.Default)
 	if err != nil {
-		logger.Fatal("validate mysql config", "type", types.PROVIDER_TYPE_DEFAULT, "err", err)
+		logger.Fatal("validate mysql config", "type", types.ProviderTypeDefault, "err", err)
 	}
 
 	// 缺省数据库必须确保能够连接成功，否则fatal
 	mp.Default, err = mp.connect(config.Default)
 	if err != nil {
-		logger.Fatal("connect db", "type", types.PROVIDER_TYPE_DEFAULT, "host", config.Default.Host, "dbname", config.Default.Database, "err", err)
+		logger.Fatal("connect db", "type", types.ProviderTypeDefault, "host", config.Default.Host, "dbname", config.Default.Database, "err", err)
 	}
-	logger.Debug("connect db", "type", types.PROVIDER_TYPE_DEFAULT, "host", config.Default.Host, "dbname", config.Default.Database)
+	logger.Debug("connect db", "type", types.ProviderTypeDefault, "host", config.Default.Host, "dbname", config.Default.Database)
 
 	// 主库
-	if err := validateConf(types.PROVIDER_TYPE_MASTER, config.Master); err == nil {
+	if err := validateConf(types.ProviderTypeMaster, config.Master); err == nil {
 		mp.Main, err = mp.connect(config.Master)
-		logger.Debug("connect db", "type", types.PROVIDER_TYPE_MASTER, "host", config.Master.Host, "dbname", config.Master.Database, "err", err)
+		logger.Debug("connect db", "type", types.ProviderTypeMaster, "host", config.Master.Host, "dbname", config.Master.Database, "err", err)
 	}
 
 	// 从库
 	mp.Slaves = make([]*sqlx.DB, 0)
 	for i, slaveConf := range config.Slaves {
-		if err := validateConf(types.PROVIDER_TYPE_SLAVE, slaveConf); err == nil {
+		if err := validateConf(types.ProviderTypeSlave, slaveConf); err == nil {
 			instance, err := mp.connect(slaveConf)
 			if instance != nil {
 				mp.Slaves = append(mp.Slaves, instance)
@@ -69,7 +69,7 @@ func (mp *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 	// 外部库
 	mp.Items = make(map[string]*sqlx.DB)
 	for _, otherConf := range config.Items {
-		if err := validateConf(types.PROVIDER_TYPE_OTHER, otherConf); err == nil {
+		if err := validateConf(types.ProviderTypeOther, otherConf); err == nil {
 			instance, err := mp.connect(otherConf)
 			if instance != nil {
 				mp.Items[otherConf.Name] = instance

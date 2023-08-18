@@ -10,7 +10,7 @@ type AliDts struct {
 }
 
 func New() (*AliDts, error) {
-	s, err := avro.Parse(ALIYUN_DTS_SCHEMA)
+	s, err := avro.Parse(AliyunDtsSchema)
 	if err != nil {
 		return nil, err
 	}

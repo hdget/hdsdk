@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	WXOA_ACCESS_TOKEN = "wxoa:%s:accesstoken" // string
-	WXOA_TICKET       = "wxoa:ticket"         // string
+	tplWxoaAccessToken = "wxoa:%s:accesstoken" // string
+	keyWxoaTicket      = "wxoa:ticket"         // string
 )
 
 type Cache interface {
@@ -35,7 +35,7 @@ func (c *implCache) SetAccessToken(appId, token string, expires int) error {
 }
 
 func (c *implCache) GetTicket() (string, error) {
-	ticket, err := hdsdk.Redis.My().GetString(WXOA_TICKET)
+	ticket, err := hdsdk.Redis.My().GetString(keyWxoaTicket)
 	if err != nil {
 		return "", nil
 	}
@@ -43,9 +43,9 @@ func (c *implCache) GetTicket() (string, error) {
 }
 
 func (c *implCache) SetTicket(ticket string, expires int) error {
-	return hdsdk.Redis.My().SetEx(WXOA_TICKET, ticket, expires)
+	return hdsdk.Redis.My().SetEx(keyWxoaTicket, ticket, expires)
 }
 
 func getAccessTokenKey(appId string) string {
-	return fmt.Sprintf(WXOA_ACCESS_TOKEN, appId)
+	return fmt.Sprintf(tplWxoaAccessToken, appId)
 }

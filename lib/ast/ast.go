@@ -213,7 +213,7 @@ func parseComments(comments []string, annPrefix string) (map[string]*Annotation,
 
 		// 没找到annotation name
 		if nameIndex == -1 {
-			return nil, nil, fmt.Errorf("Annotation name not found, line: %s", s)
+			return nil, nil, fmt.Errorf("annotation name not found, line: %s", s)
 		}
 
 		// 总是将找到的annotation加入到map，即保证最后一个生效
