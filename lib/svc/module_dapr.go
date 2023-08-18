@@ -15,7 +15,7 @@ const annotationPrefix = "@hd."
 const annotationRoute = annotationPrefix + "route"
 
 type Option func(module ServiceInvocationModule) ServiceInvocationModule
-type DaprServiceInvocationHandler func(ctx context.Context, eventData []byte) (any, error)
+type DaprServiceInvocationHandler func(ctx context.Context, event *common.InvocationEvent) (any, error)
 
 // DaprModule 服务模块的方法信息
 type DaprModule struct {
@@ -154,7 +154,7 @@ func (m *DaprModule) toDaprServiceInvocationHandler(handlerName string, handler 
 			}
 		}()
 
-		response, err := realHandler(ctx, event.Data)
+		response, err := realHandler(ctx, event)
 		if err != nil {
 			hdsdk.Logger.Error("handle", "namespace", m.Name, "handler", handlerName, "err", err, "req", utils.BytesToString(event.Data))
 			return dapr.Error(err)
