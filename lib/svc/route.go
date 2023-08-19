@@ -9,10 +9,8 @@ import (
 )
 
 type Route struct {
-	App           string   // app name
+	*moduleInfo
 	Handler       string   // dapr method
-	Namespace     string   // namespace
-	Version       int      // 版本
 	Endpoint      string   // endpoint
 	Methods       []string // http methods
 	CallerId      int64    // 第三方回调应用id
@@ -30,10 +28,8 @@ type RouteAnnotation struct {
 	Comments      []string // 备注
 }
 
-type HandlerMatch func(funcName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的method名
-
-// ParseRoutes 从源代码的注解中解析路由
-func (b *baseModule) ParseRoutes(srcPath, annotationPrefix string, fnParams, fnResults []string, args ...HandlerMatch) ([]*Route, error) {
+// parseRoutes 从源代码的注解中解析路由
+func (b *baseModule) parseRoutes(srcPath, annotationTag string, fnParams, fnResults []string, args ...HandlerMatch) ([]*Route, error) {
 	matchFn := defaultHandlerMatchFunction
 	if len(args) > 0 {
 		matchFn = args[0]
@@ -42,7 +38,7 @@ func (b *baseModule) ParseRoutes(srcPath, annotationPrefix string, fnParams, fnR
 	// 这里需要匹配func(ctx context.Context, in *common.InvocationEvent) (out *common.Content, err error)
 	// 函数参数类型为: context.Context, *common.InvocationEvent
 	// 函数返回结果为：
-	funcInfos, err := ast.InspectFunctionByInOut(srcPath, fnParams, fnResults, annotationPrefix)
+	funcInfos, err := ast.InspectFunctionByInOut(srcPath, fnParams, fnResults, annotationTag)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +56,7 @@ func (b *baseModule) ParseRoutes(srcPath, annotationPrefix string, fnParams, fnR
 		}
 
 		// 无路由注解忽略
-		ann := fnInfo.Annotations[annotationRoute]
+		ann := fnInfo.Annotations[annotationTag]
 		if ann == nil {
 			continue
 		}
@@ -96,9 +92,7 @@ func (b *baseModule) buildRoute(handlerName string, fnInfo *ast.FunctionInfo, an
 	}
 
 	return &Route{
-		App:           b.App,
-		Namespace:     b.Namespace,
-		Version:       b.Version,
+		moduleInfo:    b.moduleInfo,
 		Handler:       handlerName,
 		Endpoint:      routeAnnotation.Endpoint,
 		Methods:       routeAnnotation.Methods,
@@ -107,18 +101,4 @@ func (b *baseModule) buildRoute(handlerName string, fnInfo *ast.FunctionInfo, an
 		IsPublic:      routeAnnotation.IsPublic,
 		Comments:      fnInfo.PlainComments,
 	}, nil
-}
-
-// matchHandlerSuffix 匹配方法名是否以handler结尾并将新方法名转为SnakeCase格式
-func defaultHandlerMatchFunction(methodName string) (string, bool) {
-	lowerName := strings.ToLower(methodName)
-	lastIndex := strings.LastIndex(lowerName, "handler")
-	if lastIndex <= 0 {
-		return "", false
-	}
-	// handler字符串长度为7, 确保handler结尾
-	if lowerName[lastIndex+7:] != "" {
-		return "", false
-	}
-	return lowerName[:lastIndex], true
 }

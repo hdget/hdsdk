@@ -130,9 +130,20 @@ func (m *DaprModule) ValidateHandler(handlerName string, handler any) error {
 
 // GetRoutes 获取路由
 func (m *DaprModule) GetRoutes(srcPath string, args ...HandlerMatch) ([]*Route, error) {
-	return m.ParseRoutes(
+	return m.parseRoutes(
 		srcPath,
-		annotationPrefix,
+		annotationRoute,
+		[]string{"context.Context", "*common.InvocationEvent"},
+		[]string{"any", "error"},
+		args...,
+	)
+}
+
+// GetPermissions 获取权限
+func (m *DaprModule) GetPermissions(srcPath string, args ...HandlerMatch) ([]*Permission, error) {
+	return m.parsePermissions(
+		srcPath,
+		annotationPermission,
 		[]string{"context.Context", "*common.InvocationEvent"},
 		[]string{"any", "error"},
 		args...,
