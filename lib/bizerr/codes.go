@@ -10,6 +10,6 @@ const (
 
 // define common error code
 const (
-	ErrCodeUnknown  = ErrCodeModuleRoot + iota // unknown error code
+	_               = ErrCodeModuleRoot + iota // unknown error code
 	ErrCodeInternal                            // internal error
 )

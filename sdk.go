@@ -47,27 +47,27 @@ var (
 
 	// 除去日志外其他能力能力提供者实例
 	providers = []*SdkProvider{
-		&SdkProvider{
+		{
 			Kind:     types.SdkTypeDbMysql,
 			Name:     "mysql",
 			Instance: &mysql.MysqlProvider{},
 		},
-		&SdkProvider{
+		{
 			Kind:     types.SdkTypeCacheRedis,
 			Name:     "redis",
 			Instance: &redis.RedisProvider{},
 		},
-		&SdkProvider{
+		{
 			Kind:     types.SdkTypeMqRabbitmq,
 			Name:     "rabbitmq",
 			Instance: &rabbitmq.RabbitmqProvider{},
 		},
-		&SdkProvider{
+		{
 			Kind:     types.SdkTypeMqKafka,
 			Name:     "kafka",
 			Instance: &kafka.KafkaProvider{},
 		},
-		&SdkProvider{
+		{
 			Kind:     types.SdkTypeGraphNeo4j,
 			Name:     "neo4j",
 			Instance: &neo4j.Neo4jProvider{},

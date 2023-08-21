@@ -29,7 +29,7 @@ func validateConf(providerType string, conf *RedisConf) error {
 	}
 
 	// extra provider需要提供name
-	if providerType == types.PROVIDER_TYPE_OTHER && conf.Name == "" {
+	if providerType == types.ProviderTypeOther && conf.Name == "" {
 		return types.ErrInvalidConfig
 	}
 

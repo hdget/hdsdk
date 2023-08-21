@@ -10,19 +10,19 @@ import (
 )
 
 const (
-	DEFAULT_BASE_DIR = "/var/log"
-	DEFAULT_DIRNAME  = "logs"
+	defaultBaseDir = "/var/log"
+	defaultDirName = "logs"
 )
 
 func newRotateLogs(config *RotateLogConf, logFilename string) (*rotatelogs.RotateLogs, error) {
 	var rotateLogs *rotatelogs.RotateLogs
 	var err error
-	if runtime.GOOS == "linux" {
+	switch runtime.GOOS {
+	case "linux":
 		rotateLogs, err = newLinuxRotateLogs(config, logFilename)
-	} else {
+	default:
 		rotateLogs, err = newDefaultRotateLogs(config, logFilename)
 	}
-
 	return rotateLogs, err
 }
 
@@ -33,7 +33,7 @@ func newLinuxRotateLogs(config *RotateLogConf, logFilename string) (*rotatelogs.
 	// 获取basedir
 	basedir := config.BaseDir
 	if basedir == "" {
-		basedir = DEFAULT_BASE_DIR
+		basedir = defaultBaseDir
 	}
 	// 创建日志目录
 	logDir := path.Join(basedir, filenameOnly)
@@ -62,7 +62,7 @@ func newLinuxRotateLogs(config *RotateLogConf, logFilename string) (*rotatelogs.
 func newDefaultRotateLogs(config *RotateLogConf, logFilename string) (*rotatelogs.RotateLogs, error) {
 	dirname := config.Dirname
 	if dirname == "" {
-		dirname = DEFAULT_DIRNAME
+		dirname = defaultDirName
 	}
 
 	// 创建日志目录

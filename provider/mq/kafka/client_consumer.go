@@ -86,11 +86,11 @@ func (cc *ConsumerClient) getSaramaConfig() *sarama.Config {
 
 func (cc *ConsumerClient) close() {
 	if cc.saramaConsumerGroup != nil {
-		cc.saramaConsumerGroup.Close()
+		_ = cc.saramaConsumerGroup.Close()
 	}
 
 	if cc.saramaClient != nil {
-		cc.saramaClient.Close()
+		_ = cc.saramaClient.Close()
 	}
 }
 

@@ -38,8 +38,8 @@ type WxqrResponse struct {
 	Scope        string `json:"scope"`
 }
 
-func (impl *implWxqr) GetWxId(appId, appSecret, code string) (string, string, error) {
-	resp, err := impl.getWxqrResponse(appId, appSecret, code)
+func (w *implWxqr) GetWxId(appId, appSecret, code string) (string, string, error) {
+	resp, err := w.getWxqrResponse(appId, appSecret, code)
 	if err != nil {
 		return "", "", err
 	}

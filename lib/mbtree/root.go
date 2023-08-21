@@ -34,8 +34,8 @@ const (
 	WIDTH
 )
 
-// DEFAULT_TREE_LEVEL the maximum tree level RSearch() will traverse back
-const DEFAULT_TREE_LEVEL = 100
+// defaultTreeLevel the maximum tree level RSearch() will traverse back
+const defaultTreeLevel = 100
 
 // FilterFunc filter function to traverse and filter nodes
 // pass a node as an argument,
@@ -48,11 +48,11 @@ func NewTree(rootNode *Node, args ...int) *SafeMultiBranchTree {
 	}
 
 	// max level
-	maxLevel := DEFAULT_TREE_LEVEL
+	maxLevel := defaultTreeLevel
 	if len(args) > 0 {
 		maxLevel = args[0]
-		if maxLevel < DEFAULT_TREE_LEVEL {
-			maxLevel = DEFAULT_TREE_LEVEL
+		if maxLevel < defaultTreeLevel {
+			maxLevel = defaultTreeLevel
 		}
 	}
 
@@ -84,6 +84,6 @@ func getIdFromArgs(args ...int64) (int64, bool) {
 }
 
 // 定义一个总是返回true的filter函数
-func filterAlwaysTrue(node *Node) bool {
+func filterAlwaysTrue(_ *Node) bool {
 	return true
 }

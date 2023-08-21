@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	WXMP_SESSION_KEY         = `wxmp:%s:session`
-	WXMP_ACCESS_TOKEN        = `wxmp:%s:accesstoken`
-	WXMP_SESSION_KEY_EXPIRES = 3600 // session key过期时间3600秒
+	tplWxmpSessionKey     = `wxmp:%s:session`
+	tplWxmpAccessToken    = `wxmp:%s:accesstoken`
+	wxmpSessionKeyExpires = 3600 // session key过期时间3600秒
 )
 
 type Cache interface {
@@ -31,7 +31,7 @@ func (impl *implCache) GetSessKey(appId string) (string, error) {
 }
 
 func (impl *implCache) SetSessKey(appId, sessKey string) error {
-	return hdsdk.Redis.My().SetEx(getSessionKey(appId), sessKey, WXMP_SESSION_KEY_EXPIRES)
+	return hdsdk.Redis.My().SetEx(getSessionKey(appId), sessKey, wxmpSessionKeyExpires)
 }
 
 func (impl *implCache) GetAccessToken(appId string) (string, error) {
@@ -44,9 +44,9 @@ func (impl *implCache) SetAccessToken(appId, token string, expires int) error {
 }
 
 func getAccessToken(appId string) string {
-	return fmt.Sprintf(WXMP_ACCESS_TOKEN, appId)
+	return fmt.Sprintf(tplWxmpAccessToken, appId)
 }
 
 func getSessionKey(appId string) string {
-	return fmt.Sprintf(WXMP_SESSION_KEY, appId)
+	return fmt.Sprintf(tplWxmpSessionKey, appId)
 }

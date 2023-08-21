@@ -50,7 +50,7 @@ type WxAccessTokenResult struct {
 	Errmsg  string `json:"errmsg"`
 }
 
-// 微信小程序码
+// CommonWxaCodeParam 微信小程序码
 type CommonWxaCodeParam struct {
 	// 要打开的小程序版本。正式版为 release，体验版为 trial，开发版为 develop
 	EnvVersion string `json:"env_version"`

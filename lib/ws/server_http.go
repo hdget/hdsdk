@@ -56,7 +56,7 @@ func (srv *HttpServer) Run() {
 		)
 	}
 
-	if err := group.Run(); err != nil && err != http.ErrServerClosed {
+	if err := group.Run(); err != nil && errors.Is(err, http.ErrServerClosed) {
 		hdsdk.Logger.Error("http server quit", "error", err)
 	}
 }
@@ -108,7 +108,7 @@ func (srv *HttpServer) AddGroupRoutes(groupName string, routes []*Route) error {
 func (srv *HttpServer) shutdown(err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), waitTime)
 	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
-		hdsdk.Logger.Fatal("http server shutdown", "error", err)
+	if e := srv.Shutdown(ctx); e != nil {
+		hdsdk.Logger.Fatal("http server shutdown", "reason", err, "error", e)
 	}
 }

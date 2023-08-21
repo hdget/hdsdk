@@ -26,7 +26,7 @@ type RotateLogConf struct {
 }
 
 const (
-	DEFAULT_LINUX_BASE_DIR = "/var/log"
+	defaultLinuxBaseDir = "/var/log"
 )
 
 var (
@@ -82,9 +82,9 @@ func getDefaultLogConfig() *ConfigLog {
 		defaultLogConfig.Filename = fmt.Sprintf("%s.log", guessAppName)
 	}
 
-	if runtime.GOOS == "linux" {
-		defaultLogConfig.Rotate.BaseDir = DEFAULT_LINUX_BASE_DIR
+	switch runtime.GOOS {
+	case "linux":
+		defaultLogConfig.Rotate.BaseDir = defaultLinuxBaseDir
 	}
-
 	return defaultLogConfig
 }

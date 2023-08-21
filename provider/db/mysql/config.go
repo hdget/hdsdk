@@ -57,7 +57,7 @@ func validateConf(providerType string, conf *MySqlConf) error {
 		return types.ErrInvalidConfig
 	}
 
-	if providerType == types.PROVIDER_TYPE_OTHER && conf.Name == "" {
+	if providerType == types.ProviderTypeOther && conf.Name == "" {
 		return types.ErrInvalidConfig
 	}
 

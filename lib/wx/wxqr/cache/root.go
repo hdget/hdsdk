@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	WXQR_ACCESS_TOKEN          = "wxqr:%s:access_token"  // string
-	WXQR_REFRESH_TOKEN         = "wxqr:%s:refresh_token" // string
-	WXQR_REFRESH_TOKEN_EXPIRES = 30 * 24 * 60 * 60       // refresh token过期时间为30天
+	tplWxqrAccessToken      = "wxqr:%s:access_token"  // string
+	tplWxqrRfreshToken      = "wxqr:%s:refresh_token" // string
+	wxqrRefreshTokenExpires = 30 * 24 * 60 * 60       // refresh token过期时间为30天
 )
 
 type Cache interface {
@@ -41,13 +41,13 @@ func (c *implCache) GetRefreshToken(appId string) (string, error) {
 }
 
 func (c *implCache) SetRefreshToken(appId, token string) error {
-	return hdsdk.Redis.My().SetEx(getRefreshToken(appId), token, WXQR_REFRESH_TOKEN_EXPIRES)
+	return hdsdk.Redis.My().SetEx(getRefreshToken(appId), token, wxqrRefreshTokenExpires)
 }
 
 func getAccessToken(appId string) string {
-	return fmt.Sprintf(WXQR_ACCESS_TOKEN, appId)
+	return fmt.Sprintf(tplWxqrAccessToken, appId)
 }
 
 func getRefreshToken(appId string) string {
-	return fmt.Sprintf(WXQR_REFRESH_TOKEN, appId)
+	return fmt.Sprintf(tplWxqrRfreshToken, appId)
 }

@@ -22,7 +22,7 @@ func (w *implWxmp) DecryptUserInfo(appId, encryptedData, iv string) (*typwx.Wxmp
 		return nil, errors.Wrap(err, "session key not found, you should invoke wx.login() firstly")
 	}
 
-	cipherText, err := decrypt(appId, sessKey, encryptedData, iv)
+	cipherText, err := decrypt(sessKey, encryptedData, iv)
 	if err != nil {
 		return nil, errors.Wrap(err, "decrypt encrypted data")
 	}
@@ -46,7 +46,7 @@ func (w *implWxmp) DecryptMobileInfo(appId, encryptedData, iv string) (*typwx.Wx
 		return nil, errors.Wrap(err, "session key not found, you should invoke wx.login() firstly")
 	}
 
-	cipherText, err := decrypt(appId, sessKey, encryptedData, iv)
+	cipherText, err := decrypt(sessKey, encryptedData, iv)
 	if err != nil {
 		return nil, errors.Wrap(err, "decrypt encrypted data")
 	}
@@ -61,7 +61,7 @@ func (w *implWxmp) DecryptMobileInfo(appId, encryptedData, iv string) (*typwx.Wx
 }
 
 // 解密加密信息获取微信用户信息
-func decrypt(appId, sessionKey, encryptedData, iv string) ([]byte, error) {
+func decrypt(sessionKey, encryptedData, iv string) ([]byte, error) {
 	aesKey, err := base64.StdEncoding.DecodeString(sessionKey)
 	if err != nil {
 		return nil, err

@@ -1,3 +1,4 @@
+// Package zerolog
 // @Title  log capability of zerolog
 // @Description  zerolog implementation of log capability
 // @Author  Ryan Fan 2021-06-09
@@ -17,9 +18,8 @@ import (
 
 type ZerologProvider struct{}
 
-// 缺省的忽略帧数目
 const (
-	DEFAULT_CALLER_SKIP_FRAME_COUNT = 1
+	defaultCallerSkipFrameCount = 1 // 缺省的忽略帧数目
 )
 
 var (
@@ -27,7 +27,6 @@ var (
 	stdLogger  *stdlog.Logger
 	_          types.Provider    = (*ZerologProvider)(nil)
 	_          types.LogProvider = (*ZerologProvider)(nil)
-	ErrKeyName                   = "err"
 )
 
 // Init	implements types.Provider interface, used to initialize the capability
@@ -83,43 +82,43 @@ func (c *ZerologProvider) GetStdLogger() *stdlog.Logger {
 
 func (c *ZerologProvider) Log(keyvals ...interface{}) error {
 	msgValue, errValue, fields := utils.ParseArgsWithMsgError(keyvals...)
-	zeroLogger.Trace().Caller(DEFAULT_CALLER_SKIP_FRAME_COUNT).Err(errValue).Fields(fields).Msg(msgValue)
+	zeroLogger.Trace().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msgValue)
 	return nil
 }
 
 func (c *ZerologProvider) Trace(msg string, keyvals ...interface{}) {
 	errValue, fields := utils.ParseArgsWithError(keyvals...)
-	zeroLogger.Trace().Caller(DEFAULT_CALLER_SKIP_FRAME_COUNT).Err(errValue).Fields(fields).Msg(msg)
+	zeroLogger.Trace().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (c *ZerologProvider) Debug(msg string, keyvals ...interface{}) {
 	errValue, fields := utils.ParseArgsWithError(keyvals...)
-	zeroLogger.Debug().Caller(DEFAULT_CALLER_SKIP_FRAME_COUNT).Err(errValue).Fields(fields).Msg(msg)
+	zeroLogger.Debug().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (c *ZerologProvider) Info(msg string, keyvals ...interface{}) {
 	errValue, fields := utils.ParseArgsWithError(keyvals...)
-	zeroLogger.Info().Caller(DEFAULT_CALLER_SKIP_FRAME_COUNT).Err(errValue).Fields(fields).Msg(msg)
+	zeroLogger.Info().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (c *ZerologProvider) Warn(msg string, keyvals ...interface{}) {
 	errValue, fields := utils.ParseArgsWithError(keyvals...)
-	zeroLogger.Warn().Caller(DEFAULT_CALLER_SKIP_FRAME_COUNT).Err(errValue).Fields(fields).Msg(msg)
+	zeroLogger.Warn().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (c *ZerologProvider) Error(msg string, keyvals ...interface{}) {
 	errValue, fields := utils.ParseArgsWithError(keyvals...)
-	zeroLogger.Error().Caller(DEFAULT_CALLER_SKIP_FRAME_COUNT).Err(errValue).Fields(fields).Msg(msg)
+	zeroLogger.Error().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (c *ZerologProvider) Fatal(msg string, keyvals ...interface{}) {
 	errValue, fields := utils.ParseArgsWithError(keyvals...)
-	zeroLogger.Fatal().Caller(DEFAULT_CALLER_SKIP_FRAME_COUNT).Err(errValue).Fields(fields).Msg(msg)
+	zeroLogger.Fatal().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (c *ZerologProvider) Panic(msg string, keyvals ...interface{}) {
 	errValue, fields := utils.ParseArgsWithError(keyvals...)
-	zeroLogger.Panic().Caller(DEFAULT_CALLER_SKIP_FRAME_COUNT).Err(errValue).Fields(fields).Msg(msg)
+	zeroLogger.Panic().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 // 自定义输出格式

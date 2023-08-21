@@ -11,15 +11,14 @@ type Configer interface {
 	GetGraphConfig() interface{}    // 图数据库配置
 }
 
-// items under sdk config
+// SdkConfigItem items under sdk config
 type SdkConfigItem struct {
-	Log          interface{} `mapstructure:"log"`      // 日志配置
-	Mysql        interface{} `mapstructure:"mysql"`    // 数据库配置
-	Redis        interface{} `mapstructure:"redis"`    // 缓存配置
-	RabbitMq     interface{} `mapstructure:"rabbitmq"` // rabbitmq消息队列配置
-	Kafka        interface{} `mapstructure:"kafka"`    // kafka消息队列配置
-	MicroService interface{} `mapstructure:"service"`  // 基于gokit实现的微服务配置, ms means microservice
-	Nosql        interface{} `mapstructure:"nosql"`    // NoSQL配置
-	Kv           interface{} `mapstructure:"kv"`       // Key/Value数据库配置
-	Neo4j        interface{} `mapstructure:"neo4j"`    // neo4j数据库配置
+	Log      interface{} `mapstructure:"log"`      // 日志配置
+	Mysql    interface{} `mapstructure:"mysql"`    // 数据库配置
+	Redis    interface{} `mapstructure:"redis"`    // 缓存配置
+	RabbitMq interface{} `mapstructure:"rabbitmq"` // rabbitmq消息队列配置
+	Kafka    interface{} `mapstructure:"kafka"`    // kafka消息队列配置
+	Nosql    interface{} `mapstructure:"nosql"`    // NoSQL配置
+	Kv       interface{} `mapstructure:"kv"`       // Key/Value数据库配置
+	Neo4j    interface{} `mapstructure:"neo4j"`    // neo4j数据库配置
 }

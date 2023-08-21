@@ -1,11 +1,20 @@
 package utils
 
 import (
+	"bytes"
 	"encoding/json"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+	"regexp"
 	"strings"
+	"unicode"
 	"unsafe"
+)
+
+var (
+	rxCameling = regexp.MustCompile(`[\p{L}\p{N}]+`)
 )
 
 // StringToBytes converts string to byte slice without a memory allocation.
@@ -118,4 +127,30 @@ func ToInt32Slice(strSlice []string) []int32 {
 		int32s = append(int32s, cast.ToInt32(item))
 	}
 	return int32s
+}
+
+// ToCamelCase converts from underscore separated form to camel case form.
+func ToCamelCase(str string) string {
+	byteSrc := []byte(str)
+	chunks := rxCameling.FindAll(byteSrc, -1)
+	for idx, val := range chunks {
+		chunks[idx] = cases.Title(language.English).Bytes(val)
+	}
+	return string(bytes.Join(chunks, nil))
+}
+
+// ToSnakeCase converts from camel case form to underscore separated form.
+func ToSnakeCase(s string) string {
+	s = ToCamelCase(s)
+	runes := []rune(s)
+	length := len(runes)
+	var out []rune
+	for i := 0; i < length; i++ {
+		out = append(out, unicode.ToLower(runes[i]))
+		if i+1 < length && (unicode.IsUpper(runes[i+1]) && unicode.IsLower(runes[i])) {
+			out = append(out, '_')
+		}
+	}
+
+	return string(out)
 }

@@ -19,7 +19,7 @@ func RecordErrorStack(app string) {
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 	defer func() {
 		if err == nil {
-			file.Close()
+			_ = file.Close()
 		}
 	}()
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	_ "github.com/spf13/viper/remote"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 )
 
@@ -93,13 +94,10 @@ func (c *ViperConfig) Load(args ...string) *viper.Viper {
 	c.loadFromEnv()
 
 	// 尝试从远程KV store，例如etcd加载配置信息
-	err := c.loadFromRemote()
-	if err != nil {
-		utils.LogWarn("load config from etcd", "err", err)
-	}
+	_ = c.loadFromRemote()
 
 	// 尝试从配置中读取配置信息
-	err = c.loadFromFile(args...)
+	err := c.loadFromFile(args...)
 	if err != nil {
 		utils.LogWarn("load config from file", "err", err)
 	}
@@ -147,14 +145,24 @@ func (c *ViperConfig) loadFromEnv(args ...string) {
 }
 
 func (c *ViperConfig) loadFromFile(args ...string) error {
-	configFile := c.getConfigFile()
-	if len(args) > 0 && strings.Trim(args[0], " ") != "" {
-		configFile = args[0]
+	// 如果指定了配置文件
+	if len(args) > 0 && args[0] != "" {
+		c.v.SetConfigFile(args[0])
+	} else { //未指定在当前目录和父级目录找
+		// 缺省的配置文件路径: <rootdir>/<basedir>/<app>/<app>.<env>.toml
+		configName := strings.Join([]string{c.app, c.env}, ".")
+		configDir := filepath.Join(c.option.File.RootDir, c.option.File.BaseDir, c.app)
+		if c.env == "" {
+			configName = c.app
+		}
+
+		// optionally look for config in the working directory
+		c.v.AddConfigPath(configDir)                      // 当前目录
+		c.v.AddConfigPath(filepath.Join("..", configDir)) // 父目录
+		c.v.SetConfigName(configName)                     // name of config file (without extension)
+		c.v.SetConfigType(c.option.File.Suffix)
 	}
 
-	// optionally look for config in the working directory
-	c.v.AddConfigPath(".")
-	c.v.SetConfigFile(configFile)
 	err := c.v.ReadInConfig() // Find and read the config file
 	if err != nil {           // Handle errors reading the config file
 		return err
@@ -183,15 +191,4 @@ func (c *ViperConfig) loadFromRemote() error {
 	}
 
 	return nil
-}
-
-// getConfigFile 缺省的配置文件路径: <rootdir>/<basedir>/<app>/<app>.<env>.toml
-func (c *ViperConfig) getConfigFile() string {
-	var configFile string
-	if c.env != "" {
-		configFile = fmt.Sprintf("%s.%s.%s", c.app, c.env, c.option.File.Suffix)
-	} else {
-		configFile = fmt.Sprintf("%s.%s", c.app, c.option.File.Suffix)
-	}
-	return path.Join(c.option.File.RootDir, c.option.File.BaseDir, c.app, configFile)
 }

@@ -40,11 +40,7 @@ type MqConfig struct {
 }
 
 var (
-	ErrConsumerConfigNotFound = errors.New("consumer config not found")
-	ErrInvalidConsumerConfig  = errors.New("invalid consumer config")
-	ErrProducerConfigNotFound = errors.New("producer config not found")
-	ErrInvalidProducerConfig  = errors.New("invalid consumer config")
-	ErrInvalidProducerParam   = errors.New("invalid producer params")
+	errInvalidProducerParam = errors.New("invalid producer params")
 )
 
 // 校验Mq配置
@@ -58,7 +54,7 @@ func validateMqConfig(providerType string, conf *MqConfig) error {
 	}
 
 	// extra provider需要提供name
-	if providerType == types.PROVIDER_TYPE_OTHER && conf.Name == "" {
+	if providerType == types.ProviderTypeOther && conf.Name == "" {
 		return types.ErrInvalidConfig
 	}
 

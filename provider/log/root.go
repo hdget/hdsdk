@@ -10,14 +10,13 @@ type LoggerImpl struct {
 	types.LogProvider
 }
 
-// 缺省的日志能力提供者
-const DEFAULT_PROVIDER_TYPE = types.LibLogZerolog
+const defaultProviderType = types.SdkTypeLogZerolog // 缺省的日志能力提供者
 
 func (impl *LoggerImpl) Init(configer types.Configer, logger types.LogProvider, args ...interface{}) error {
 	var p types.LogProvider
 	switch len(args) {
 	case 0:
-		p = getProvider(DEFAULT_PROVIDER_TYPE)
+		p = getProvider(defaultProviderType)
 	// 第一个参数为指定的capability provider名字
 	case 1:
 		capType, ok := args[0].(types.SdkType)
@@ -43,7 +42,7 @@ func (impl *LoggerImpl) Init(configer types.Configer, logger types.LogProvider, 
 
 func getProvider(capType types.SdkType) types.LogProvider {
 	switch capType {
-	case types.LibLogZerolog:
+	case types.SdkTypeLogZerolog:
 		return &zerolog.ZerologProvider{}
 	}
 	return nil

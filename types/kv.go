@@ -5,6 +5,6 @@ type KvProvider interface {
 
 // key/value storage ability
 const (
-	_                    = SdkCategoryKv + iota
-	CAP_PROVIDER_KV_ETCD // etcd能力
+	_                 = SdkCategoryKv + iota
+	CapProviderKvEtcd // etcd能力
 )

@@ -57,7 +57,7 @@ func (srv *HttpsServer) Run() {
 		)
 	}
 
-	if err := group.Run(); err != nil && err != http.ErrServerClosed {
+	if err := group.Run(); err != nil && errors.Is(err, http.ErrServerClosed) {
 		hdsdk.Logger.Error("https server quit", "error", err)
 	}
 }

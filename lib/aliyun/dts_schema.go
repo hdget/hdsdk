@@ -1,6 +1,6 @@
 package aliyun
 
-const ALIYUN_DTS_SCHEMA = `
+const AliyunDtsSchema = `
 {
   "name": "com.alibaba.alidts.formats.avro.Record",
   "type": "record",

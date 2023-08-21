@@ -5,7 +5,8 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-// 声明exchange, 注意：如果声明出错的话会导致关闭channel
+// ExchangeOption 声明exchange
+// 注意：如果声明出错的话会导致关闭channel
 //
 // 以"amp."前缀开头的exchange名字为保留名字
 //
@@ -43,6 +44,7 @@ type ExchangeOption struct {
 	Args       amqp.Table
 }
 
+// QueueOption
 // 所有declare的queue会获取一个queueBinding,具有以下配置：
 // exchangeName="", type="direct", routingKey=queueName
 //
@@ -94,6 +96,7 @@ type QueueOption struct {
 	Args       amqp.Table
 }
 
+// PublishOption
 // mandatory=true
 // 当没有队列匹配routingKey, 发布的消息也可能处于不能递交状态
 // immediate=true
@@ -117,6 +120,7 @@ type PublishOption struct {
 	//AppId           string    // creating application id
 }
 
+// ConsumeOption
 // mandatory=true
 // 当没有队列匹配routingKey, 发布的消息也可能处于不能递交状态
 // immediate=true
