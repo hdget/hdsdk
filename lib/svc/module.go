@@ -49,23 +49,3 @@ func defaultHandlerMatchFunction(methodName string) (string, bool) {
 	}
 	return lowerName[:lastIndex], true
 }
-
-//func RegisterDaprModule(app string, version int, svcHolder any, options ...Option) error {
-//	err := utils.StructSetComplexField(svcHolder, (*ServiceInvocationModule)(nil), NewDaprModule(app, moduleName, version, options...))
-//	if err != nil {
-//		return errors.Wrapf(err, "set base module for: %s ", moduleName)
-//	}
-//
-//	module, ok := svcHolder.(ServiceInvocationModule)
-//	if !ok {
-//		return errors.New("invalid module")
-//	}
-//
-//	// 将实际的struct实例保存进去
-//	module.Super(svcHolder)
-//
-//	// 注册handlers
-//	moduleRegistry[module.GetName()] = module
-//
-//	return nil
-//}
