@@ -64,7 +64,7 @@ func NewDaprModule(app string, svcHolder any, options ...Option) (ServiceInvocat
 	}
 
 	// 将实例化的module设置入Module接口中
-	err = utils.StructSetComplexField(svcHolder, (*ServiceInvocationModule)(nil), m)
+	err = utils.Reflect().StructSet(svcHolder, (*ServiceInvocationModule)(nil), m)
 	if err != nil {
 		return nil, errors.Wrapf(err, "install module for: %s ", m.GetName())
 	}
@@ -96,7 +96,7 @@ func (m *DaprModule) DiscoverHandlers(args ...HandlerMatch) (map[string]any, err
 
 	handlers := make(map[string]any)
 	// 这里需要传入当前实际正在使用的服务模块，即带有common.ServiceInvocationHandler的struct实例
-	for methodName, handler := range utils.StructGetReceiverMethodsByType(m.self, common.ServiceInvocationHandler(nil)) {
+	for methodName, handler := range utils.Reflect().MatchReceiverMethods(m.self, common.ServiceInvocationHandler(nil)) {
 		newHandlerName, matched := matchFn(methodName)
 		if !matched {
 			continue
@@ -122,7 +122,7 @@ func (m *DaprModule) DiscoverHandlers(args ...HandlerMatch) (map[string]any, err
 //}
 
 func (m *DaprModule) ValidateHandler(handlerName string, handler any) error {
-	if utils.GetFuncSignature(handler) != utils.GetFuncSignature(DaprServiceInvocationHandler(nil)) {
+	if utils.Reflect().GetFuncSignature(handler) != utils.Reflect().GetFuncSignature(DaprServiceInvocationHandler(nil)) {
 		return fmt.Errorf("invalid handler: %s, it should be: func(ctx context.Context, event *common.InvocationEvent) (any, error)", handlerName)
 	}
 	return nil

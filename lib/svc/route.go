@@ -2,7 +2,6 @@ package svc
 
 import (
 	"encoding/json"
-	"github.com/hdget/hdsdk/lib/ast"
 	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
 	"strings"
@@ -38,7 +37,7 @@ func (b *baseModule) parseRoutes(srcPath, annotationTag string, fnParams, fnResu
 	// 这里需要匹配func(ctx context.Context, in *common.InvocationEvent) (out *common.Content, err error)
 	// 函数参数类型为: context.Context, *common.InvocationEvent
 	// 函数返回结果为：
-	funcInfos, err := ast.InspectFunctionByInOut(srcPath, fnParams, fnResults, annotationTag)
+	funcInfos, err := utils.AST().InspectFunction(srcPath, fnParams, fnResults, annotationTag)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +77,7 @@ func (b *baseModule) parseRoutes(srcPath, annotationTag string, fnParams, fnResu
 	return routes, nil
 }
 
-func (b *baseModule) buildRoute(handlerName string, fnInfo *ast.FunctionInfo, ann *ast.Annotation) (*Route, error) {
+func (b *baseModule) buildRoute(handlerName string, fnInfo *utils.AstFunction, ann *utils.AstAnnotation) (*Route, error) {
 	// 尝试将注解后的值进行jsonUnmarshal
 	var routeAnnotation *RouteAnnotation
 	if strings.HasPrefix(ann.Value, "{") && strings.HasSuffix(ann.Value, "}") {

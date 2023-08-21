@@ -1,4 +1,4 @@
-package ast
+package utils
 
 import (
 	"fmt"
@@ -9,6 +9,28 @@ import (
 	"strings"
 )
 
+// AstAnnotation 注释中的注解
+type AstAnnotation struct {
+	Name  string
+	Value string
+}
+
+type AstFunction struct {
+	Receiver      string
+	Function      string
+	Annotations   map[string]*AstAnnotation // annotationName->*AstAnnotation
+	PlainComments []string                  // 去除注解后的注释
+}
+
+// astRawFunction ast解析出来的原始函数的信息
+type astRawFunction struct {
+	Package  string
+	File     string
+	Receiver string
+	Name     string   // 函数名
+	Comments []string // 出去注解后的其他注释内容
+}
+
 // astFuncInfo ast解析出来的函数的基本信息
 type astFuncInfo struct {
 	Name          string
@@ -18,25 +40,36 @@ type astFuncInfo struct {
 	IsMatchedFunc bool
 }
 
-// InspectFunctionByInOut 从源代码目录中获取fnParams和fnResults匹配的函数的信息,并解析函数对应的注解
+type aster interface {
+	InspectFunction(srcPath string, fnParams, fnResults []string, annotationTag string) ([]*AstFunction, error)
+}
+
+type hdAst struct {
+}
+
+func AST() aster {
+	return &hdAst{}
+}
+
+// InspectFunction 从源代码目录中获取fnParams和fnResults匹配的函数的信息,并解析函数对应的注解
 // handlerName=>*moduleInfo
-func InspectFunctionByInOut(srcPath string, fnParams, fnResults []string, annotationTag string) ([]*FunctionInfo, error) {
-	comments, err := GetComments(srcPath, fnParams, fnResults)
+func (a *hdAst) InspectFunction(srcPath string, fnParams, fnResults []string, annotationTag string) ([]*AstFunction, error) {
+	functions, err := a.getFunctions(srcPath, fnParams, fnResults)
 	if err != nil {
 		return nil, err
 	}
 
 	// 默认从moduleSrcPath目录开始解析, e,g: src/base/pkg/service
-	funcInfos := make([]*FunctionInfo, 0)
-	for _, astComment := range comments {
-		annotations, plainComments, err := parseComments(astComment.Comments, annotationTag)
+	funcInfos := make([]*AstFunction, 0)
+	for _, fn := range functions {
+		annotations, plainComments, err := a.parseComments(fn.Comments, annotationTag)
 		if err != nil {
 			return nil, err
 		}
 
-		funcInfos = append(funcInfos, &FunctionInfo{
-			Receiver:      astComment.Struct,
-			Function:      astComment.Function,
+		funcInfos = append(funcInfos, &AstFunction{
+			Receiver:      fn.Receiver,
+			Function:      fn.Name,
 			Annotations:   annotations,
 			PlainComments: plainComments,
 		})
@@ -47,7 +80,7 @@ func InspectFunctionByInOut(srcPath string, fnParams, fnResults []string, annota
 
 // GetFunctionReceiverName 获取函数的receiver名字
 // e,g: (*Person) hello() {}, 传入hello的ast.FuncDecl, 返回Person字符床
-func GetFunctionReceiverName(fn *ast.FuncDecl) string {
+func (a *hdAst) getFunctionReceiverName(fn *ast.FuncDecl) string {
 	if fn.Recv != nil {
 		for _, field := range fn.Recv.List {
 			if x, ok := field.Type.(*ast.StarExpr); ok {
@@ -61,14 +94,14 @@ func GetFunctionReceiverName(fn *ast.FuncDecl) string {
 	return ""
 }
 
-// GetComments 获取函数注释
-func GetComments(srcPath string, fnParams, fnResults []string) ([]Comment, error) {
+// getFunctions 获取匹配的函数信息
+func (a *hdAst) getFunctions(srcPath string, fnParams, fnResults []string) ([]astRawFunction, error) {
 	pkgAsts, err := parser.ParseDir(token.NewFileSet(), srcPath, nil, parser.ParseComments)
 	if err != nil {
 		return nil, errors.Wrapf(err, "ast parse src code comments, dir: %s", srcPath)
 	}
 
-	comments := make([]Comment, 0)
+	comments := make([]astRawFunction, 0)
 	for pkgName, pkgAst := range pkgAsts {
 		// 遍历每个包的每个文件
 		for filename, f := range pkgAst.Files {
@@ -77,8 +110,8 @@ func GetComments(srcPath string, fnParams, fnResults []string) ([]Comment, error
 			for _, decl := range f.Decls {
 				if fnDecl, ok := decl.(*ast.FuncDecl); ok {
 					funcName := fnDecl.Name.Name
-					recv := GetFunctionReceiverName(fnDecl)
-					matched := matchFunction(fnDecl, fnParams, fnResults)
+					recv := a.getFunctionReceiverName(fnDecl)
+					matched := a.matchFunction(fnDecl, fnParams, fnResults)
 					fnInfos = append(fnInfos, astFuncInfo{
 						Name:          funcName,
 						Receiver:      recv,
@@ -95,11 +128,11 @@ func GetComments(srcPath string, fnParams, fnResults []string) ([]Comment, error
 					continue
 				}
 
-				comment := Comment{
+				comment := astRawFunction{
 					Package:  pkgName,
 					File:     filename,
-					Struct:   fn.Receiver,
-					Function: fn.Name,
+					Receiver: fn.Receiver,
+					Name:     fn.Name,
 					Comments: make([]string, 0),
 				}
 
@@ -128,26 +161,26 @@ func GetComments(srcPath string, fnParams, fnResults []string) ([]Comment, error
 // matchFunction 校验函数声明是否是匹配的
 // e,g:
 // xxxHandler(ctx context.Context, event *common.InvocationEvent) (*common.Content, error)
-func matchFunction(fnDecl *ast.FuncDecl, params, results []string) bool {
+func (a *hdAst) matchFunction(fnDecl *ast.FuncDecl, params, results []string) bool {
 	// 首先校验参数个数和返回值个数
 	if len(fnDecl.Type.Params.List) != len(params) || len(fnDecl.Type.Results.List) != len(params) {
 		return false
 	}
 
 	// 校验入参
-	if countMatchedField(fnDecl.Type.Params.List, params) != len(params) {
+	if a.countMatchedField(fnDecl.Type.Params.List, params) != len(params) {
 		return false
 	}
 
 	// 校验返回结果类型
-	if countMatchedField(fnDecl.Type.Results.List, results) != len(params) {
+	if a.countMatchedField(fnDecl.Type.Results.List, results) != len(params) {
 		return false
 	}
 
 	return true
 }
 
-func countMatchedField(fields []*ast.Field, typeNames []string) int {
+func (a *hdAst) countMatchedField(fields []*ast.Field, typeNames []string) int {
 	// 校验入参
 	countValid := 0
 	for i, field := range fields {
@@ -157,12 +190,12 @@ func countMatchedField(fields []*ast.Field, typeNames []string) int {
 			fieldName = v.Name
 		case *ast.StarExpr:
 			if vv, ok := v.X.(*ast.SelectorExpr); ok {
-				fieldName = "*" + getIndentName(vv.X) + "." + vv.Sel.Name
+				fieldName = "*" + a.getIndentName(vv.X) + "." + vv.Sel.Name
 			} else {
-				fieldName = "*" + getIndentName(v.X)
+				fieldName = "*" + a.getIndentName(v.X)
 			}
 		case *ast.SelectorExpr:
-			fieldName = getIndentName(v.X) + "." + v.Sel.Name
+			fieldName = a.getIndentName(v.X) + "." + v.Sel.Name
 		}
 
 		// 检查参数名或者返回结果名是否与typeNames中的值相等
@@ -173,7 +206,7 @@ func countMatchedField(fields []*ast.Field, typeNames []string) int {
 	return countValid
 }
 
-func getIndentName(expr ast.Expr) string {
+func (*hdAst) getIndentName(expr ast.Expr) string {
 	id, ok := expr.(*ast.Ident)
 	if !ok {
 		return ""
@@ -182,11 +215,11 @@ func getIndentName(expr ast.Expr) string {
 }
 
 // parseComments 从函数注释中解析注解
-// 第一个值为注解map, Annotation=>Annotation value
+// 第一个值为注解map, AstAnnotation=>AstAnnotation value
 // 第二个值为除去注解后的注释信息
-func parseComments(comments []string, annTag string) (map[string]*Annotation, []string, error) {
+func (*hdAst) parseComments(comments []string, annTag string) (map[string]*AstAnnotation, []string, error) {
 	plainComments := make([]string, 0)
-	annotations := make(map[string]*Annotation)
+	annotations := make(map[string]*AstAnnotation)
 	for _, s := range comments {
 		idxAnnotation := strings.Index(s, annTag)
 
@@ -222,13 +255,13 @@ func parseComments(comments []string, annTag string) (map[string]*Annotation, []
 			// 处理注解值
 			annValue := strings.Join(fields[nameIndex+1:], "")
 			annValue = strings.TrimSpace(annValue)
-			annotations[annName] = &Annotation{
+			annotations[annName] = &AstAnnotation{
 				Name:  annName,
 				Value: annValue,
 			}
 		}
 		//if _, exist := annotations[annotationName]; !exist && annotationName != "" {
-		//	annotations[annotationName] = &Annotation{
+		//	annotations[annotationName] = &AstAnnotation{
 		//		Name:  annotationName,
 		//		Value: strings.Join(fields[nameIndex+1:], ""),
 		//	}

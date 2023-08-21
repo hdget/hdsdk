@@ -17,7 +17,7 @@ func getModuleInfo(svcHolderOrModuleName any) (*moduleInfo, error) {
 	case string:
 		moduleName = v
 	default:
-		moduleName = utils.GetStructName(v)
+		moduleName = utils.Reflect().GetStructName(v)
 	}
 
 	tokens := regModuleName.FindStringSubmatch(moduleName)

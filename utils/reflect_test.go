@@ -38,8 +38,8 @@ func TestStructSetInterfaceField(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := StructSetComplexField(tt.args.obj, tt.args.filedType, tt.args.val); (err != nil) != tt.wantErr {
-				t.Errorf("StructSetComplexField() error = %v, wantErr %v", err, tt.wantErr)
+			if err := Reflect().StructSet(tt.args.obj, tt.args.filedType, tt.args.val); (err != nil) != tt.wantErr {
+				t.Errorf("StructSet() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -74,8 +74,8 @@ func TestStructSetStructField(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := StructSetComplexField(tt.args.obj, tt.args.filedType, tt.args.val); (err != nil) != tt.wantErr {
-				t.Errorf("StructSetComplexField() error = %v, wantErr %v", err, tt.wantErr)
+			if err := Reflect().StructSet(tt.args.obj, tt.args.filedType, tt.args.val); (err != nil) != tt.wantErr {
+				t.Errorf("StructSet() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -109,7 +109,7 @@ func TestStructGetReceiverMethods(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gots := StructGetReceiverMethodsByType(tt.args.obj, tt.args.fn)
+			gots := Reflect().MatchReceiverMethods(tt.args.obj, tt.args.fn)
 			fmt.Println(len(gots))
 		})
 	}
@@ -136,8 +136,8 @@ func TestGetFuncSignature(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := GetFuncSignature(anyFn(nil))
-			got1 := GetFuncSignature(anyFn1(nil))
+			got := Reflect().GetFuncSignature(anyFn(nil))
+			got1 := Reflect().GetFuncSignature(anyFn1(nil))
 			if got != got1 {
 				t.Errorf("GetFuncSignature() not equal, got: %v, got1: %v", got, got1)
 			}
