@@ -559,6 +559,15 @@ func (r *RedisClient) LPush(key string, values ...any) error {
 	return err
 }
 
+func (r *RedisClient) RPush(key string, values ...any) error {
+	conn := r.pool.Get()
+	defer func(conn redis.Conn) {
+		_ = conn.Close()
+	}(conn)
+	_, err := conn.Do("RPUSH", redis.Args{}.Add(key).AddFlat(values)...)
+	return err
+}
+
 // RPop 移除列表的最后一个元素，返回值为移除的元素
 func (r *RedisClient) RPop(key string) ([]byte, error) {
 	conn := r.pool.Get()
