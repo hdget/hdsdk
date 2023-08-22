@@ -82,7 +82,8 @@ func (m *DaprModule) GetHandlers() map[string]any {
 	svcInvocationHandlers := make(map[string]any)
 	// 当前存在m.handlers中的为DaprHandler类型
 	for handlerName, handler := range m.handlers {
-		svcInvocationHandlers[handlerName] = m.toDaprServiceInvocationHandler(handlerName, handler)
+		fullHandlerName := dapr.GetServiceInvocationName(m.Version, m.Namespace, handlerName)
+		svcInvocationHandlers[fullHandlerName] = m.toDaprServiceInvocationHandler(handlerName, handler)
 	}
 	return svcInvocationHandlers
 }

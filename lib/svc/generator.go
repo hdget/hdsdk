@@ -40,11 +40,15 @@ func (m *BaseGenerator) Register() error {
 		return errors.New("no concrete generator")
 	}
 
-	results := reflect.ValueOf(m.Concrete).MethodByName(m.GetRegisterMethodName()).Call(nil)
-	if len(results) == 0 || results[0].Type().String() != "error" {
-		return errors.New("invalid register results")
+	method := reflect.ValueOf(m.Concrete).MethodByName(m.GetRegisterMethodName())
+	if !method.IsNil() {
+		results := method.Call(nil)
+		if len(results) == 0 || results[0].Type().String() != "error" {
+			return errors.New("invalid register results")
+		}
+		return results[0].Interface().(error)
 	}
-	return results[0].Interface().(error)
+	return nil
 }
 
 func (m *BaseGenerator) Gen(srcPath string) error {

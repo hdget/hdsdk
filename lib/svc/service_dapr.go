@@ -27,6 +27,7 @@ func (impl *hdDaprService) GetInvocationHandlers() map[string]common.ServiceInvo
 		for name, anyHandler := range module.GetHandlers() {
 			handler, ok := anyHandler.(common.ServiceInvocationHandler)
 			if ok {
+
 				handlers[name] = handler
 			}
 		}
