@@ -13,21 +13,20 @@ type DaprService interface {
 	GetEvents() []dapr.Event
 }
 
-type hdDaprService struct {
+type baseDaprService struct {
 }
 
 func NewDaprService() DaprService {
-	return &hdDaprService{}
+	return &baseDaprService{}
 }
 
-func (impl *hdDaprService) GetInvocationHandlers() map[string]common.ServiceInvocationHandler {
+func (impl *baseDaprService) GetInvocationHandlers() map[string]common.ServiceInvocationHandler {
 	// 获取handlers
 	handlers := make(map[string]common.ServiceInvocationHandler)
 	for _, module := range GetRegistry() {
 		for name, anyHandler := range module.GetHandlers() {
 			handler, ok := anyHandler.(common.ServiceInvocationHandler)
 			if ok {
-
 				handlers[name] = handler
 			}
 		}
@@ -37,7 +36,7 @@ func (impl *hdDaprService) GetInvocationHandlers() map[string]common.ServiceInvo
 }
 
 // Initialize 初始化server
-func (impl *hdDaprService) Initialize(server any, generators ...Generator) error {
+func (impl *baseDaprService) Initialize(server any, generators ...Generator) error {
 	daprServer, ok := server.(common.Service)
 	if !ok {
 		return errors.New("invalid dapr common.service")
@@ -72,10 +71,10 @@ func (impl *hdDaprService) Initialize(server any, generators ...Generator) error
 	return nil
 }
 
-func (impl *hdDaprService) GetBindingHandlers() map[string]common.BindingInvocationHandler {
+func (impl *baseDaprService) GetBindingHandlers() map[string]common.BindingInvocationHandler {
 	return nil
 }
 
-func (impl *hdDaprService) GetEvents() []dapr.Event {
+func (impl *baseDaprService) GetEvents() []dapr.Event {
 	return nil
 }

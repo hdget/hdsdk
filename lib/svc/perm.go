@@ -21,7 +21,7 @@ type PermissionAnnotation struct {
 const annotationPermission = annotationPrefix + "perm"
 
 // parseRoutes 从源代码的注解中解析路由
-func (b *baseModule) parsePermissions(srcPath, annotationTag string, fnParams, fnResults []string, args ...HandlerMatch) ([]*Permission, error) {
+func (b *baseInvocationModule) parsePermissions(srcPath, annotationTag string, fnParams, fnResults []string, args ...HandlerMatch) ([]*Permission, error) {
 	matchFn := defaultHandlerMatchFunction
 	if len(args) > 0 {
 		matchFn = args[0]
@@ -70,7 +70,7 @@ func (b *baseModule) parsePermissions(srcPath, annotationTag string, fnParams, f
 	return perms, nil
 }
 
-func (b *baseModule) buildPermission(handlerName string, fnInfo *utils.AstFunction, ann *utils.AstAnnotation) (*Permission, error) {
+func (b *baseInvocationModule) buildPermission(handlerName string, fnInfo *utils.AstFunction, ann *utils.AstAnnotation) (*Permission, error) {
 	// 尝试将注解后的值进行jsonUnmarshal
 	var annotation *PermissionAnnotation
 	if strings.HasPrefix(ann.Value, "{") && strings.HasSuffix(ann.Value, "}") {

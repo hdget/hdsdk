@@ -5,13 +5,13 @@ import (
 	"strings"
 )
 
-type ServiceInvocationModule interface {
+type InvocationModule interface {
 	GetName() string
 	GetRoutes(srcPath string, args ...HandlerMatch) ([]*Route, error)
 	DiscoverHandlers(args ...HandlerMatch) (map[string]any, error) // 通过反射发现Handlers
 	RegisterHandlers(handlers map[string]any) error
 	GetHandlers() map[string]any // 获取手动注册的handlers
-	ValidateHandler(name string, handler any) error
+	ValidateHandler(handler any) error
 	GetPermissions(srcPath string, args ...HandlerMatch) ([]*Permission, error)
 }
 
@@ -24,15 +24,15 @@ type moduleInfo struct {
 type HandlerMatch func(funcName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的method名
 
 var (
-	moduleRegistry       = make(map[string]ServiceInvocationModule)
+	moduleRegistry       = make(map[string]InvocationModule)
 	errInvalidModuleName = errors.New("invalid module name, it should be: v<number>_name, e,g: v1_abc")
 )
 
-func GetRegistry() map[string]ServiceInvocationModule {
+func GetRegistry() map[string]InvocationModule {
 	return moduleRegistry
 }
 
-func addRegistry(name string, module ServiceInvocationModule) {
+func addRegistry(name string, module InvocationModule) {
 	moduleRegistry[name] = module
 }
 
