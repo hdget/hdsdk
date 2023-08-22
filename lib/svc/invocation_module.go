@@ -24,17 +24,8 @@ type moduleInfo struct {
 type HandlerMatch func(funcName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的method名
 
 var (
-	moduleRegistry       = make(map[string]InvocationModule)
 	errInvalidModuleName = errors.New("invalid module name, it should be: v<number>_name, e,g: v1_abc")
 )
-
-func GetRegistry() map[string]InvocationModule {
-	return moduleRegistry
-}
-
-func addRegistry(name string, module InvocationModule) {
-	moduleRegistry[name] = module
-}
 
 // matchHandlerSuffix 匹配方法名是否以handler结尾并将新方法名转为SnakeCase格式
 func defaultHandlerMatchFunction(methodName string) (string, bool) {

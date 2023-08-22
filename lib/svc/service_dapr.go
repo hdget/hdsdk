@@ -23,7 +23,7 @@ func NewDaprService() DaprService {
 func (impl *baseDaprService) GetInvocationHandlers() map[string]common.ServiceInvocationHandler {
 	// 获取handlers
 	handlers := make(map[string]common.ServiceInvocationHandler)
-	for _, module := range GetRegistry() {
+	for _, module := range GetInvocationModules() {
 		for name, anyHandler := range module.GetHandlers() {
 			handler, ok := anyHandler.(common.ServiceInvocationHandler)
 			if ok {

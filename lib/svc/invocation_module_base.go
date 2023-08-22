@@ -55,6 +55,6 @@ func (b *baseInvocationModule) RegisterHandlers(handlers map[string]any) error {
 		b.handlers[h.id] = h
 	}
 
-	addRegistry(b.Name, concreteModule)
+	addInvocationModule(b.Name, concreteModule)
 	return nil
 }
