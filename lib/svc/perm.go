@@ -21,7 +21,7 @@ type PermissionAnnotation struct {
 const annotationPermission = annotationPrefix + "perm"
 
 // parseRoutes 从源代码的注解中解析路由
-func (b *baseInvocationModule) parsePermissions(srcPath, annotationTag string, fnParams, fnResults []string, args ...HandlerMatch) ([]*Permission, error) {
+func (b *baseInvocationModule) parsePermissions(srcPath, annotationPrefix string, fnParams, fnResults []string, args ...HandlerMatch) ([]*Permission, error) {
 	matchFn := defaultHandlerMatchFunction
 	if len(args) > 0 {
 		matchFn = args[0]
@@ -30,7 +30,7 @@ func (b *baseInvocationModule) parsePermissions(srcPath, annotationTag string, f
 	// 这里需要匹配func(ctx context.Context, in *common.InvocationEvent) (out *common.Content, err error)
 	// 函数参数类型为: context.Context, *common.InvocationEvent
 	// 函数返回结果为：
-	funcInfos, err := utils.AST().InspectFunction(srcPath, fnParams, fnResults, annotationTag)
+	funcInfos, err := utils.AST().InspectFunction(srcPath, fnParams, fnResults, annotationPrefix)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (b *baseInvocationModule) parsePermissions(srcPath, annotationTag string, f
 		}
 
 		// 无路由注解忽略
-		ann := fnInfo.Annotations[annotationTag]
+		ann := fnInfo.Annotations[annotationPermission]
 		if ann == nil {
 			continue
 		}

@@ -53,7 +53,7 @@ func AST() aster {
 
 // InspectFunction 从源代码目录中获取fnParams和fnResults匹配的函数的信息,并解析函数对应的注解
 // handlerName=>*moduleInfo
-func (a *hdAst) InspectFunction(srcPath string, fnParams, fnResults []string, annotationTag string) ([]*AstFunction, error) {
+func (a *hdAst) InspectFunction(srcPath string, fnParams, fnResults []string, annotationPrefix string) ([]*AstFunction, error) {
 	functions, err := a.getFunctions(srcPath, fnParams, fnResults)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (a *hdAst) InspectFunction(srcPath string, fnParams, fnResults []string, an
 	// 默认从moduleSrcPath目录开始解析, e,g: src/base/pkg/service
 	funcInfos := make([]*AstFunction, 0)
 	for _, fn := range functions {
-		annotations, plainComments, err := a.parseComments(fn.Comments, annotationTag)
+		annotations, plainComments, err := a.parseComments(fn.Comments, annotationPrefix)
 		if err != nil {
 			return nil, err
 		}
@@ -217,11 +217,11 @@ func (*hdAst) getIndentName(expr ast.Expr) string {
 // parseComments 从函数注释中解析注解
 // 第一个值为注解map, AstAnnotation=>AstAnnotation value
 // 第二个值为除去注解后的注释信息
-func (*hdAst) parseComments(comments []string, annTag string) (map[string]*AstAnnotation, []string, error) {
+func (*hdAst) parseComments(comments []string, annPrefix string) (map[string]*AstAnnotation, []string, error) {
 	plainComments := make([]string, 0)
 	annotations := make(map[string]*AstAnnotation)
 	for _, s := range comments {
-		idxAnnotation := strings.Index(s, annTag)
+		idxAnnotation := strings.Index(s, annPrefix)
 
 		// 找不到annotation前缀则直接添加到注释中
 		if idxAnnotation < 0 {
@@ -238,7 +238,7 @@ func (*hdAst) parseComments(comments []string, annTag string) (map[string]*AstAn
 		fields := strings.Fields(s)
 		nameIndex := -1
 		for i, field := range fields {
-			if strings.EqualFold(strings.TrimSpace(field), annTag) {
+			if strings.HasPrefix(strings.ToLower(field), strings.ToLower(annPrefix)) {
 				nameIndex = i
 				break
 			}
