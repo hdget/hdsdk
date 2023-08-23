@@ -6,6 +6,7 @@ require (
 	github.com/IBM/sarama v1.40.1
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.8+incompatible
 	github.com/dapr/go-sdk v1.8.0
+	github.com/dave/jennifer v1.7.0
 	github.com/fatih/structs v1.1.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-resty/resty/v2 v2.7.0
