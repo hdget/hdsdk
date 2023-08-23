@@ -14,6 +14,20 @@ type reflector interface {
 	StructSet(obj any, nilField any, val any) error                // 给结构体设置field类型的值
 	MatchReceiverMethods(receiver any, matchFn any) map[string]any // 匹配receiver的所有methods中与matchFn签名参数类似的方法
 	GetFuncSignature(fn any) string                                // 获取函数签名信息
+	InspectValue(v any) *ValueMeta                                 // 检索值的信息
+}
+
+type ValueItem struct {
+	Name  string
+	Kind  string
+	Value any
+}
+
+type ValueMeta struct {
+	Name      string
+	IsPointer bool
+	Kind      string
+	Items     []ValueItem
 }
 
 type hdReflector struct {
@@ -54,6 +68,65 @@ func (*hdReflector) GetVarName(v any) string {
 	} else {
 		return t.Name()
 	}
+}
+
+func (h *hdReflector) InspectValue(v any) *ValueMeta {
+	var isPointer bool
+	var st reflect.Type
+	var sv reflect.Value
+	if t := reflect.TypeOf(v); t.Kind() == reflect.Ptr {
+		isPointer = true
+		st = t.Elem()
+		sv = reflect.ValueOf(v).Elem()
+	} else {
+		st = t
+		sv = reflect.ValueOf(v)
+	}
+
+	var items []ValueItem
+	switch st.Kind() {
+	case reflect.Struct:
+		items = h.GetStructFields(st, sv)
+	case reflect.Slice:
+		items = h.GetSliceItems(st, sv)
+	}
+
+	return &ValueMeta{
+		Name:      st.Name(),
+		IsPointer: isPointer,
+		Kind:      st.Kind().String(),
+		Items:     items,
+	}
+}
+
+func (h *hdReflector) GetStructFields(st reflect.Type, sv reflect.Value) []ValueItem {
+	fields := make([]ValueItem, 0)
+	for i := 0; i < st.NumField(); i++ {
+		switch v := sv.Field(i).Interface().(type) {
+		default:
+			fields = append(fields, ValueItem{
+				Name:  st.Field(i).Name,
+				Kind:  st.Field(i).Type.Kind().String(),
+				Value: v,
+			})
+		}
+	}
+	return fields
+}
+
+func (h *hdReflector) GetSliceItems(st reflect.Type, sv reflect.Value) []ValueItem {
+	items := make([]ValueItem, 0)
+	for i := 0; i < sv.Len(); i++ {
+		switch v := sv.Index(i).Interface().(type) {
+		default:
+			items = append(items, ValueItem{
+				Name:  "",
+				Kind:  sv.Index(i).Type().Kind().String(),
+				Value: v,
+			})
+		}
+	}
+	return items
 }
 
 // StructSet 给结构体设置field类型的值

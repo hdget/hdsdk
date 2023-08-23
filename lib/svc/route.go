@@ -28,7 +28,7 @@ type RouteAnnotation struct {
 }
 
 // parseRoutes 从源代码的注解中解析路由
-func (b *baseModule) parseRoutes(srcPath, annotationTag string, fnParams, fnResults []string, args ...HandlerMatch) ([]*Route, error) {
+func (b *baseInvocationModule) parseRoutes(srcPath, annotationPrefix string, fnParams, fnResults []string, args ...HandlerMatch) ([]*Route, error) {
 	matchFn := defaultHandlerMatchFunction
 	if len(args) > 0 {
 		matchFn = args[0]
@@ -37,7 +37,7 @@ func (b *baseModule) parseRoutes(srcPath, annotationTag string, fnParams, fnResu
 	// 这里需要匹配func(ctx context.Context, in *common.InvocationEvent) (out *common.Content, err error)
 	// 函数参数类型为: context.Context, *common.InvocationEvent
 	// 函数返回结果为：
-	funcInfos, err := utils.AST().InspectFunction(srcPath, fnParams, fnResults, annotationTag)
+	funcInfos, err := utils.AST().InspectFunction(srcPath, fnParams, fnResults, annotationPrefix)
 	if err != nil {
 		return nil, err
 	}
@@ -55,18 +55,24 @@ func (b *baseModule) parseRoutes(srcPath, annotationTag string, fnParams, fnResu
 		}
 
 		// 无路由注解忽略
-		ann := fnInfo.Annotations[annotationTag]
+		ann := fnInfo.Annotations[annotationRoute]
 		if ann == nil {
 			continue
 		}
 
 		// 忽略不匹配的函数
-		newHandlerName, matched := matchFn(fnInfo.Function)
+		_, matched := matchFn(fnInfo.Function)
 		if !matched {
 			continue
 		}
 
-		route, err := b.buildRoute(newHandlerName, fnInfo, ann)
+		// 通过handlerId获取注册时候的invocationHandler
+		h := b.handlers[genHandlerId(b.Name, fnInfo.Function)]
+		if h == nil {
+			continue
+		}
+
+		route, err := b.buildRoute(h.alias, fnInfo, ann)
 		if err != nil {
 			return nil, err
 		}
@@ -77,7 +83,8 @@ func (b *baseModule) parseRoutes(srcPath, annotationTag string, fnParams, fnResu
 	return routes, nil
 }
 
-func (b *baseModule) buildRoute(handlerName string, fnInfo *utils.AstFunction, ann *utils.AstAnnotation) (*Route, error) {
+// buildRoute alias为register或者discover handler时候使用的别名
+func (b *baseInvocationModule) buildRoute(alias string, fnInfo *utils.AstFunction, ann *utils.AstAnnotation) (*Route, error) {
 	// 尝试将注解后的值进行jsonUnmarshal
 	var routeAnnotation *RouteAnnotation
 	if strings.HasPrefix(ann.Value, "{") && strings.HasSuffix(ann.Value, "}") {
@@ -92,7 +99,7 @@ func (b *baseModule) buildRoute(handlerName string, fnInfo *utils.AstFunction, a
 
 	return &Route{
 		moduleInfo:    b.moduleInfo,
-		Handler:       handlerName,
+		Handler:       alias,
 		Endpoint:      routeAnnotation.Endpoint,
 		Methods:       routeAnnotation.Methods,
 		CallerId:      routeAnnotation.CallerId,
