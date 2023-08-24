@@ -12,6 +12,33 @@ SDK中支持的环境`env`定义
 - sim: 仿真环境
 - prod: 生产环境
 
+
+### SDK能力介绍
+- 日志
+  sdk.Log输出的时候第一个message参数必须要填，后续按照`key/value`的格式指定额外需要输出的信息，如果有错误信息，`key`必须指定为`err`
+  e,g:
+    ```
+    sdk.Log.Debug("message content", "err", errors.New("testerr"), "key1", 1, "key2", "value2")
+    ```
+  支持的日志输出级别有:
+  - sdk.Log.Trace
+  - sdk.Log.Info
+  - sdk.Log.Debug
+  - sdk.Log.Warn
+  - sdk.Log.Error
+  - sdk.Log.Fatal
+  - sdk.Log.Panic
+
+- 数据库
+  * MySQL: 请参考[MySQL能力介绍](https://github.com/hdget/hdsdk/tree/main/provider/db/mysql)
+
+- 缓存
+  * Redis: 请参考[Redis能力介绍](https://github.com/hdget/hdsdk/tree/main/provider/cache/redis)
+
+- 消息队列
+  * RabbitMq: 请参考[RabbitMQ能力介绍](https://github.com/hdget/hdsdk/tree/main/provider/mq/rabbitmq)
+  * Kafka: 请参考[Kafka能力介绍](https://github.com/hdget/hdsdk/tree/main/provider/mq/kafka)
+
 ### SDK快速上手
 
 下面是一个简单的使用hdsdk的数据库能力的示例，代码非常简单，但支持多环境多配置源初始化加载各种配置项，同时数据库支持主备或指定数据库源
@@ -171,7 +198,7 @@ if err != nil {
 }
 ```
 
-### 配置详细解释
+### 配置参考
 1. 配置类型
 - 默认配置文件类型为`toml`类型，可以`NewConfig()`的时候通过`WithConfigType()`选项函数来改变
 - 相关函数
@@ -222,30 +249,3 @@ if err != nil {
     utils.LogFatal("sdk initialize", "err", err)
 }
 ```
-
-### SDK使用
-- 日志
-    sdk.Log输出的时候第一个message参数必须要填，后续按照`key/value`的格式指定额外需要输出的信息，如果有错误信息，`key`必须指定为`err`
-    e,g:
-    ```
-    sdk.Log.Debug("message content", "err", errors.New("testerr"), "key1", 1, "key2", "value2")
-    ```
-    支持的日志输出级别有:
-    - sdk.Log.Trace
-    - sdk.Log.Info
-    - sdk.Log.Debug
-    - sdk.Log.Warn
-    - sdk.Log.Error
-    - sdk.Log.Fatal
-    - sdk.Log.Panic
-
-- 数据库
-    * MySQL: 请参考[MySQL能力介绍](https://github.com/hdget/hdsdk/tree/main/provider/db/mysql)
-  
-- 缓存
-    * Redis: 请参考[Redis能力介绍](https://github.com/hdget/hdsdk/tree/main/provider/cache/redis)
-
-- 消息队列
-    * RabbitMq: 请参考[RabbitMQ能力介绍](https://github.com/hdget/hdsdk/tree/main/provider/mq/rabbitmq)
-    * Kafka: 请参考[Kafka能力介绍](https://github.com/hdget/hdsdk/tree/main/provider/mq/kafka)
-
