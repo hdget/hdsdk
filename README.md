@@ -13,45 +13,6 @@ Enterprise ready, robust and easy extensible sdk which help to quickly develop b
 - dts: 数据同步能力
     * Aliyun DTS数据同步能力
 
-### SDK能力
-- sdk.log:    日志能力
-- sdk.mysql:  mysql数据库能力
-- sdk.redis:  redis缓存能力
-- sdk.rabbitmq:  rabbitmq消息队列能力
-- sdk.kafka: kafka消息队列能力
-
-```
-[sdk]
-    [sdk.<capability1>]
-       ...
-    [sdk.<capability2>]
-       ...
-```
-- 日志能力配置，当前使用zerolog进行日志输出
-    ```
-    [sdk.log]
-        # 当前支持日志级别: "trace", "debug", "info", "warn", "error", "fatal", "panic"
-        level = "debug"
-        # 日志文件名称
-        filename = "demo.log"
-        # 日志结转配置
-        [sdk.log.rotate]
-            # 日志最大保存时间7天(单位hour)
-            max_age = 168
-            # 日志切割时间间隔24小时（单位hour)
-            rotation_time=24
-    ```
-
-- 数据库能力
-    * MySQL: 请参考[MySQL能力介绍](https://github.com/hdget/hdsdk/tree/main/provider/db/mysql)
- 
-- 缓存能力配置，当前只支持redis的相关配置信息
-    * Redis: 请参考[Redis能力介绍](https://github.com/hdget/hdsdk/tree/main/provider/cache/redis)
-    
-- 消息队列能力配置，当前只支持redis的相关配置信息
-    * RabbitMq: 请参考[RabbitMQ能力介绍](https://github.com/hdget/hdsdk/tree/main/provider/mq/rabbitmq)
-    * Kafka: 请参考[RabbitMQ能力介绍](https://github.com/hdget/hdsdk/tree/main/provider/mq/kafka)
-
 ### SDK用户指南
 
 #### 一、 支持的环境定义
