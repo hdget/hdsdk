@@ -10,19 +10,19 @@ import (
 	"github.com/pkg/errors"
 )
 
-// // 注解的前缀
+// 注解的前缀
 const annotationPrefix = "@hd."
 const annotationRoute = annotationPrefix + "route"
 
 type Option func(module InvocationModule) InvocationModule
-type DaprServiceInvocationHandler func(ctx context.Context, event *common.InvocationEvent) (any, error)
+type DaprInvocationHandler func(ctx context.Context, event *common.InvocationEvent) (any, error)
 
 // DaprInvocationModule 服务模块的方法信息
 type DaprInvocationModule struct {
 	*baseInvocationModule
 }
 
-func RegisterAsDaprModule(app string, svcHolder any, args ...map[string]DaprServiceInvocationHandler) error {
+func RegisterAsDaprModule(app string, svcHolder any, args ...map[string]DaprInvocationHandler) error {
 	module, err := NewDaprInvocationModule(app, svcHolder)
 	if err != nil {
 		return err
@@ -120,7 +120,7 @@ func (m *DaprInvocationModule) DiscoverHandlers(args ...HandlerMatch) (map[strin
 }
 
 func (m *DaprInvocationModule) ValidateHandler(handler any) error {
-	if utils.Reflect().GetFuncSignature(handler) != utils.Reflect().GetFuncSignature(DaprServiceInvocationHandler(nil)) {
+	if utils.Reflect().GetFuncSignature(handler) != utils.Reflect().GetFuncSignature(DaprInvocationHandler(nil)) {
 		return fmt.Errorf("invalid handler: %s, it should be: func(ctx context.Context, event *common.InvocationEvent) (any, error)", utils.Reflect().GetFuncName(handler))
 	}
 	return nil
@@ -150,9 +150,13 @@ func (m *DaprInvocationModule) GetPermissions(srcPath string, args ...HandlerMat
 
 // toDaprServiceInvocationHandler 封装handler
 func (m *DaprInvocationModule) toDaprServiceInvocationHandler(method any) common.ServiceInvocationHandler {
-	realHandler, ok := method.(func(ctx context.Context, event *common.InvocationEvent) (any, error))
+	realHandler, ok := method.(DaprInvocationHandler)
+	// 如果不是DaprInvocationHandler, 可能为实际的函数体
 	if !ok {
-		return nil
+		realHandler, ok = method.(func(context.Context, *common.InvocationEvent) (any, error))
+		if !ok {
+			return nil
+		}
 	}
 
 	return func(ctx context.Context, event *common.InvocationEvent) (*common.Content, error) {
