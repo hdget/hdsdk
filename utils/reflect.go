@@ -14,7 +14,8 @@ type reflector interface {
 	StructSet(obj any, nilField any, val any) error                // 给结构体设置field类型的值
 	MatchReceiverMethods(receiver any, matchFn any) map[string]any // 匹配receiver的所有methods中与matchFn签名参数类似的方法
 	GetFuncSignature(fn any) string                                // 获取函数签名信息
-	InspectValue(v any) *ValueMeta                                 // 检索值的信息
+	InspectValue(v any) *ValueMeta                                 // 检索Value的信息
+	FuncEqual(fn1, fn2 any) bool                                   // 函数是否相等
 }
 
 type ValueItem struct {
@@ -70,10 +71,19 @@ func (*hdReflector) GetVarName(v any) string {
 	}
 }
 
+func (*hdReflector) FuncEqual(fn1, fn2 any) bool {
+	v1 := reflect.ValueOf(&fn1).Elem()
+	v2 := reflect.ValueOf(&fn2).Elem()
+	return v1.Interface() == v2.Interface()
+}
+
 func (h *hdReflector) InspectValue(v any) *ValueMeta {
 	var isPointer bool
 	var st reflect.Type
 	var sv reflect.Value
+	switch reflect.TypeOf(v) {
+
+	}
 	if t := reflect.TypeOf(v); t.Kind() == reflect.Ptr {
 		isPointer = true
 		st = t.Elem()
