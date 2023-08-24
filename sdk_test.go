@@ -1,7 +1,6 @@
 package hdsdk
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/hdget/hdsdk/lib/aliyun"
 	"github.com/hdget/hdsdk/provider/mq/rabbitmq"
@@ -17,22 +16,9 @@ import (
 	"time"
 )
 
-type TestConf struct {
+type testConf struct {
 	Config `mapstructure:",squash"`
 }
-
-const configTestLog = `
-[sdk]
-    [sdk.log]
-        # "debug", "info", "warn", "error"
-        level = "debug"
-        filename = "demo.log"
-
-        [sdk.log.rotate]
-            # 最大保存时间7天(单位hour)
-            max_age = 168
-            # 日志切割时间间隔24小时（单位hour)
-            rotation_time=24`
 
 const configTestMysql = `
 [sdk]
@@ -268,14 +254,8 @@ func TestEmptyLogger(t *testing.T) {
 
 // nolint:errcheck
 func TestLogger(t *testing.T) {
-	v := NewConfig("test", "local").Load()
-
-	// try merge config from string
-	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestLog)))
-
-	// 将配置信息转换成对应的数据结构
-	var conf TestConf
-	err := v.Unmarshal(&conf)
+	var conf testConf
+	err := NewConfig("test", "").Load(&conf)
 	if err != nil {
 		log.Fatalf("unmarshal democonf, error=%v", err)
 	}
@@ -330,19 +310,9 @@ func TestLogger(t *testing.T) {
 
 // nolint:errcheck
 func TestMysql(t *testing.T) {
-	v := NewConfig("test", "local").Load()
-
-	// merge config from string
-	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestMysql)))
-
 	// 将配置信息转换成对应的数据结构
-	var conf TestConf
-	err := v.Unmarshal(&conf)
-	if err != nil {
-		utils.LogFatal("unmarshal democonf", "err", err)
-	}
-
-	err = Initialize(&conf)
+	var conf testConf
+	err := NewConfig("test", "local").ReadString(configTestMysql).Load(&conf)
 	if err != nil {
 		utils.LogFatal("sdk initialize", "err", err)
 	}
@@ -396,16 +366,10 @@ return 1
 
 // nolint:errcheck
 func TestRedis(t *testing.T) {
-	v := NewConfig("test", "local").Load()
-
-	// merge config from string
-	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestRedis)))
-
-	// 将配置信息转换成对应的数据结构
-	var conf TestConf
-	err := v.Unmarshal(&conf)
+	var conf testConf
+	err := NewConfig("test", "local").ReadString(configTestRedis).Load(&conf)
 	if err != nil {
-		utils.LogFatal("unmarshal democonf", "err", err)
+		utils.LogFatal("unmarshal conf", "err", err)
 	}
 
 	err = Initialize(&conf)
@@ -502,19 +466,11 @@ func TestRedis(t *testing.T) {
 
 // nolint:errcheck
 func TestRabbitmqSend(t *testing.T) {
-	v := NewConfig("test", "local").Load()
-
-	// merge config from string
-	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestRabbitmq)))
-
-	// 将配置信息转换成对应的数据结构
-	var conf TestConf
-	err := v.Unmarshal(&conf)
+	var conf testConf
+	err := NewConfig("test", "local").ReadString(configTestRabbitmq).Load(&conf)
 	if err != nil {
-		utils.LogFatal("unmarshal democonf", "err", err)
+		utils.LogFatal("unmarshal config", "err", err)
 	}
-
-	fmt.Println(v.AllKeys())
 
 	err = Initialize(&conf)
 	if err != nil {
@@ -541,14 +497,9 @@ func TestRabbitmqSend(t *testing.T) {
 }
 
 func TestRabbitmqSendDelay(t *testing.T) {
-	v := NewConfig("test", "local").Load()
-
-	// merge config from string
-	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestRabbitmqDelay)))
-
 	// 将配置信息转换成对应的数据结构
-	var conf TestConf
-	err := v.Unmarshal(&conf)
+	var conf testConf
+	err := NewConfig("test", "local").ReadString(configTestRabbitmqDelay).Load(&conf)
 	if err != nil {
 		utils.LogFatal("unmarshal democonf", "err", err)
 	}
@@ -585,14 +536,9 @@ func msgProcess(data []byte) types.MqMsgAction {
 
 // nolint:errcheck
 func TestRabbitmqRecv(t *testing.T) {
-	v := NewConfig("test", "local").Load()
-
-	// merge config from string
-	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestRabbitmq)))
-
 	// 将配置信息转换成对应的数据结构
-	var conf TestConf
-	err := v.Unmarshal(&conf)
+	var conf testConf
+	err := NewConfig("test", "local").ReadString(configTestRabbitmq).Load(&conf)
 	if err != nil {
 		utils.LogFatal("unmarshal democonf", "err", err)
 	}
@@ -624,14 +570,9 @@ func TestRabbitmqRecv(t *testing.T) {
 
 // nolint:errcheck
 func TestRabbitmqRecvDelay(t *testing.T) {
-	v := NewConfig("test", "local").Load()
-
-	// merge config from string
-	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestRabbitmq)))
-
 	// 将配置信息转换成对应的数据结构
-	var conf TestConf
-	err := v.Unmarshal(&conf)
+	var conf testConf
+	err := NewConfig("test", "local").ReadString(configTestRabbitmq).Load(&conf)
 	if err != nil {
 		utils.LogFatal("unmarshal democonf", "err", err)
 	}
@@ -664,14 +605,9 @@ func TestRabbitmqRecvDelay(t *testing.T) {
 
 // nolint:errcheck
 func TestKafkaSend(t *testing.T) {
-	v := NewConfig("test", "local").Load()
-
-	// merge config from string
-	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestKafka)))
-
 	// 将配置信息转换成对应的数据结构
-	var conf TestConf
-	err := v.Unmarshal(&conf)
+	var conf testConf
+	err := NewConfig("test", "local").ReadString(configTestKafka).Load(&conf)
 	if err != nil {
 		utils.LogFatal("unmarshal democonf", "err", err)
 	}
@@ -698,14 +634,9 @@ func TestKafkaSend(t *testing.T) {
 
 // nolint:errcheck
 func TestKafkaRecv(t *testing.T) {
-	v := NewConfig("test", "local").Load()
-
-	// merge config from string
-	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestKafka)))
-
 	// 将配置信息转换成对应的数据结构
-	var conf TestConf
-	err := v.Unmarshal(&conf)
+	var conf testConf
+	err := NewConfig("test", "local").ReadString(configTestKafka).Load(&conf)
 	if err != nil {
 		utils.LogFatal("unmarshal democonf", "err", err)
 	}
@@ -795,14 +726,9 @@ func parseDtsData(data []byte) *aliyun.DtsRecord {
 
 // nolint:errcheck
 func TestDts(t *testing.T) {
-	v := NewConfig("test", "local").Load()
-
-	// merge config from string
-	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestAliyunDts)))
-
 	// 将配置信息转换成对应的数据结构
-	var conf TestConf
-	err := v.Unmarshal(&conf)
+	var conf testConf
+	err := NewConfig("test", "local").ReadString(configTestAliyunDts).Load(&conf)
 	if err != nil {
 		utils.LogFatal("unmarshal demo conf", "err", err)
 	}
@@ -822,14 +748,9 @@ func TestDts(t *testing.T) {
 
 // nolint:errcheck
 func TestNeo4j(t *testing.T) {
-	v := NewConfig("test", "local").Load()
-
-	// merge config from string
-	_ = v.MergeConfig(bytes.NewReader(utils.StringToBytes(configTestNeo4j)))
-
 	// 将配置信息转换成对应的数据结构
-	var conf TestConf
-	err := v.Unmarshal(&conf)
+	var conf testConf
+	err := NewConfig("test", "local").ReadString(configTestNeo4j).Load(&conf)
 	if err != nil {
 		utils.LogFatal("unmarshal demo conf", "err", err)
 	}
