@@ -1,8 +1,8 @@
 Enterprise ready, robust and easy extensible sdk which help to quickly develop backedn services.
 
-### SDK用户指南
+## SDK用户指南
 
-#### SDK约定
+### SDK约定
 
 SDK中支持的环境`env`定义
 - local: 本地环境
@@ -12,9 +12,7 @@ SDK中支持的环境`env`定义
 - sim: 仿真环境
 - prod: 生产环境
 
-
-
-#### SDK快速上手
+### SDK快速上手
 
 下面是一个简单的使用hdsdk的数据库能力的示例，代码非常简单，但支持多环境多配置源初始化加载各种配置项，同时数据库支持主备或指定数据库源
 
@@ -41,9 +39,9 @@ if err != nil  {
 }
 ```
 
-#### SDK使用
+### SDK初始化
 
-##### 第一步：定义配置结构体
+#### 第一步：定义配置结构体
 1. 通常我们必须通过自定义一个继承自`sdk.Config`的结构体来包括sdk配置信息。这里请注意，`sdk.Config`的tag必须要加上`mapstructure:",squash"`tag, 因为sdk配置能力底层是通过`viper`来实现，而`viper`是通过`mapstructure`这个库进行配置信息的`encode/decode`的，加上这个tag告诉`viper`在读取配置信息的时候将该结构体的字段作为提升到父结构中
 ```go
 type rootConf struct {
@@ -71,7 +69,7 @@ type confWxmp struct {
 
 ```
 
-##### 第二步： 生成配置文件
+#### 第二步： 生成配置文件
 
 sdk段落中的全部为sdk自身能力的配置项，例如Etcd能力，Redis能力，MySQL能力，其他的段落可以用来为应用程序进行个性化的定制， 例如：
 
@@ -111,7 +109,7 @@ sdk段落中的全部为sdk自身能力的配置项，例如Etcd能力，Redis�
 
 ```
 
-##### 第三步：初始化配置并加载配置
+#### 第三步：初始化配置并加载配置
 1. 通常我们使用`Load()`函数来加载配置，`Load()`函数会先尝试加载本地配置，默认行为会在某些环境下会再尝试加载远程配置
 2. 相同配置项优先级从高到低为：
 - 环境配置（高）
@@ -156,7 +154,7 @@ if err != nil {
 }
 ```
 
-##### 第四步：初始化SDK
+#### 第四步：初始化SDK
 在我们加载配置信息以后，我们需要通过已经初始化好的配置结构体来初始化SDK的各项能力
 ```
 v := sdk.LoadConfig("demo", "local", "")
@@ -173,7 +171,7 @@ if err != nil {
 }
 ```
 
-#### 配置参考
+### 配置详细解释
 1. 配置类型
 - 默认配置文件类型为`toml`类型，可以`NewConfig()`的时候通过`WithConfigType()`选项函数来改变
 - 相关函数
