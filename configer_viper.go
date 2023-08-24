@@ -117,7 +117,6 @@ func (c *ViperConfig) Load(configVar any) error {
 }
 
 // LoadLocal 从各个配置源获取配置数据, 并加载到configVar中， 同名变量配置高的覆盖低的
-// - default: 默认变量配置(最低)
 // - remote: kvstore配置（低）
 // - configFile: 文件配置(中）
 // - env: 环境变量配置(高)
