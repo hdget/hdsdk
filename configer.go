@@ -64,12 +64,12 @@ func (c *Config) GetNosqlConfig() interface{} {
 	return c.Sdk.Nosql
 }
 
-// GetKvConfig 获取KV配置
-func (c *Config) GetKvConfig() interface{} {
+// GetEtcdConfig 获取etcd配置
+func (c *Config) GetEtcdConfig() interface{} {
 	if c == nil || c.Sdk == nil {
 		return nil
 	}
-	return c.Sdk.Kv
+	return c.Sdk.Etcd
 }
 
 // GetGraphConfig 获取图数据库配置
