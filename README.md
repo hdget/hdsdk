@@ -1,29 +1,45 @@
 Enterprise ready, robust and easy extensible sdk which help to quickly develop backedn services.
 
-### SDK概览
-- log: 日志能力
-    * zerolog日志能力
-- db: 数据库能力
-    * mysql数据库能力
-- cache: 缓存能力
-    * redis缓存能力
-- mq: 消息队列能力
-    * RabbitMq消息队列能力
-    * Kafka消息队列能力
-- dts: 数据同步能力
-    * Aliyun DTS数据同步能力
+### SDK
+
+SDK中支持的环境`env`定义
+- local: 本地环境
+- dev: 开发环境
+- test: 测试环境
+- pre: 预发布环境
+- sim: 仿真环境
+- prod: 生产环境
 
 ### SDK用户指南
 
-#### 一、 支持的环境定义
-- local: 本地环境
-- dev:   开发环境
-- test:  测试环境
-- pre:   预发布环境
-- sim:   仿真环境
-- prod:  生产环境
+#### SDK快速上手
 
-#### 二、 SDK初始化
+下面是一个简单的使用hdsdk的数据库能力的示例，代码非常简单，但支持多环境多配置源初始化加载各种配置项，同时数据库支持主备或指定数据库源
+
+```go
+type rootConf struct {
+    sdk.Config `mapstructure:",squash"`
+}
+
+var config rootConf
+err := hdsdk.NewConfig("app", "test").Load(&config)
+if err != nil {
+    utils.LogFatal("load config", "err", err)
+}
+
+err = hdsdk.Initialize(config)
+if err != nil {
+    utils.LogFatal("sdk initialize", "err", err)
+}
+
+var total int64
+err = hdsdk.Mysql.My().Get(&total, `SELECT COUNT(1) FROM table`)
+if err != nil  {
+	hdsdk.Logger.Error("db get total", "err", err)
+}
+```
+
+#### SDK使用
 
 ##### 第一步：定义配置结构体
 1. 通常我们必须通过自定义一个继承自`sdk.Config`的结构体来包括sdk配置信息。这里请注意，`sdk.Config`的tag必须要加上`mapstructure:",squash"`tag, 因为sdk配置能力底层是通过`viper`来实现，而`viper`是通过`mapstructure`这个库进行配置信息的`encode/decode`的，加上这个tag告诉`viper`在读取配置信息的时候将该结构体的字段作为提升到父结构中
@@ -94,37 +110,8 @@ sdk段落中的全部为sdk自身能力的配置项，例如Etcd能力，Redis�
 ```
 
 ##### 第三步：初始化配置并加载配置
-在代码中，我们通过`NewConfig(app, env)`实例化再通过`Load()`或`LoadLocal()`或`LoadRemote()`函数加载应用程序的所有配置信息，然后unmarshal成我们自定义的配置结构实例
-- app:  加载配置的时候必须指定应用的名字
-- env:  加载什么环境的配置, 可以为空，如果为空，仅初始化日志配置
-- args: 通过不同选项函数来自定义加载配置的行为
-
-```
-var conf rootConf
-err := NewConfig("test", "local").Load(&conf)
-if err != nil {
-    utils.LogFatal("sdk initialize", "err", err)
-}
-```
-
-sdk配置初始化时通过不同的选项函数改变默认行为，例如下面就指定了加载指定的配置文件
-```go
-options := make([]hdsdk.ConfigOption, 0)
-if configFile != "" {
-    options = append(options, hdsdk.WithConfigFile(configFile))
-}
-
-var conf rootConf
-err := NewConfig("test", "local", options...).Load(&conf)
-if err != nil {
-    utils.LogFatal("sdk initialize", "err", err)
-}
-```
-
-##### 第四步： 常用写法
-
 1. 通常我们使用`Load()`函数来加载配置，`Load()`函数会先尝试加载本地配置，默认行为会在某些环境下会再尝试加载远程配置
-2. 相同配置项优先级从高到低为： 
+2. 相同配置项优先级从高到低为：
 - 环境配置（高）
 - 文件配置（中）
 - 远程配置（低）
@@ -139,9 +126,36 @@ if err != nil {
 }
 ```
 
+在代码中，我们通过`NewConfig(app, env)`实例化再通过`Load()`或`LoadLocal()`或`LoadRemote()`函数加载应用程序的所有配置信息，然后unmarshal成我们自定义的配置结构实例
+- app:  加载配置的时候必须指定应用的名字
+- env:  加载什么环境的配置, 可以为空，如果为空，仅初始化日志配置
+- args: 通过不同选项函数来自定义加载配置的行为
 
-##### 第五步：初始化SDK
-在第一步我们加载配置信息以后，我们需要unmarshal配置信息到我们的自定义数据结构，然后来初始化sdk
+```
+var conf rootConf
+err := NewConfig("test", "local").Load(&conf)
+if err != nil {
+    utils.LogFatal("sdk initialize", "err", err)
+}
+```
+
+SDK配置初始化时通过不同的选项函数改变默认行为，例如下面就指定了加载指定的配置文件
+
+```go
+options := make([]hdsdk.ConfigOption, 0)
+if configFile != "" {
+    options = append(options, hdsdk.WithConfigFile(configFile))
+}
+
+var conf rootConf
+err := NewConfig("test", "local", options...).Load(&conf)
+if err != nil {
+    utils.LogFatal("sdk initialize", "err", err)
+}
+```
+
+##### 第四步：初始化SDK
+在我们加载配置信息以后，我们需要通过已经初始化好的配置结构体来初始化SDK的各项能力
 ```
 v := sdk.LoadConfig("demo", "local", "")
 
@@ -209,8 +223,7 @@ if err != nil {
 }
 ```
 
-
-### 三、SDK使用
+### SDK使用
 - 日志
     sdk.Log输出的时候第一个message参数必须要填，后续按照`key/value`的格式指定额外需要输出的信息，如果有错误信息，`key`必须指定为`err`
     e,g:
