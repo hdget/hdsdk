@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -140,6 +141,68 @@ func TestGetFuncSignature(t *testing.T) {
 			got1 := Reflect().GetFuncSignature(anyFn1(nil))
 			if got != got1 {
 				t.Errorf("GetFuncSignature() not equal, got: %v, got1: %v", got, got1)
+			}
+		})
+	}
+}
+
+func Test_hdReflector_InspectValue(t *testing.T) {
+	type args struct {
+		v any
+	}
+	tests := []struct {
+		name string
+		args args
+		want *ValueMeta
+	}{
+		{
+			name: "Test_hdReflector_InspectValue",
+			args: args{
+				v: nil,
+			},
+			want: nil,
+		},
+		{
+			name: "Test_hdReflector_InspectValue",
+			args: args{
+				v: 1,
+			},
+			want: nil,
+		},
+		{
+			name: "Test_hdReflector_InspectValue",
+			args: args{
+				v: int32(1),
+			},
+			want: nil,
+		},
+		{
+			name: "Test_hdReflector_InspectValue",
+			args: args{
+				v: float64(0),
+			},
+			want: nil,
+		},
+		{
+			name: "Test_hdReflector_InspectValue",
+			args: args{
+				v: "",
+			},
+			want: nil,
+		},
+		{
+			name: "Test_hdReflector_InspectValue",
+			args: args{
+				v: "aaa",
+			},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := &hdReflector{}
+			if got := h.InspectValue(tt.args.v); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("InspectValue() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -7,14 +7,15 @@ import (
 	"strings"
 )
 
-type reflector interface {
+type Reflector interface {
 	GetFuncName(fn any) string                                     //从函数实例获取函数名
 	GetStructName(obj any) string                                  // 从实例获取结构名
 	GetVarName(v any) string                                       // 获取变量名
 	StructSet(obj any, nilField any, val any) error                // 给结构体设置field类型的值
 	MatchReceiverMethods(receiver any, matchFn any) map[string]any // 匹配receiver的所有methods中与matchFn签名参数类似的方法
 	GetFuncSignature(fn any) string                                // 获取函数签名信息
-	InspectValue(v any) *ValueMeta                                 // 检索值的信息
+	InspectValue(v any) *ValueMeta                                 // 检索Value的信息
+	FuncEqual(fn1, fn2 any) bool                                   // 函数是否相等
 }
 
 type ValueItem struct {
@@ -33,7 +34,7 @@ type ValueMeta struct {
 type hdReflector struct {
 }
 
-func Reflect() reflector {
+func Reflect() Reflector {
 	return &hdReflector{}
 }
 
@@ -70,6 +71,12 @@ func (*hdReflector) GetVarName(v any) string {
 	}
 }
 
+func (*hdReflector) FuncEqual(fn1, fn2 any) bool {
+	v1 := reflect.ValueOf(&fn1).Elem()
+	v2 := reflect.ValueOf(&fn2).Elem()
+	return v1.Interface() == v2.Interface()
+}
+
 func (h *hdReflector) InspectValue(v any) *ValueMeta {
 	var isPointer bool
 	var st reflect.Type
@@ -88,7 +95,7 @@ func (h *hdReflector) InspectValue(v any) *ValueMeta {
 	case reflect.Struct:
 		items = h.GetStructFields(st, sv)
 	case reflect.Slice:
-		items = h.GetSliceItems(st, sv)
+		items = h.GetSliceItems(sv)
 	}
 
 	return &ValueMeta{
@@ -114,7 +121,7 @@ func (h *hdReflector) GetStructFields(st reflect.Type, sv reflect.Value) []Value
 	return fields
 }
 
-func (h *hdReflector) GetSliceItems(st reflect.Type, sv reflect.Value) []ValueItem {
+func (h *hdReflector) GetSliceItems(sv reflect.Value) []ValueItem {
 	items := make([]ValueItem, 0)
 	for i := 0; i < sv.Len(); i++ {
 		switch v := sv.Index(i).Interface().(type) {
