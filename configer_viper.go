@@ -113,9 +113,6 @@ func NewConfig(app, env string, options ...ConfigOption) *ViperConfig {
 		option(c)
 	}
 
-	// 必须设置config的类型
-	c.local.SetConfigType(c.configType)
-
 	// 保存到全局变量方便后续调用
 	_vc = c
 
@@ -181,6 +178,9 @@ func (c *ViperConfig) Load(configVars ...any) error {
 // - configFile: 文件配置(中）
 // - env: 环境变量配置(高)
 func (c *ViperConfig) LoadLocal(localConfigVar any) error {
+	// 必须设置config的类型
+	c.local.SetConfigType(c.configType)
+
 	// 如果环境变量为空，则加载最小基本配置
 	if c.env == "" {
 		return c.loadMinimal(localConfigVar)
