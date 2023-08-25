@@ -80,7 +80,7 @@ type rootConf struct {
 
 2. 其他配置项可以定义在结构体的其他地方并支持嵌套，注意一定要用`mapstructure`tag来定义和配置文件中一致的配置项名字, e,g: `mapstructure:"debug"`
 ```go
-type rootConf struct {
+type conf struct {
 	sdk.Config  `mapstructure:",squash"`
 	App confApp `mapstructure:"app"`
 }
@@ -146,8 +146,8 @@ sdk段落中的全部为sdk自身能力的配置项，例如Etcd能力，Redis�
 同一个配置变量如果在多个配置源中出现，最终生效的为高优先级配置源中的值, 例如文件配置中`app.wxmp.app_id=1`，远程配置中`app.wxmp.app_id=0`, 那么最终生效的值为0
 3. 一般来说，我们会指定环境`env`，如果`env`为空，则默认加载仅包含日志配置的最小配置
 ```go
-var conf rootConf
-err := NewConfig("test", "local").Load(&conf)
+var Config conf
+err := NewConfig("test", "local").Load(&Config)
 if err != nil {
     utils.LogFatal("sdk initialize", "err", err)
 }
@@ -159,8 +159,8 @@ if err != nil {
 - args: 通过不同选项函数来自定义加载配置的行为
 
 ```
-var conf rootConf
-err := NewConfig("test", "local").Load(&conf)
+var Config conf
+err := NewConfig("test", "local").Load(&Config)
 if err != nil {
     utils.LogFatal("sdk initialize", "err", err)
 }
@@ -174,24 +174,37 @@ if configFile != "" {
     options = append(options, hdsdk.WithConfigFile(configFile))
 }
 
-var conf rootConf
-err := NewConfig("test", "local", options...).Load(&conf)
+var Config conf
+err := NewConfig("test", "local", options...).Load(&Config)
 if err != nil {
     utils.LogFatal("sdk initialize", "err", err)
+}
+```
+
+要开启远程配置能力，必须在`Load()`时候指定第二个参数为远程配置变量，并且`env`不为空或者`local`， 两个条件缺一远程配置能力都不会初始化
+```go
+
+var Config conf
+var RemoteConfig remoteConf 
+err := NewConfig("test", "test", options...).Load(&Config, &RemoteConfig)
+if err != nil {
+    utils.LogFatal("sdk initialize", "err", err)
+}
+```
+
+我们可以直接调用`hdsdk`的`UpdateRemoteConfig`方法更新远程配置数据, 不过要注意此时hdsdk需要初始化完毕, 例如：
+```go
+RemoteConfig.xxx.yyy = "xxx"
+
+err := hdsdk.UpdateRemoteConfig(RemoteConfig)
+if err != nil  {
+    utils.LogFatal("update remote config", "err", err)
 }
 ```
 
 #### 第四步：初始化SDK
 在我们获取到实例化的配置后，我们需要通过读取已经实例化好的配置来初始化SDK的各项能力
 ```
-v := sdk.LoadConfig("demo", "local", "")
-
-var conf MyConfig
-err := v.Unmarshal(&conf)
-if err != nil {
-    log.Fatalf("unmarshal config, error=%v", err)
-}
-
 err = sdk.Initialize(&conf)
 if err != nil {
     log.Fatalf("msg=\"sdk initialize\" error=\"%v\"", err)
@@ -207,7 +220,7 @@ if err != nil {
 2. 远程配置
 - 除无环境和local环境外，运行Load()函数会默认加载远程配置，默认行为可以`NewConfig()`的时候通过`WithDisableRemoteEnvs()`选项函数来改变 
 - 加载远程配置时会优先以本地配置`sdk.etcd.url`定义的值来加载远程配置，如果无`sdk.etcd.url`本地配置默认使用URL: http://127.0.0.1:2379
-- 远程配置加载成功，默认开启远程配置监控，如果远程配置项有变化，5秒钟后生效。该默认行为可以`NewConfig()`的时候通过`WithWatch()`选项函数来改变
+- 远程配置加载成功，默认开启远程配置监控，如果远程配置项有变化，`30`秒钟后生效。该默认行为可以`NewConfig()`的时候通过`WithWatch()`选项函数来改变
 - 可以单独使用LoadRemote()函数来仅加载远程配置而忽略本地配置，注意这个时候本地配置的`sdk.etcd.url`不生效，默认从`http://127.0.0.1:2379`加载，默认行为可以`NewConfig()`的时候通过`WithRemote()`选项函数来改变
 - 远程配置默认保存在`/setting/app/<app>`key下面，该默认行为可以`NewConfig()`的时候通过`WithRemote()`选项函数来改变
 - 相关函数

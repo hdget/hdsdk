@@ -15,6 +15,7 @@ import (
 	"github.com/hdget/hdsdk/provider/cache/redis"
 	"github.com/hdget/hdsdk/provider/db/mysql"
 	"github.com/hdget/hdsdk/provider/graph/neo4j"
+	"github.com/hdget/hdsdk/provider/kv/etcd"
 	"github.com/hdget/hdsdk/provider/log"
 	"github.com/hdget/hdsdk/provider/mq/kafka"
 	"github.com/hdget/hdsdk/provider/mq/rabbitmq"
@@ -36,6 +37,7 @@ var (
 	Rabbitmq types.MqProvider    // rabbitmq能力
 	Kafka    types.MqProvider    // kafka能力
 	Neo4j    types.GraphProvider // 图数据库能力
+	Etcd     types.KvProvider    // kv能力
 )
 
 var (
@@ -71,6 +73,11 @@ var (
 			Kind:     types.SdkTypeGraphNeo4j,
 			Name:     "neo4j",
 			Instance: &neo4j.Neo4jProvider{},
+		},
+		{
+			Kind:     types.SdkTypeKvEtcd,
+			Name:     "etcd",
+			Instance: &etcd.EtcdProvider{},
 		},
 	}
 )
@@ -116,6 +123,8 @@ func setGlobalVars(p *SdkProvider) {
 		Kafka = p.Instance.(*kafka.KafkaProvider)
 	case types.SdkTypeGraphNeo4j:
 		Neo4j = p.Instance.(*neo4j.Neo4jProvider)
+	case types.SdkTypeKvEtcd:
+		Etcd = p.Instance.(*etcd.EtcdProvider)
 	}
 }
 

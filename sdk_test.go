@@ -8,6 +8,7 @@ import (
 	"github.com/hdget/hdsdk/utils"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j/dbtype"
+	"github.com/pelletier/go-toml/v2"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"log"
@@ -201,6 +202,19 @@ const configTestNeo4j = `
 		#	port = 1234
 `
 
+const configTestEtcd = `
+[sdk]
+	[sdk.log]
+        filename = "demo.log"
+		[sdk.log.rotate]
+			# 最大保存时间7天(单位hour)
+        	max_age = 168
+        	# 日志切割时间间隔24小时（单位hour)
+        	rotation_time=24
+	[sdk.etcd]
+		url = "http://127.0.0.1:2379"
+`
+
 // nolint:errcheck
 func TestEmptyLogger(t *testing.T) {
 	err := Initialize(nil)
@@ -335,6 +349,7 @@ func TestMysql(t *testing.T) {
 }
 
 //const lusHasStock = `
+
 //for i,v in pairs(KEYS) do
 //	local ret = redis.call("Get", v)
 //	if( ret - ARGV[i] <= 0 ) then
@@ -864,5 +879,48 @@ func graphAddReferralRelation(person1 string, person2 string) neo4j.TransactionW
 		}
 
 		return result.Consume()
+	}
+}
+
+// nolint:errcheck
+func TestEtcd(t *testing.T) {
+	// 将配置信息转换成对应的数据结构
+	var conf testConf
+	err := NewConfig("test", "local").ReadString(configTestEtcd).Load(&conf)
+	if err != nil {
+		utils.LogFatal("unmarshal conf", "err", err)
+	}
+
+	err = Initialize(&conf)
+	if err != nil {
+		utils.LogFatal("sdk initialize", "err", err)
+	}
+
+	bs, err := Etcd.Get("/setting/app/base")
+	if err != nil {
+		utils.LogFatal("get", "err", err)
+	}
+
+	var v struct {
+		Debug bool `toml:"debug"`
+		App   struct {
+			Name string `toml:"name"`
+		} `toml:"app"`
+	}
+	err = toml.Unmarshal(bs, &v)
+	if err != nil {
+		utils.LogFatal("get", "err", err)
+	}
+	fmt.Println(v)
+	pairs, err := Etcd.List("/setting/app/base")
+	if err != nil {
+		utils.LogFatal("get", "err", err)
+	}
+	assert.Equal(t, 4, len(pairs))
+
+	bs1, _ := toml.Marshal(conf.GetEtcdConfig())
+	err = Etcd.Set("/setting/app/base", bs1)
+	if err != nil {
+		utils.LogFatal("get", "err", err)
 	}
 }

@@ -2,6 +2,7 @@ package hdsdk
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
@@ -10,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -17,7 +19,9 @@ type ConfigOption func(config *ViperConfig)
 
 // ViperConfig 命令行配置
 type ViperConfig struct {
-	v                 *viper.Viper
+	mu                sync.RWMutex
+	local             *viper.Viper
+	remote            *viper.Viper
 	app               string
 	env               string
 	envPrefix         string          // 环境变量前缀
@@ -48,6 +52,7 @@ type OptionWatch struct {
 
 // 缺省配置选项
 var (
+	_vc          *ViperConfig // 全局的vc
 	defaultValue = struct {
 		EnvPrefix         string
 		RootParts         []string
@@ -70,7 +75,7 @@ var (
 		RemoteUrl:      "http://127.0.0.1:2379", // 默认的remote url
 		WatchOption: &OptionWatch{
 			enabled:     true, // 默认是否检测远程配置变更
-			effectDelay: 5,    // 配置变化生效时间为5秒
+			effectDelay: 30,   // 配置变化生效时间为30秒
 		},
 		DisableRemoteEnvs: []string{"", "local"}, // 默认无环境或者local环境不需要加载remote配置
 	}
@@ -91,13 +96,16 @@ const (
 // NewConfig args[0]为env
 func NewConfig(app, env string, options ...ConfigOption) *ViperConfig {
 	c := &ViperConfig{
-		v:                 viper.New(),
+		local:             viper.New(),
+		remote:            viper.New(),
 		app:               app,
 		env:               env,
 		envPrefix:         defaultValue.EnvPrefix,
+		rootParts:         nil,
 		configType:        defaultValue.ConfigType,
 		disableRemoteEnvs: defaultValue.DisableRemoteEnvs, // 禁用remote配置加载的环境列表
 		fileOption:        defaultValue.FileOption,
+		remoteOptions:     nil,
 		watchOption:       defaultValue.WatchOption,
 	}
 
@@ -106,34 +114,76 @@ func NewConfig(app, env string, options ...ConfigOption) *ViperConfig {
 	}
 
 	// 必须设置config的类型
-	c.v.SetConfigType(c.configType)
+	c.local.SetConfigType(c.configType)
+
+	// 保存到全局变量方便后续调用
+	_vc = c
 
 	return c
 }
 
-func (c *ViperConfig) Load(configVar any) error {
-	err := c.LoadLocal(nil)
+// UpdateRemoteConfig 更新远程配置
+// nolint: staticcheck
+func UpdateRemoteConfig(v any) error {
+	if Etcd == nil {
+		return errors.New("hdsdk not initialized")
+	}
+
+	if _vc == nil {
+		return errors.New("config not initialized")
+	}
+
+	data, err := json.Marshal(v)
 	if err != nil {
 		return err
 	}
 
-	// 只有当前环境不在disable列表时才需要加载remote配置
-	if !utils.Contains(c.disableRemoteEnvs, c.env) {
-		return c.LoadRemote(configVar)
+	for _, option := range _vc.remoteOptions {
+		err = Etcd.Set(option.path, data)
+		if err != nil {
+			return err
+		}
+		// 如果成功
+		break
 	}
 
-	return c.unmarshal(configVar)
+	return nil
+}
+
+func (c *ViperConfig) Load(configVars ...any) error {
+	var localConfigVar, remoteConfigVar any
+	switch len(configVars) {
+	case 0:
+		return errors.New("need at least config var")
+	case 1:
+		localConfigVar = configVars[0]
+	case 2:
+		localConfigVar = configVars[0]
+		remoteConfigVar = configVars[1]
+	}
+
+	err := c.LoadLocal(localConfigVar)
+	if err != nil {
+		return err
+	}
+
+	// 如果没有指定远程配置变量，我们认为不需要加载远程配置,
+	// 同时只有当前环境不在disable列表时才需要加载remote配置
+	if remoteConfigVar != nil && !utils.Contains(c.disableRemoteEnvs, c.env) {
+		return c.LoadRemote(remoteConfigVar)
+	}
+
+	return nil
 }
 
 // LoadLocal 从各个配置源获取配置数据, 并加载到configVar中， 同名变量配置高的覆盖低的
 // - remote: kvstore配置（低）
 // - configFile: 文件配置(中）
 // - env: 环境变量配置(高)
-func (c *ViperConfig) LoadLocal(configVar any) error {
+func (c *ViperConfig) LoadLocal(localConfigVar any) error {
 	// 如果环境变量为空，则加载最小基本配置
 	if c.env == "" {
-		c.loadMinimal()
-		return nil
+		return c.loadMinimal(localConfigVar)
 	}
 
 	// 尝试从环境变量中获取配置信息
@@ -145,21 +195,10 @@ func (c *ViperConfig) LoadLocal(configVar any) error {
 		return errors.Wrap(err, "load config from file")
 	}
 
-	return c.unmarshal(configVar)
+	return c.local.Unmarshal(localConfigVar)
 }
 
-func (c *ViperConfig) unmarshal(configVar any) error {
-	// 尝试unmarshal所有配置数据
-	if configVar != nil && len(c.v.AllKeys()) > 0 {
-		err := c.v.Unmarshal(configVar)
-		if err != nil {
-			return errors.Wrap(err, "unmarshal config")
-		}
-	}
-	return nil
-}
-
-func (c *ViperConfig) LoadRemote(configVar any) error {
+func (c *ViperConfig) LoadRemote(remoteConfigVar any) error {
 	// 尝试从远程配置信息
 	err := c.loadFromRemote()
 	if err != nil {
@@ -167,49 +206,28 @@ func (c *ViperConfig) LoadRemote(configVar any) error {
 	} else {
 		// 如果加载remote成功，则尝试监控配置变化
 		if c.watchOption.enabled {
-			err = c.watchRemote(configVar)
+			err = c.watchRemote(remoteConfigVar)
 			if err != nil {
 				utils.LogError("watch remote config change", "err", err)
 			}
 		}
 	}
 
-	return c.unmarshal(configVar)
+	if remoteConfigVar != nil {
+		return c.remote.Unmarshal(remoteConfigVar)
+	}
+
+	return nil
 }
 
 func (c *ViperConfig) Read(data []byte) *ViperConfig {
-	_ = c.v.MergeConfig(bytes.NewReader(data))
+	_ = c.local.MergeConfig(bytes.NewReader(data))
 	return c
 }
 
 func (c *ViperConfig) ReadString(s string) *ViperConfig {
 	_ = c.Read(utils.StringToBytes(s))
 	return c
-}
-
-func (c *ViperConfig) watchRemote(configVar any) error {
-	// 如果无任何远程配置设置，忽略
-	if len(c.remoteOptions) == 0 {
-		return nil
-	}
-
-	// currently, only tested with etcd support
-	err := c.v.WatchRemoteConfigOnChannel()
-	if err != nil {
-		return err
-	}
-
-	go func() {
-		for {
-			time.Sleep(time.Second * time.Duration(c.watchOption.effectDelay)) // delay after each request
-
-			err = c.unmarshal(configVar)
-			if err != nil {
-				utils.LogError("unable to unmarshal remote config", "err", err)
-			}
-		}
-	}()
-	return nil
 }
 
 func WithConfigFile(filepath string) ConfigOption {
@@ -290,24 +308,52 @@ func WithDisableRemoteEnvs(args ...string) ConfigOption {
 // ///////////////////////////////////////////////////////////////
 // private functions
 // //////////////////////////////////////////////////////////////
+func (c *ViperConfig) watchRemote(remoteConfigVar any) error {
+	// 如果无任何远程配置设置，忽略
+	if len(c.remoteOptions) == 0 {
+		return nil
+	}
+
+	// currently, only tested with etcd support
+	err := c.remote.WatchRemoteConfigOnChannel()
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		for {
+			time.Sleep(time.Second * time.Duration(c.watchOption.effectDelay)) // delay after each request
+
+			// 加写锁保证remoteConfigVar没有同时被写
+			c.mu.Lock()
+			err = c.remote.Unmarshal(remoteConfigVar)
+			c.mu.Unlock()
+			if err != nil {
+				utils.LogError("unable to unmarshal remote config", "err", err)
+			}
+		}
+	}()
+	return nil
+}
 
 // loadFromEnv 从环境文件中读取配置信息
 func (c *ViperConfig) loadFromEnv() {
 	// 如果设置了环境变量前缀，则尝试自动获取环境变量中的配置
 	if c.envPrefix != "" {
-		c.v.SetEnvPrefix(c.envPrefix)
-		c.v.AutomaticEnv()
+		c.local.SetEnvPrefix(c.envPrefix)
+		c.local.AutomaticEnv()
 	}
 }
 
-func (c *ViperConfig) loadMinimal() {
+func (c *ViperConfig) loadMinimal(localConfigVar any) error {
 	_ = c.ReadString(fmt.Sprintf(tplMinimalConfigContent, c.app))
+	return c.local.Unmarshal(localConfigVar)
 }
 
 func (c *ViperConfig) loadFromFile() error {
 	// 如果指定了配置文件
 	if c.fileOption.configFile != "" {
-		c.v.SetConfigFile(c.fileOption.configFile)
+		c.local.SetConfigFile(c.fileOption.configFile)
 	} else { //未指定在当前目录和父级目录找
 		// 未指定搜索路径，使用缺省值setting/app/<app>
 		if len(c.fileOption.dirs) == 0 {
@@ -323,23 +369,23 @@ func (c *ViperConfig) loadFromFile() error {
 
 		// 先加入指定目录
 		for _, dir := range c.fileOption.dirs {
-			c.v.AddConfigPath(dir) // 指定目录
+			c.local.AddConfigPath(dir) // 指定目录
 		}
 		// 再默认添加指定目录的上级目录
 		for _, dir := range c.fileOption.dirs {
-			c.v.AddConfigPath(filepath.Join("..", dir))
+			c.local.AddConfigPath(filepath.Join("..", dir))
 		}
-		c.v.SetConfigName(c.fileOption.filename)
+		c.local.SetConfigName(c.fileOption.filename)
 	}
 
-	err := c.v.ReadInConfig()
+	err := c.local.ReadInConfig()
 	if err != nil {
 		// 如果配置文件找到，但读取时碰到其他问题需要中止
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			return err
 		}
 	} else {
-		utils.LogDebug("load config from file", "file", c.v.ConfigFileUsed())
+		utils.LogDebug("load config from file", "file", c.local.ConfigFileUsed())
 	}
 
 	return nil
@@ -353,13 +399,15 @@ func (c *ViperConfig) loadFromRemote() error {
 	}
 
 	for _, option := range c.remoteOptions {
-		err := c.v.AddRemoteProvider(option.provider, option.url, option.path)
+		err := c.remote.AddRemoteProvider(option.provider, option.url, option.path)
 		if err != nil {
 			return errors.Wrapf(err, "add remote provider, provider: %s, url: %s, path: %s", option.provider, option.url, option.path)
 		}
 	}
 
-	err := c.v.ReadRemoteConfig()
+	// 远程的固定为json
+	c.remote.SetConfigType("json")
+	err := c.remote.ReadRemoteConfig()
 	if err != nil {
 		return errors.Wrapf(err, "read remote config")
 	}
@@ -373,7 +421,7 @@ func (c *ViperConfig) loadFromRemote() error {
 func (c *ViperConfig) getDefaultRemoteOption() *OptionRemote {
 	// 加载远程配置的时候优先从之前已经读取的配置，例如文件配置中取remoteUrl
 	url := defaultValue.RemoteUrl
-	if v := c.v.GetString(defaultValue.RemoteUrlKey); v != "" {
+	if v := c.local.GetString(defaultValue.RemoteUrlKey); v != "" {
 		url = v
 	}
 
