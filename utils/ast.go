@@ -101,7 +101,7 @@ func (a *hdAst) getFunctions(srcPath string, fnParams, fnResults []string) ([]as
 		return nil, errors.Wrapf(err, "ast parse src code comments, dir: %s", srcPath)
 	}
 
-	comments := make([]astRawFunction, 0)
+	rawFuncs := make([]astRawFunction, 0)
 	for pkgName, pkgAst := range pkgAsts {
 		// 遍历每个包的每个文件
 		for filename, f := range pkgAst.Files {
@@ -128,7 +128,7 @@ func (a *hdAst) getFunctions(srcPath string, fnParams, fnResults []string) ([]as
 					continue
 				}
 
-				comment := astRawFunction{
+				rawFn := astRawFunction{
 					Package:  pkgName,
 					File:     filename,
 					Receiver: fn.Receiver,
@@ -142,20 +142,34 @@ func (a *hdAst) getFunctions(srcPath string, fnParams, fnResults []string) ([]as
 					prevIndex = 0
 				}
 
-				// 解析当前函数的注释
-				for _, cg := range f.Comments {
-					for _, c := range cg.List {
-						if c.Pos() >= fnInfos[prevIndex].End && c.End() <= fn.Pos {
-							comment.Comments = append(comment.Comments, c.Text)
+				// 解析当前函数有效的注释,尝试从最近的注释块开始判断, 如果注释组的首行的开始位置在上一个函数后，结束行的结束位置在当前函数前，
+				// 则认为该注释块是该函数的有效注释块，这里需要倒序检查注释组
+				// 为什么取最近的有效注释块，是因为需要忽略有空行分割的其他无效的注释块
+				var validCommentGroup *ast.CommentGroup
+				for i := len(f.Comments) - 1; i >= 0; i-- {
+					currentCg := f.Comments[i]
+					if len(currentCg.List) > 0 {
+						cgFirstLine := currentCg.List[0]
+						cgLastLine := currentCg.List[len(currentCg.List)-1]
+						if cgFirstLine.Pos() >= fnInfos[prevIndex].End && cgLastLine.End() <= fn.Pos {
+							validCommentGroup = currentCg
+							break
 						}
 					}
 				}
-				comments = append(comments, comment)
+
+				if validCommentGroup != nil {
+					for _, c := range validCommentGroup.List {
+						rawFn.Comments = append(rawFn.Comments, c.Text)
+					}
+				}
+
+				rawFuncs = append(rawFuncs, rawFn)
 			}
 		}
 	}
 
-	return comments, nil
+	return rawFuncs, nil
 }
 
 // matchFunction 校验函数声明是否是匹配的
