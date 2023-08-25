@@ -101,7 +101,7 @@ func NewConfig(app, env string, options ...ConfigOption) *ViperConfig {
 		app:               app,
 		env:               env,
 		envPrefix:         defaultValue.EnvPrefix,
-		rootParts:         nil,
+		rootParts:         defaultValue.RootParts,
 		configType:        defaultValue.ConfigType,
 		disableRemoteEnvs: defaultValue.DisableRemoteEnvs, // 禁用remote配置加载的环境列表
 		fileOption:        defaultValue.FileOption,
