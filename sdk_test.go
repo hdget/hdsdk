@@ -775,20 +775,20 @@ func TestNeo4j(t *testing.T) {
 		utils.LogFatal("neo4j exec", "err", err)
 	}
 
-	result, err := Neo4j.Select("MATCH (a:Person) RETURN a")
+	ret1, err := Neo4j.Select("MATCH (a:Person) RETURN a")
 	if err != nil {
 		utils.LogFatal("neo4j select", "err", err)
 	}
-	fmt.Println(result)
+	fmt.Println(ret1)
 
 	type Person struct {
 		Name string `json:"name"`
 	}
-	ddd, err := Neo4j.Get("MATCH (a:Person {name: $Name}) RETURN a", &Person{Name: "A"})
+	ret2, err := Neo4j.Get("MATCH (a:Person {name: $Name}) RETURN a", &Person{Name: "A"})
 	if err != nil {
 		utils.LogFatal("neo4j get", "err", err)
 	}
-	fmt.Println(ddd)
+	fmt.Println(ret2)
 }
 
 // 找到匹配的a节点，然后detach命令会删除a节点相关的所有关系
