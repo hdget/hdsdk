@@ -48,22 +48,32 @@ type OptionWatch struct {
 
 // 缺省配置选项
 var (
-	defaultEnvPrefix  = "HD"
-	defaultRootParts  = []string{"setting", "app"} // 缺省的Root路径Parts, 这里定义为[]string，方便用path.Join或者filepath.Join
-	defaultConfigType = "toml"                     // 缺省的配置文件类型
-	defaultFileOption = &OptionFile{
-		dirs: make([]string, 0),
+	defaultValue = struct {
+		EnvPrefix         string
+		RootParts         []string
+		ConfigType        string
+		FileOption        *OptionFile
+		RemoteUrlKey      string
+		RemoteProvider    string
+		RemoteUrl         string
+		WatchOption       *OptionWatch
+		DisableRemoteEnvs []string
+	}{
+		EnvPrefix:  "HD",
+		RootParts:  []string{"setting", "app"}, // 缺省的Root路径Parts, 这里定义为[]string，方便用path.Join或者filepath.Join
+		ConfigType: "toml",                     // 缺省的配置文件类型
+		FileOption: &OptionFile{
+			dirs: make([]string, 0),
+		},
+		RemoteUrlKey:   "sdk.etcd.url",          // 默认etcd在文件中定义的key
+		RemoteProvider: "etcd3",                 // 默认的remote provider
+		RemoteUrl:      "http://127.0.0.1:2379", // 默认的remote url
+		WatchOption: &OptionWatch{
+			enabled:     true, // 默认是否检测远程配置变更
+			effectDelay: 5,    // 配置变化生效时间为5秒
+		},
+		DisableRemoteEnvs: []string{"", "local"}, // 默认无环境或者local环境不需要加载remote配置
 	}
-	defaultRemoteUrlKey = "sdk.etcd.url" // 默认etcd在文件中定义的key
-	defaultRemoteOption = &OptionRemote{
-		provider: "etcd3",
-		url:      "http://127.0.0.1:2379",
-	}
-	defaultWatchOption = &OptionWatch{
-		enabled:     true,
-		effectDelay: 5, // 配置变化生效时间为5秒
-	}
-	defaultDisableRemoteEnvs = []string{"", "local"} // 默认无环境或者local环境不需要加载remote配置
 )
 
 const (
@@ -84,12 +94,11 @@ func NewConfig(app, env string, options ...ConfigOption) *ViperConfig {
 		v:                 viper.New(),
 		app:               app,
 		env:               env,
-		envPrefix:         defaultEnvPrefix,
-		rootParts:         defaultRootParts,
-		configType:        defaultConfigType,
-		disableRemoteEnvs: defaultDisableRemoteEnvs, // 禁用remote配置加载的环境列表
-		fileOption:        defaultFileOption,
-		watchOption:       defaultWatchOption,
+		envPrefix:         defaultValue.EnvPrefix,
+		configType:        defaultValue.ConfigType,
+		disableRemoteEnvs: defaultValue.DisableRemoteEnvs, // 禁用remote配置加载的环境列表
+		fileOption:        defaultValue.FileOption,
+		watchOption:       defaultValue.WatchOption,
 	}
 
 	for _, option := range options {
@@ -136,15 +145,12 @@ func (c *ViperConfig) LoadLocal(configVar any) error {
 		return errors.Wrap(err, "load config from file")
 	}
 
-	if configVar != nil {
-		return c.unmarshal(configVar)
-	}
-	return nil
+	return c.unmarshal(configVar)
 }
 
 func (c *ViperConfig) unmarshal(configVar any) error {
 	// 尝试unmarshal所有配置数据
-	if len(c.v.AllKeys()) > 0 {
+	if configVar != nil && len(c.v.AllKeys()) > 0 {
 		err := c.v.Unmarshal(configVar)
 		if err != nil {
 			return errors.Wrap(err, "unmarshal config")
@@ -168,10 +174,7 @@ func (c *ViperConfig) LoadRemote(configVar any) error {
 		}
 	}
 
-	if configVar != nil {
-		return c.unmarshal(configVar)
-	}
-	return nil
+	return c.unmarshal(configVar)
 }
 
 func (c *ViperConfig) Read(data []byte) *ViperConfig {
@@ -200,7 +203,7 @@ func (c *ViperConfig) watchRemote(configVar any) error {
 		for {
 			time.Sleep(time.Second * time.Duration(c.watchOption.effectDelay)) // delay after each request
 
-			err = c.v.Unmarshal(configVar)
+			err = c.unmarshal(configVar)
 			if err != nil {
 				utils.LogError("unable to unmarshal remote config", "err", err)
 			}
@@ -209,9 +212,9 @@ func (c *ViperConfig) watchRemote(configVar any) error {
 	return nil
 }
 
-func WithConfigFile(filename string) ConfigOption {
+func WithConfigFile(filepath string) ConfigOption {
 	return func(c *ViperConfig) {
-		c.fileOption.configFile = filename
+		c.fileOption.configFile = filepath
 	}
 }
 
@@ -306,9 +309,10 @@ func (c *ViperConfig) loadFromFile() error {
 	if c.fileOption.configFile != "" {
 		c.v.SetConfigFile(c.fileOption.configFile)
 	} else { //未指定在当前目录和父级目录找
+		// 未指定搜索路径，使用缺省值setting/app/<app>
 		if len(c.fileOption.dirs) == 0 {
 			c.fileOption.dirs = append(c.fileOption.dirs,
-				filepath.Join(filepath.Join(defaultRootParts...), c.app), // config/app/<app>
+				filepath.Join(filepath.Join(defaultValue.RootParts...), c.app),
 			)
 		}
 
@@ -342,19 +346,10 @@ func (c *ViperConfig) loadFromFile() error {
 }
 
 // loadFromRemote 尝试从远程kvstore中获取配置信息
+// windows下测试: e,g: type test.txt | etcdctl.exe put /setting/app/hello/test
 func (c *ViperConfig) loadFromRemote() error {
 	if len(c.remoteOptions) == 0 {
-		// 加载远程配置的时候优先从之前已经读取的配置，例如文件配置中取remoteUrl
-		url := c.v.GetString(defaultRemoteUrlKey)
-		if url != "" {
-			defaultRemoteOption.url = url
-		}
-
-		// 缺省的配置路径: config/app/<app>/<env>
-		defaultRemoteOption.path = path.Join("/", path.Join(defaultRootParts...), c.app, c.env)
-		c.remoteOptions = []*OptionRemote{
-			defaultRemoteOption,
-		}
+		c.remoteOptions = append(c.remoteOptions, c.getDefaultRemoteOption())
 	}
 
 	for _, option := range c.remoteOptions {
@@ -373,4 +368,19 @@ func (c *ViperConfig) loadFromRemote() error {
 		utils.LogDebug("load config from remote", "provider", option.provider, "url", option.url, "path", option.path)
 	}
 	return nil
+}
+
+func (c *ViperConfig) getDefaultRemoteOption() *OptionRemote {
+	// 加载远程配置的时候优先从之前已经读取的配置，例如文件配置中取remoteUrl
+	url := defaultValue.RemoteUrl
+	if v := c.v.GetString(defaultValue.RemoteUrlKey); v != "" {
+		url = v
+	}
+
+	return &OptionRemote{
+		provider: defaultValue.RemoteProvider,
+		url:      url,
+		path:     path.Join("/", path.Join(defaultValue.RootParts...), c.app), // 具体app的具体环境的配置保存在该路径下： /setting/app/<app>
+
+	}
 }

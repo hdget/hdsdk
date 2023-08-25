@@ -208,7 +208,8 @@ if err != nil {
 - 除无环境和local环境外，运行Load()函数会默认加载远程配置，默认行为可以`NewConfig()`的时候通过`WithDisableRemoteEnvs()`选项函数来改变 
 - 加载远程配置时会优先以本地配置`sdk.etcd.url`定义的值来加载远程配置，如果无`sdk.etcd.url`本地配置默认使用URL: http://127.0.0.1:2379
 - 远程配置加载成功，默认开启远程配置监控，如果远程配置项有变化，5秒钟后生效。该默认行为可以`NewConfig()`的时候通过`WithWatch()`选项函数来改变
-- 可以单独使用LoadRemote()函数来仅加载远程配置而忽略本地配置，注意这个时候本地配置的`sdk.etcd.url`不生效，默认从`http://127.0.0.1:2379`加载，默认行为可以`NewConfig()`的时候通过`WithRemote()`选项函数来改变 
+- 可以单独使用LoadRemote()函数来仅加载远程配置而忽略本地配置，注意这个时候本地配置的`sdk.etcd.url`不生效，默认从`http://127.0.0.1:2379`加载，默认行为可以`NewConfig()`的时候通过`WithRemote()`选项函数来改变
+- 远程配置默认保存在`/setting/app/<app>`key下面，该默认行为可以`NewConfig()`的时候通过`WithRemote()`选项函数来改变
 - 相关函数
   * WithRemote()： 定义远程配置提供者的信息
   * WithDisableRemoteEnvs()： 定义在哪些环境不开启远程配置功能
