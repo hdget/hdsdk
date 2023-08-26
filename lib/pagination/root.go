@@ -8,18 +8,23 @@ import (
 )
 
 const (
-	DefaultPageSize    = 10
-	defaultLimitClause = "LIMIT 0, 10"
+	DefaultPageSize = 10
+)
+
+var (
+	defaultPageParam = &protobuf.ListParam{
+		Page:     1,
+		PageSize: DefaultPageSize,
+	}
 )
 
 type Pagination struct {
-	page     int64 // 第几页
-	pageSize int64 // 每页几项
+	Page     uint64 // 第几页
+	PageSize uint64 // 每页几项
+	Offset   uint64 // 偏移起始值
 }
 
-// New pagination
-// args[0] is default page size
-func New(page, pageSize int64, args ...int64) *Pagination {
+func New(page, pageSize int64) *Pagination {
 	// 处理当前页面
 	if page == 0 {
 		page = 1
@@ -28,12 +33,11 @@ func New(page, pageSize int64, args ...int64) *Pagination {
 	// 处理每页大小
 	if pageSize <= 0 {
 		pageSize = DefaultPageSize
-		if len(args) > 0 { // if specified default page size, then use it
-			pageSize = args[0]
-		}
 	}
 
-	return &Pagination{page: page, pageSize: pageSize}
+	offset := uint64((page - 1) * pageSize)
+
+	return &Pagination{Page: uint64(page), PageSize: uint64(pageSize), Offset: offset}
 }
 
 // Paging 分页
@@ -42,35 +46,25 @@ func New(page, pageSize int64, args ...int64) *Pagination {
 func (p *Pagination) Paging(data interface{}) (int64, []interface{}) {
 	sliceData := convertToSlice(data)
 	total := int64(len(sliceData))
-	start, end := GetStartEndPosition(p.page, p.pageSize, total)
+	start, end := GetStartEndPosition(int64(p.Page), int64(p.PageSize), total)
 	return total, sliceData[start:end]
 }
 
 // GetLimitClause 获取limit sql子句
 func (p *Pagination) GetLimitClause() string {
-	if p == nil || p.page == 0 {
-		return fmt.Sprintf("LIMIT %d", p.pageSize)
+	if p.Offset == 0 {
+		return fmt.Sprintf("LIMIT %d", p.PageSize)
 	}
 
-	start := (p.page - 1) * p.pageSize
-	return fmt.Sprintf("LIMIT %d, %d", start, p.pageSize)
-}
-
-func (p *Pagination) GetLimitValues() (int64, int64) {
-	var start int64
-	if p != nil && p.page > 0 {
-		start = (p.page - 1) * p.pageSize
-	}
-
-	return start, p.pageSize
+	return fmt.Sprintf("LIMIT %d, %d", p.Offset, p.PageSize)
 }
 
 // GetSQLClause 获取翻页SQL查询语句
 //
-// 1. 假如前端没有传过来last_pk, 那么返回值是 last_pk, LIMIT子句(LIMIT offset, pageSize)
+// 1. 假如前端没有传过来last_pk, 那么返回值是 last_pk, LIMIT子句(LIMIT offset, PageSize)
 // e,g: 0, "LIMIT 20, 10" => 在数据库查询时可能会被组装成 WHERE pk > 0 ...  LIMIT 20, 10
 //
-// 2. 假如前端传过来了last_pk, 那么返回值是 last_pk, LIMIT子句(LIMIT pageSize)
+// 2. 假如前端传过来了last_pk, 那么返回值是 last_pk, LIMIT子句(LIMIT PageSize)
 // e,g: 123,"LIMIT 10" => 在数据库查询时可能会被组装成 WHERE pk > 123 ...  LIMIT 10
 //func (p *Pagination) GetSQLClause(total int64) string {
 //	if p == nil {
@@ -82,9 +76,9 @@ func (p *Pagination) GetLimitValues() (int64, int64) {
 //		return "LIMIT 0"
 //	}
 //
-//	start := (p.page - 1) * p.pageSize
-//	return fmt.Sprintf("LIMIT %d, %d", start, p.pageSize)
-//	//start, end := GetStartEndPosition(p.page, p.pageSize, total)
+//	start := (p.Page - 1) * p.PageSize
+//	return fmt.Sprintf("LIMIT %d, %d", start, p.PageSize)
+//	//start, end := GetStartEndPosition(p.Page, p.PageSize, total)
 //	//
 //	//return fmt.Sprintf("LIMIT %d, %d", start, end-start)
 //}
@@ -131,6 +125,19 @@ func GetStartEndPosition(page, pageSize, total int64) (int64, int64) {
 	return start, end
 }
 
+func NewWithParam(listParam *protobuf.ListParam) *Pagination {
+	p := listParam
+	if p == nil {
+		p = defaultPageParam
+	}
+	return New(p.Page, p.PageSize)
+}
+
+// GetLimitClause 从protobuf.ListParam生成limit语句
+func GetLimitClause(listParam *protobuf.ListParam) string {
+	return NewWithParam(listParam).GetLimitClause()
+}
+
 // convertToSlice convert interface{} to []interface{}
 func convertToSlice(data interface{}) []interface{} {
 	v := reflect.ValueOf(data)
@@ -145,12 +152,4 @@ func convertToSlice(data interface{}) []interface{} {
 	}
 
 	return sliceData
-}
-
-// NewLimitClause 从protobuf.ListParam生成limit语句
-func NewLimitClause(listParam *protobuf.ListParam) string {
-	if listParam != nil {
-		return New(listParam.Page, listParam.PageSize).GetLimitClause()
-	}
-	return defaultLimitClause
 }

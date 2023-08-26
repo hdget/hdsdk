@@ -20,11 +20,11 @@ const DefaultPageSize = 10
 // args[0] is default page size
 // then you can use pagination.Paging
 // or pagination.GetSQLClause(total) 去获取分页的limit子句
-func GetPagination(c *gin.Context, args ...int64) *pagination.Pagination {
+func GetPagination(c *gin.Context) *pagination.Pagination {
 	var p PaginationParam
 	if c.ShouldBind(&p) != nil {
 		return nil
 	}
 
-	return pagination.New(p.Page, p.PageSize, args...)
+	return pagination.New(p.Page, p.PageSize)
 }
