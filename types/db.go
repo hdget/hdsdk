@@ -1,23 +1,34 @@
 package types
 
-import "github.com/jmoiron/sqlx"
+import (
+	"github.com/Masterminds/squirrel"
+	"github.com/hdget/hdsdk/protobuf"
+	"github.com/jmoiron/sqlx"
+)
 
 // DbProvider database能力提供
 type DbProvider interface {
 	Provider
-
-	My() *sqlx.DB // 默认我们的数据库连接
-	Master() *sqlx.DB
-	Slave(int) *sqlx.DB
-	By(string) *sqlx.DB // 获取某个名字的数据库连接
+	My() DbClient       // 默认我们的数据库连接
+	Master() DbClient   // 主库
+	Slave(int) DbClient // 指定的从库
+	By(string) DbClient // 获取某个名字的数据库连接
 }
 
 type DbClient interface {
-	// Rebind transforms a query from QUESTION to the DB driver's bindvar type.
+	Sq(builder squirrel.SelectBuilder) DbClient
+
+	Select(dest any, query string, args ...any) error
+	Get(dest any, query string, args ...any) error
+	Queryx(query string, args ...any) (*sqlx.Rows, error)
 	Rebind(query string) string
 
-	Get(dest interface{}, query string, args ...interface{}) error
-	Queryx(query string, args ...interface{}) (*sqlx.Rows, error)
+	// squirrel builder related methods
+	ToSql() (string, []any, error)
+	HGet(v any) error
+	HSelect(v any, args ...*protobuf.ListParam) error
+	HCount() (int64, error)
+	HQuery(args ...*protobuf.ListParam) (*sqlx.Rows, error)
 }
 
 // database capability
