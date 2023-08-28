@@ -3,6 +3,7 @@ package types
 import (
 	"database/sql"
 	"github.com/Masterminds/squirrel"
+	"github.com/elgris/sqrl"
 	"github.com/hdget/hdsdk/protobuf"
 	"github.com/jmoiron/sqlx"
 )
@@ -16,7 +17,7 @@ type DbProvider interface {
 	By(string) DbClient // 获取某个名字的数据库连接
 }
 
-type DbClient interface {
+type SqlxClient interface {
 	sqlx.Ext
 	sqlx.ExtContext
 	MapperFunc(mf func(string) string)
@@ -30,14 +31,21 @@ type DbClient interface {
 	MustExec(query string, args ...interface{}) sql.Result
 	Preparex(query string) (*sqlx.Stmt, error)
 	PrepareNamed(query string) (*sqlx.NamedStmt, error)
+}
 
-	// squirrel builder related methods
-	Sq(builder squirrel.SelectBuilder) DbClient
+type BuilderClient interface {
 	ToSql() (string, []any, error)
 	HGet(v any) error
 	HSelect(v any, args ...*protobuf.ListParam) error
 	HCount() (int64, error)
 	HQuery(args ...*protobuf.ListParam) (*sqlx.Rows, error)
+}
+
+type DbClient interface {
+	SqlxClient
+	BuilderClient
+	Sq(builder squirrel.Sqlizer) DbClient
+	Sqrl(builder sqrl.Sqlizer) DbClient
 }
 
 // database capability

@@ -55,7 +55,7 @@ func (p *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvid
 	}
 
 	// 从库
-	p.Slaves = make([]*db.BaseDbClient, 0)
+	p.Slaves = make([]*db.SqDbClient, 0)
 	for i, slaveConf := range config.Slaves {
 		if err := validateConf(types.ProviderTypeSlave, slaveConf); err == nil {
 			instance, err := p.connect(slaveConf)
@@ -67,7 +67,7 @@ func (p *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvid
 	}
 
 	// 外部库
-	p.Items = make(map[string]*db.BaseDbClient)
+	p.Items = make(map[string]*db.SqDbClient)
 	for _, otherConf := range config.Items {
 		if err := validateConf(types.ProviderTypeOther, otherConf); err == nil {
 			instance, err := p.connect(otherConf)
@@ -81,7 +81,7 @@ func (p *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvid
 	return nil
 }
 
-func (p *MysqlProvider) connect(conf *MySqlConf) (*db.BaseDbClient, error) {
+func (p *MysqlProvider) connect(conf *MySqlConf) (*db.SqDbClient, error) {
 	// DSN (Data Type NickName): username:password@protocol(address)/dbname?param=value
 	t := "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4,utf8"
 	// 构造连接参数
@@ -98,5 +98,5 @@ func (p *MysqlProvider) connect(conf *MySqlConf) (*db.BaseDbClient, error) {
 	// connection.go:173: driver: bad connection
 	instance.SetConnMaxLifetime(3 * time.Minute)
 
-	return &db.BaseDbClient{DB: instance}, nil
+	return &db.SqDbClient{DB: instance}, nil
 }
