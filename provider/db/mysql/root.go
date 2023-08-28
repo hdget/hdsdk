@@ -15,7 +15,7 @@ import (
 )
 
 type MysqlProvider struct {
-	*db.BaseDbProvider
+	db.BaseDbProvider
 	Log types.LogProvider
 }
 
@@ -28,7 +28,7 @@ var (
 // @author	Ryan Fan	(2021-06-09)
 // @param	baseconf.Configer	root config interface to extract config info
 // @return	error
-func (mp *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvider, _ ...interface{}) error {
+func (p *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvider, _ ...interface{}) error {
 	// 获取数据库配置信息
 	config, err := parseConfig(rootConfiger)
 	if err != nil {
@@ -42,7 +42,7 @@ func (mp *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 	}
 
 	// 缺省数据库必须确保能够连接成功，否则fatal
-	mp.Default, err = mp.connect(config.Default)
+	p.Default, err = p.connect(config.Default)
 	if err != nil {
 		logger.Fatal("connect db", "type", types.ProviderTypeDefault, "host", config.Default.Host, "dbname", config.Default.Database, "err", err)
 	}
@@ -50,29 +50,29 @@ func (mp *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 
 	// 主库
 	if err := validateConf(types.ProviderTypeMaster, config.Master); err == nil {
-		mp.Main, err = mp.connect(config.Master)
+		p.Main, err = p.connect(config.Master)
 		logger.Debug("connect db", "type", types.ProviderTypeMaster, "host", config.Master.Host, "dbname", config.Master.Database, "err", err)
 	}
 
 	// 从库
-	mp.Slaves = make([]*db.BaseDbClient, 0)
+	p.Slaves = make([]*db.BaseDbClient, 0)
 	for i, slaveConf := range config.Slaves {
 		if err := validateConf(types.ProviderTypeSlave, slaveConf); err == nil {
-			instance, err := mp.connect(slaveConf)
+			instance, err := p.connect(slaveConf)
 			if instance != nil {
-				mp.Slaves = append(mp.Slaves, instance)
+				p.Slaves = append(p.Slaves, instance)
 			}
 			logger.Debug("connect db", "type", fmt.Sprintf("slave_%d", i), "host", slaveConf.Host, "dbname", slaveConf.Database, "err", err)
 		}
 	}
 
 	// 外部库
-	mp.Items = make(map[string]*db.BaseDbClient)
+	p.Items = make(map[string]*db.BaseDbClient)
 	for _, otherConf := range config.Items {
 		if err := validateConf(types.ProviderTypeOther, otherConf); err == nil {
-			instance, err := mp.connect(otherConf)
+			instance, err := p.connect(otherConf)
 			if instance != nil {
-				mp.Items[otherConf.Name] = instance
+				p.Items[otherConf.Name] = instance
 			}
 			logger.Debug("connect db", "type", otherConf.Name, "host", otherConf.Host, "dbname", otherConf.Database, "err", err)
 		}
@@ -81,10 +81,9 @@ func (mp *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 	return nil
 }
 
-func (mp *MysqlProvider) connect(conf *MySqlConf) (*db.BaseDbClient, error) {
+func (p *MysqlProvider) connect(conf *MySqlConf) (*db.BaseDbClient, error) {
 	// DSN (Data Type NickName): username:password@protocol(address)/dbname?param=value
 	t := "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4,utf8"
-
 	// 构造连接参数
 	connStr := fmt.Sprintf(t, conf.User, conf.Password, conf.Host, conf.Port, conf.Database)
 	instance, err := sqlx.Connect("mysql", connStr)
