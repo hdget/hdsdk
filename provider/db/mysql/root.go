@@ -10,6 +10,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/hdget/hdsdk/provider/db"
 	"github.com/hdget/hdsdk/types"
+	"github.com/jmoiron/sqlx"
+	"time"
 )
 
 type MysqlProvider struct {
@@ -80,23 +82,21 @@ func (p *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvid
 }
 
 func (p *MysqlProvider) connect(conf *MySqlConf) (*db.BaseDbClient, error) {
-	//// DSN (Data Type NickName): username:password@protocol(address)/dbname?param=value
-	//t := "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4,utf8"
-	//// 构造连接参数
-	//connStr := fmt.Sprintf(t, conf.User, conf.Password, conf.Host, conf.Port, conf.Database)
-	//instance, err := sqlx.Connect("mysql", connStr)
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	return &db.BaseDbClient{}, nil
+	// DSN (Data Type NickName): username:password@protocol(address)/dbname?param=value
+	t := "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4,utf8"
+	// 构造连接参数
+	connStr := fmt.Sprintf(t, conf.User, conf.Password, conf.Host, conf.Port, conf.Database)
+	instance, err := sqlx.Connect("mysql", connStr)
+	if err != nil {
+		return nil, err
+	}
 
 	// https://www.alexedwards.net/blog/configuring-sqldb
 	// https://making.pusher.com/production-ready-connection-pooling-in-go
 	// Avoid issue:
 	// packets.go:123: closing bad idle connection: EOF
 	// connection.go:173: driver: bad connection
-	//instance.SetConnMaxLifetime(3 * time.Minute)
+	instance.SetConnMaxLifetime(3 * time.Minute)
 
-	//return &db.BaseDbClient{DB: instance}, nil
+	return &db.BaseDbClient{DB: instance}, nil
 }
