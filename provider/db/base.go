@@ -33,12 +33,8 @@ func (b *BaseDbProvider) By(s string) types.DbClient {
 }
 
 type BaseDbClient struct {
-	Db       *sqlx.DB // 缺省的数据库连接
+	*sqlx.DB
 	_builder squirrel.Sqlizer
-}
-
-func (b *BaseDbClient) Rebind(query string) string {
-	return b.Db.Rebind(query)
 }
 
 func (b *BaseDbClient) HGet(v any) error {
@@ -46,7 +42,8 @@ func (b *BaseDbClient) HGet(v any) error {
 	if err != nil {
 		return err
 	}
-	return b.Db.Get(v, xquery, xargs...)
+
+	return b.DB.Get(v, xquery, xargs...)
 }
 
 func (b *BaseDbClient) HSelect(v any, args ...*protobuf.ListParam) error {
@@ -66,7 +63,7 @@ func (b *BaseDbClient) HSelect(v any, args ...*protobuf.ListParam) error {
 	if err != nil {
 		return err
 	}
-	return b.Db.Select(v, xquery, xargs...)
+	return b.DB.Select(v, xquery, xargs...)
 }
 
 func (b *BaseDbClient) HCount() (int64, error) {
@@ -76,7 +73,7 @@ func (b *BaseDbClient) HCount() (int64, error) {
 	}
 
 	var total int64
-	err = b.Db.Get(&total, xquery, xargs...)
+	err = b.DB.Get(&total, xquery, xargs...)
 	return total, err
 }
 
@@ -97,19 +94,7 @@ func (b *BaseDbClient) HQuery(args ...*protobuf.ListParam) (*sqlx.Rows, error) {
 	if err != nil {
 		return nil, err
 	}
-	return b.Db.Queryx(xquery, xargs...)
-}
-
-func (b *BaseDbClient) Select(dest any, query string, args ...any) error {
-	return b.Db.Select(dest, query, args...)
-}
-
-func (b *BaseDbClient) Get(dest any, query string, args ...any) error {
-	return b.Db.Get(dest, query, args...)
-}
-
-func (b *BaseDbClient) Queryx(query string, args ...any) (*sqlx.Rows, error) {
-	return b.Db.Queryx(query, args...)
+	return b.DB.Queryx(xquery, xargs...)
 }
 
 func (b *BaseDbClient) ToSql() (string, []any, error) {

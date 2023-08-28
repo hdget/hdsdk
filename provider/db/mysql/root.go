@@ -99,5 +99,5 @@ func (mp *MysqlProvider) connect(conf *MySqlConf) (*db.BaseDbClient, error) {
 	// connection.go:173: driver: bad connection
 	instance.SetConnMaxLifetime(3 * time.Minute)
 
-	return &db.BaseDbClient{Db: instance}, nil
+	return &db.BaseDbClient{DB: instance}, nil
 }

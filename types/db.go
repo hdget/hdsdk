@@ -1,6 +1,7 @@
 package types
 
 import (
+	"database/sql"
 	"github.com/Masterminds/squirrel"
 	"github.com/hdget/hdsdk/protobuf"
 	"github.com/jmoiron/sqlx"
@@ -16,14 +17,25 @@ type DbProvider interface {
 }
 
 type DbClient interface {
-	Sq(builder squirrel.SelectBuilder) DbClient
-
-	Select(dest any, query string, args ...any) error
-	Get(dest any, query string, args ...any) error
-	Queryx(query string, args ...any) (*sqlx.Rows, error)
+	DriverName() string
+	MapperFunc(mf func(string) string)
 	Rebind(query string) string
+	Unsafe() *sqlx.DB
+	BindNamed(query string, arg interface{}) (string, []interface{}, error)
+	NamedQuery(query string, arg interface{}) (*sqlx.Rows, error)
+	NamedExec(query string, arg interface{}) (sql.Result, error)
+	Select(dest interface{}, query string, args ...interface{}) error
+	Get(dest interface{}, query string, args ...interface{}) error
+	MustBegin() *sqlx.Tx
+	Beginx() (*sqlx.Tx, error)
+	Queryx(query string, args ...interface{}) (*sqlx.Rows, error)
+	QueryRowx(query string, args ...interface{}) *sqlx.Row
+	MustExec(query string, args ...interface{}) sql.Result
+	Preparex(query string) (*sqlx.Stmt, error)
+	PrepareNamed(query string) (*sqlx.NamedStmt, error)
 
 	// squirrel builder related methods
+	Sq(builder squirrel.SelectBuilder) DbClient
 	ToSql() (string, []any, error)
 	HGet(v any) error
 	HSelect(v any, args ...*protobuf.ListParam) error
