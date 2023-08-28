@@ -97,7 +97,6 @@ const (
 func NewConfig(app, env string, options ...ConfigOption) *ViperConfig {
 	c := &ViperConfig{
 		local:             viper.New(),
-		remote:            viper.New(),
 		app:               app,
 		env:               env,
 		envPrefix:         defaultValue.EnvPrefix,
@@ -200,6 +199,7 @@ func (c *ViperConfig) LoadLocal(localConfigVar any) error {
 
 func (c *ViperConfig) LoadRemote(remoteConfigVar any) error {
 	// 尝试从远程配置信息
+	c.remote = viper.New()
 	err := c.loadFromRemote()
 	if err != nil {
 		utils.LogError("load config from remote", "err", err)
@@ -358,7 +358,7 @@ func (c *ViperConfig) loadFromFile() error {
 		// 未指定搜索路径，使用缺省值setting/app/<app>
 		if len(c.fileOption.dirs) == 0 {
 			c.fileOption.dirs = append(c.fileOption.dirs,
-				filepath.Join(filepath.Join(defaultValue.RootParts...), c.app),
+				filepath.Join(filepath.Join(c.rootParts...), c.app),
 			)
 		}
 
