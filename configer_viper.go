@@ -221,6 +221,7 @@ func (c *ViperConfig) LoadRemote(remoteConfigVar any) error {
 }
 
 func (c *ViperConfig) Read(data []byte) *ViperConfig {
+	c.local.SetConfigType(c.configType)
 	_ = c.local.MergeConfig(bytes.NewReader(data))
 	return c
 }

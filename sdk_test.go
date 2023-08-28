@@ -2,6 +2,7 @@ package hdsdk
 
 import (
 	"fmt"
+	"github.com/elgris/sqrl"
 	"github.com/hdget/hdsdk/lib/aliyun"
 	"github.com/hdget/hdsdk/provider/mq/rabbitmq"
 	"github.com/hdget/hdsdk/types"
@@ -329,6 +330,14 @@ func TestMysql(t *testing.T) {
 	err := NewConfig("test", "local").ReadString(configTestMysql).Load(&conf)
 	if err != nil {
 		utils.LogFatal("sdk initialize", "err", err)
+	}
+
+	_ = Initialize(&conf)
+
+	bd := sqrl.Select("COUNT(1)").From("db")
+	total, err := Mysql.My().Sqrl(bd).XCount()
+	if err != nil {
+		Logger.Debug("get total from default db", "total", total, "err", err)
 	}
 
 	var total1 int
