@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/IBM/sarama v1.40.1
+	github.com/Masterminds/squirrel v1.5.4
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.8+incompatible
 	github.com/dapr/go-sdk v1.8.0
 	github.com/dave/jennifer v1.7.0
@@ -16,7 +17,6 @@ require (
 	github.com/hamba/avro v1.8.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/kabukky/httpscerts v0.0.0-20150320125433-617593d7dcb3
-	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/neo4j/neo4j-go-driver/v4 v4.4.7
@@ -38,8 +38,6 @@ require (
 	cloud.google.com/go/compute v1.19.1 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/firestore v1.9.0 // indirect
-	cloud.google.com/go/longrunning v0.4.1 // indirect
-	github.com/Masterminds/squirrel v1.5.4 // indirect
 	github.com/armon/go-metrics v0.4.0 // indirect
 	github.com/bytedance/sonic v1.9.1 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
@@ -85,6 +83,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.16.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
+	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
