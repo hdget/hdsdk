@@ -227,6 +227,10 @@ func (b *baseQuery) Generate() (string, []any, error) {
 	return b.concrete.Generate()
 }
 
+func (b *baseQuery) ToSql() (string, []any, error) {
+	return b.concrete.Generate()
+}
+
 func (b *baseQuery) Get(v any) error {
 	xquery, xargs, err := b.concrete.Generate()
 	if err != nil {

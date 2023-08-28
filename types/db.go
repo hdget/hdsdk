@@ -35,10 +35,10 @@ type SqlxClient interface {
 
 type BuilderClient interface {
 	ToSql() (string, []any, error)
-	HGet(v any) error
-	HSelect(v any, args ...*protobuf.ListParam) error
-	HCount() (int64, error)
-	HQuery(args ...*protobuf.ListParam) (*sqlx.Rows, error)
+	XGet(v any) error
+	XSelect(v any, args ...*protobuf.ListParam) error
+	XCount() (int64, error)
+	XQuery(args ...*protobuf.ListParam) (*sqlx.Rows, error)
 }
 
 type DbClient interface {

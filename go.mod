@@ -8,6 +8,7 @@ require (
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.8+incompatible
 	github.com/dapr/go-sdk v1.8.0
 	github.com/dave/jennifer v1.7.0
+	github.com/elgris/sqrl v0.0.0-20210727210741-7e0198b30236
 	github.com/fatih/structs v1.1.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-resty/resty/v2 v2.7.0
@@ -48,7 +49,6 @@ require (
 	github.com/eapache/go-resiliency v1.3.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230111030713-bf00bc1b83b6 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/elgris/sqrl v0.0.0-20210727210741-7e0198b30236 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
