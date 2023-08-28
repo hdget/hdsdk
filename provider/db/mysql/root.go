@@ -15,7 +15,7 @@ import (
 )
 
 type MysqlProvider struct {
-	db.BaseDbProvider
+	*db.BaseDbProvider
 	Log types.LogProvider
 }
 
@@ -55,7 +55,7 @@ func (mp *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 	}
 
 	// 从库
-	mp.Slaves = make([]*sqlx.DB, 0)
+	mp.Slaves = make([]*db.BaseDbClient, 0)
 	for i, slaveConf := range config.Slaves {
 		if err := validateConf(types.ProviderTypeSlave, slaveConf); err == nil {
 			instance, err := mp.connect(slaveConf)
@@ -67,7 +67,7 @@ func (mp *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 	}
 
 	// 外部库
-	mp.Items = make(map[string]*sqlx.DB)
+	mp.Items = make(map[string]*db.BaseDbClient)
 	for _, otherConf := range config.Items {
 		if err := validateConf(types.ProviderTypeOther, otherConf); err == nil {
 			instance, err := mp.connect(otherConf)
@@ -81,7 +81,7 @@ func (mp *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvi
 	return nil
 }
 
-func (mp *MysqlProvider) connect(conf *MySqlConf) (*sqlx.DB, error) {
+func (mp *MysqlProvider) connect(conf *MySqlConf) (*db.BaseDbClient, error) {
 	// DSN (Data Type NickName): username:password@protocol(address)/dbname?param=value
 	t := "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4,utf8"
 
@@ -99,5 +99,5 @@ func (mp *MysqlProvider) connect(conf *MySqlConf) (*sqlx.DB, error) {
 	// connection.go:173: driver: bad connection
 	instance.SetConnMaxLifetime(3 * time.Minute)
 
-	return instance, nil
+	return &db.BaseDbClient{DB: instance}, nil
 }
