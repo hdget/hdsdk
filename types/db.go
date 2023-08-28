@@ -17,19 +17,16 @@ type DbProvider interface {
 }
 
 type DbClient interface {
-	DriverName() string
+	sqlx.Ext
+	sqlx.ExtContext
 	MapperFunc(mf func(string) string)
-	Rebind(query string) string
 	Unsafe() *sqlx.DB
-	BindNamed(query string, arg interface{}) (string, []interface{}, error)
 	NamedQuery(query string, arg interface{}) (*sqlx.Rows, error)
 	NamedExec(query string, arg interface{}) (sql.Result, error)
 	Select(dest interface{}, query string, args ...interface{}) error
 	Get(dest interface{}, query string, args ...interface{}) error
 	MustBegin() *sqlx.Tx
 	Beginx() (*sqlx.Tx, error)
-	Queryx(query string, args ...interface{}) (*sqlx.Rows, error)
-	QueryRowx(query string, args ...interface{}) *sqlx.Row
 	MustExec(query string, args ...interface{}) sql.Result
 	Preparex(query string) (*sqlx.Stmt, error)
 	PrepareNamed(query string) (*sqlx.NamedStmt, error)
