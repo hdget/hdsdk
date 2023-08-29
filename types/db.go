@@ -44,8 +44,9 @@ type BuilderClient interface {
 type DbClient interface {
 	SqlxClient
 	BuilderClient
-	Sq(builder squirrel.Sqlizer) DbClient
-	Sqrl(builder sqrl.Sqlizer) DbClient
+	Sq(builder squirrel.Sqlizer) DbClient // squirrel builder support
+	Sqrl(builder sqrl.Sqlizer) DbClient   // sqrl builder support
+	Db() *sqlx.DB
 }
 
 // database capability
