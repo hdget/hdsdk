@@ -54,3 +54,7 @@ func (b *BaseDbClient) XQuery(args ...*protobuf.ListParam) (*sqlx.Rows, error) {
 	//TODO implement me
 	panic("implement me")
 }
+
+func (b *BaseDbClient) Db() *sqlx.DB {
+	return b.DB
+}
