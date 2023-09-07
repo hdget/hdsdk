@@ -16,9 +16,9 @@ type InvocationModule interface {
 }
 
 type moduleInfo struct {
-	Name      string // 模块名
-	Namespace string // 命名空间， 命名空间模块名后去掉v<版本号>_的部分
-	Version   int    // 版本号
+	Name    string // 结构名
+	Module  string // 模块名， 结构名后去掉v<版本号>_的部分
+	Version int    // 版本号
 }
 
 type HandlerMatch func(funcName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的method名

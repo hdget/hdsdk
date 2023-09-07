@@ -83,7 +83,7 @@ func (m *DaprInvocationModule) GetHandlers() map[string]any {
 	// h为*invocationHandler
 	for _, h := range m.handlers {
 		// daprMethodName = v2:xxx:alias
-		daprMethodName := dapr.GetServiceInvocationName(m.Version, m.Namespace, h.alias)
+		daprMethodName := dapr.GetServiceInvocationName(m.Version, m.Module, h.alias)
 		daprMethod := m.toDaprServiceInvocationHandler(h.fn)
 		if daprMethod != nil {
 			handlers[daprMethodName] = daprMethod
@@ -169,7 +169,7 @@ func (m *DaprInvocationModule) toDaprServiceInvocationHandler(method any) common
 
 		response, err := realHandler(ctx, event)
 		if err != nil {
-			hdsdk.Logger.Error("handle", "namespace", m.Name, "method", utils.Reflect().GetFuncName(method), "err", err, "req", utils.BytesToString(event.Data))
+			hdsdk.Logger.Error("handle", "module", m.Name, "method", utils.Reflect().GetFuncName(method), "err", err, "req", utils.BytesToString(event.Data))
 			return dapr.Error(err)
 		}
 
