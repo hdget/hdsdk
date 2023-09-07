@@ -10,7 +10,7 @@ var (
 	regModuleName = regexp.MustCompile(`^[vV]([0-9]+)_([a-zA-Z0-9]+)`)
 )
 
-// getModuleInfo 从约定的结构名中解析模块名和版本, 结构名需要为v<number>_<namespace>
+// getModuleInfo 从约定的结构名中解析模块名和版本, 结构名需要为v<number>_<module>
 func getModuleInfo(svcHolderOrModuleName any) (*moduleInfo, error) {
 	var moduleName string
 	switch v := svcHolderOrModuleName.(type) {
@@ -30,9 +30,9 @@ func getModuleInfo(svcHolderOrModuleName any) (*moduleInfo, error) {
 	}
 
 	return &moduleInfo{
-		Name:      moduleName,
-		Namespace: tokens[2],
-		Version:   version,
+		Name:    moduleName,
+		Module:  tokens[2],
+		Version: version,
 	}, nil
 
 }

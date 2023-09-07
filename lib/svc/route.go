@@ -50,7 +50,7 @@ func (b *baseInvocationModule) parseRoutes(srcPath, annotationPrefix string, fnP
 		}
 
 		// 忽略掉不是本模块的备注
-		if modInfo.Namespace != b.Namespace {
+		if modInfo.Module != b.Module {
 			continue
 		}
 

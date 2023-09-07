@@ -20,7 +20,7 @@ const ContentTypeJson = "application/json"
 //var jsonpbMarshaler = jsonpb.Marshaler{EmitDefaults: true}
 
 // Invoke 调用dapr服务
-func Invoke(appId string, version int, namespace, method string, data interface{}, args ...string) ([]byte, error) {
+func Invoke(appId string, version int, module, method string, data any, args ...string) ([]byte, error) {
 	var value []byte
 	switch t := data.(type) {
 	case string:
@@ -52,13 +52,11 @@ func Invoke(appId string, version int, namespace, method string, data interface{
 		ctx = metadata.NewOutgoingContext(ctx, md)
 	}
 
-	content := &client.DataContent{
+	fullMethodName := GetServiceInvocationName(version, module, method)
+	resp, err := daprClient.InvokeMethodWithContent(ctx, appId, fullMethodName, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
-	}
-
-	fullMethodName := GetServiceInvocationName(version, namespace, method)
-	resp, err := daprClient.InvokeMethodWithContent(ctx, appId, fullMethodName, "post", content)
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +86,7 @@ func GetMetaValue(ctx context.Context, key string) string {
 	return values[0]
 }
 
-// GetServiceInvocationName 构造version:namespace:realMethod的方法名
-func GetServiceInvocationName(version int, namespace, method string) string {
-	return strings.Join([]string{fmt.Sprintf("v%d", version), namespace, method}, ":")
+// GetServiceInvocationName 构造version:module:realMethod的方法名
+func GetServiceInvocationName(version int, module, method string) string {
+	return strings.Join([]string{fmt.Sprintf("v%d", version), module, method}, ":")
 }
