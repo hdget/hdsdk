@@ -81,43 +81,43 @@ func (c *ZerologProvider) GetStdLogger() *stdlog.Logger {
 }
 
 func (c *ZerologProvider) Log(keyvals ...interface{}) error {
-	msgValue, errValue, fields := utils.ParseArgsWithMsgError(keyvals...)
+	msgValue, errValue, fields := utils.ParseArgs(keyvals...)
 	zeroLogger.Trace().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msgValue)
 	return nil
 }
 
 func (c *ZerologProvider) Trace(msg string, keyvals ...interface{}) {
-	errValue, fields := utils.ParseArgsWithError(keyvals...)
+	_, errValue, fields := utils.ParseArgs(keyvals...)
 	zeroLogger.Trace().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (c *ZerologProvider) Debug(msg string, keyvals ...interface{}) {
-	errValue, fields := utils.ParseArgsWithError(keyvals...)
+	_, errValue, fields := utils.ParseArgs(keyvals...)
 	zeroLogger.Debug().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (c *ZerologProvider) Info(msg string, keyvals ...interface{}) {
-	errValue, fields := utils.ParseArgsWithError(keyvals...)
+	_, errValue, fields := utils.ParseArgs(keyvals...)
 	zeroLogger.Info().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (c *ZerologProvider) Warn(msg string, keyvals ...interface{}) {
-	errValue, fields := utils.ParseArgsWithError(keyvals...)
+	_, errValue, fields := utils.ParseArgs(keyvals...)
 	zeroLogger.Warn().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (c *ZerologProvider) Error(msg string, keyvals ...interface{}) {
-	errValue, fields := utils.ParseArgsWithError(keyvals...)
+	_, errValue, fields := utils.ParseArgs(keyvals...)
 	zeroLogger.Error().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (c *ZerologProvider) Fatal(msg string, keyvals ...interface{}) {
-	errValue, fields := utils.ParseArgsWithError(keyvals...)
+	_, errValue, fields := utils.ParseArgs(keyvals...)
 	zeroLogger.Fatal().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (c *ZerologProvider) Panic(msg string, keyvals ...interface{}) {
-	errValue, fields := utils.ParseArgsWithError(keyvals...)
+	_, errValue, fields := utils.ParseArgs(keyvals...)
 	zeroLogger.Panic().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
