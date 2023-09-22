@@ -245,6 +245,7 @@ func TestEmptyLogger(t *testing.T) {
 	Logger.Warn("msg content", "err", errors.New("new error"), "key1 ", 123)
 	Logger.Warn("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 
+	Logger.Debug("msg content", "level", 1, "caller", "message", "xxx", "messages1", "err", errors.Wrap(fmt.Errorf("safd:%d", 1), "xxxx"))
 	Logger.Debug("msg content")
 	Logger.Debug("msg content", "err")
 	Logger.Debug("msg content", "err", nil)
