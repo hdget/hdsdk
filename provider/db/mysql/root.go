@@ -82,8 +82,9 @@ func (p *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvid
 }
 
 func (p *MysqlProvider) connect(conf *MySqlConf) (*db.BaseDbClient, error) {
+	// 这里设置解析时间类型https://github.com/go-sql-driver/mysql#timetime-support
 	// DSN (Data Type NickName): username:password@protocol(address)/dbname?param=value
-	t := "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4,utf8"
+	t := "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local"
 	// 构造连接参数
 	connStr := fmt.Sprintf(t, conf.User, conf.Password, conf.Host, conf.Port, conf.Database)
 	instance, err := sqlx.Connect("mysql", connStr)
