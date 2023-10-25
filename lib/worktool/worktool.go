@@ -100,11 +100,13 @@ func (w *workToolImpl) send(messages ...any) error {
 		return err
 	}
 
+	// http status code != 200
 	if resp.StatusCode() != 200 {
 		return errors.New(utils.BytesToString(resp.Body()))
 	}
 
-	if apiResponse.Code != 0 {
+	// api response code != 200 means error
+	if apiResponse.Code != 200 {
 		return errors.New(apiResponse.Message)
 	}
 
