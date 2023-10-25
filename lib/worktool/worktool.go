@@ -35,7 +35,7 @@ type File struct {
 type FileMessage struct {
 	Kind    MsgKind  `json:"type"`
 	Targets []string `json:"titleList"` // 发送人列表
-	File    File
+	File
 }
 
 type MessageBody struct {
