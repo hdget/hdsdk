@@ -11,6 +11,7 @@ import (
 	"github.com/hdget/hdsdk/provider/db"
 	"github.com/hdget/hdsdk/types"
 	"github.com/jmoiron/sqlx"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"time"
 )
 
@@ -46,6 +47,8 @@ func (p *MysqlProvider) Init(rootConfiger types.Configer, logger types.LogProvid
 	if err != nil {
 		logger.Fatal("connect db", "type", types.ProviderTypeDefault, "host", config.Default.Host, "dbname", config.Default.Database, "err", err)
 	}
+	// 为了使用sqlboiler, 这里缺省数据库必须设置进去
+	boil.SetDB(p.Default.Db())
 	logger.Debug("connect db", "type", types.ProviderTypeDefault, "host", config.Default.Host, "dbname", config.Default.Database)
 
 	// 主库
