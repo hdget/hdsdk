@@ -2,7 +2,7 @@ package worktool
 
 import (
 	"github.com/go-resty/resty/v2"
-	"github.com/hdget/hdsdk/utils"
+	"github.com/hdget/hdsdk/hdutils"
 	"github.com/pkg/errors"
 )
 
@@ -102,7 +102,7 @@ func (w *workToolImpl) send(messages ...any) error {
 
 	// http status code != 200
 	if resp.StatusCode() != 200 {
-		return errors.New(utils.BytesToString(resp.Body()))
+		return errors.New(hdutils.BytesToString(resp.Body()))
 	}
 
 	// api response code != 200 means error

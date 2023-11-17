@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk"
+	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/lib/dapr"
-	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
 )
 
@@ -64,7 +64,7 @@ func NewDaprInvocationModule(app string, svcHolder any, options ...Option) (Invo
 	}
 
 	// 将实例化的module设置入Module接口中
-	err = utils.Reflect().StructSet(svcHolder, (*InvocationModule)(nil), m)
+	err = hdutils.Reflect().StructSet(svcHolder, (*InvocationModule)(nil), m)
 	if err != nil {
 		return nil, errors.Wrapf(err, "install module for: %s ", m.GetName())
 	}
@@ -102,7 +102,7 @@ func (m *DaprInvocationModule) DiscoverHandlers(args ...HandlerMatch) (map[strin
 
 	handlers := make(map[string]any)
 	// 这里需要传入当前实际正在使用的服务模块，即带有common.ServiceInvocationHandler的struct实例
-	for methodName, method := range utils.Reflect().MatchReceiverMethods(m.concrete, common.ServiceInvocationHandler(nil)) {
+	for methodName, method := range hdutils.Reflect().MatchReceiverMethods(m.concrete, common.ServiceInvocationHandler(nil)) {
 		alias, matched := matchFn(methodName)
 		if !matched {
 			continue
@@ -120,8 +120,8 @@ func (m *DaprInvocationModule) DiscoverHandlers(args ...HandlerMatch) (map[strin
 }
 
 func (m *DaprInvocationModule) ValidateHandler(handler any) error {
-	if utils.Reflect().GetFuncSignature(handler) != utils.Reflect().GetFuncSignature(DaprInvocationHandler(nil)) {
-		return fmt.Errorf("invalid handler: %s, it should be: func(ctx context.Context, event *common.InvocationEvent) (any, error)", utils.Reflect().GetFuncName(handler))
+	if hdutils.Reflect().GetFuncSignature(handler) != hdutils.Reflect().GetFuncSignature(DaprInvocationHandler(nil)) {
+		return fmt.Errorf("invalid handler: %s, it should be: func(ctx context.Context, event *common.InvocationEvent) (any, error)", hdutils.Reflect().GetFuncName(handler))
 	}
 	return nil
 }
@@ -163,13 +163,13 @@ func (m *DaprInvocationModule) toDaprServiceInvocationHandler(method any) common
 		// 挂载defer函数
 		defer func() {
 			if r := recover(); r != nil {
-				utils.RecordErrorStack(m.App)
+				hdutils.RecordErrorStack(m.App)
 			}
 		}()
 
 		response, err := realHandler(ctx, event)
 		if err != nil {
-			hdsdk.Logger.Error("handle", "module", m.Name, "method", utils.Reflect().GetFuncName(method), "err", err, "req", utils.BytesToString(event.Data))
+			hdsdk.Logger.Error("handle", "module", m.Name, "method", hdutils.Reflect().GetFuncName(method), "err", err, "req", hdutils.BytesToString(event.Data))
 			return dapr.Error(err)
 		}
 

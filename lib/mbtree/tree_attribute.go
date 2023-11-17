@@ -1,6 +1,6 @@
 package mbtree
 
-import "github.com/hdget/hdsdk/utils"
+import "github.com/hdget/hdsdk/hdutils"
 
 // Size get how many nodes in the tree
 func (t *SafeMultiBranchTree) Size() int {
@@ -86,7 +86,7 @@ func (t *SafeMultiBranchTree) AllPaths() [][]int64 {
 		}
 		// 倒序
 		if len(pathIds) > 0 {
-			reversedPathIds := utils.ReverseInt64Slice(pathIds)
+			reversedPathIds := hdutils.ReverseInt64Slice(pathIds)
 			paths = append(paths, reversedPathIds)
 		}
 	}

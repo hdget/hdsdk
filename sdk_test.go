@@ -3,10 +3,10 @@ package hdsdk
 import (
 	"fmt"
 	"github.com/elgris/sqrl"
+	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/lib/aliyun"
 	"github.com/hdget/hdsdk/provider/mq/rabbitmq"
 	"github.com/hdget/hdsdk/types"
-	"github.com/hdget/hdsdk/utils"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j/dbtype"
 	"github.com/pelletier/go-toml/v2"
@@ -330,7 +330,7 @@ func TestMysql(t *testing.T) {
 	var conf testConf
 	err := NewConfig("test", "local").ReadString(configTestMysql).Load(&conf)
 	if err != nil {
-		utils.LogFatal("sdk initialize", "err", err)
+		hdutils.LogFatal("sdk initialize", "err", err)
 	}
 
 	_ = Initialize(&conf)
@@ -394,12 +394,12 @@ func TestRedis(t *testing.T) {
 	var conf testConf
 	err := NewConfig("test", "local").ReadString(configTestRedis).Load(&conf)
 	if err != nil {
-		utils.LogFatal("unmarshal conf", "err", err)
+		hdutils.LogFatal("unmarshal conf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.LogFatal("sdk initialize", "err", err)
+		hdutils.LogFatal("sdk initialize", "err", err)
 	}
 
 	result, err := Redis.My().Eval(luaDeduckStock, []interface{}{"stock:123:25:2343", "stock:123:25:2342"}, []interface{}{100, 200})
@@ -469,14 +469,14 @@ func TestRedis(t *testing.T) {
 		"field3": "v3",
 	})
 	k6values, _ := Redis.My().HMGet("key6", []string{"field1", "field2"})
-	assert.Equal(t, k6values[0], utils.StringToBytes("v1"))
-	assert.Equal(t, k6values[1], utils.StringToBytes("v2"))
+	assert.Equal(t, k6values[0], hdutils.StringToBytes("v1"))
+	assert.Equal(t, k6values[1], hdutils.StringToBytes("v2"))
 
 	_, _ = Redis.My().HDels("key6", []interface{}{"field1", "field2"})
 	k61v, _ := Redis.My().HGet("key6", "field1")
 	assert.Equal(t, len(k61v), 0)
 	k63v, _ := Redis.My().HGet("key6", "field3")
-	assert.Equal(t, k63v, utils.StringToBytes("v3"))
+	assert.Equal(t, k63v, hdutils.StringToBytes("v3"))
 
 	_ = Redis.By("extra1").Set("key7", 333.01)
 	k7v, _ := Redis.By("extra1").GetFloat64("key7")
@@ -494,12 +494,12 @@ func TestRabbitmqSend(t *testing.T) {
 	var conf testConf
 	err := NewConfig("test", "local").ReadString(configTestRabbitmq).Load(&conf)
 	if err != nil {
-		utils.LogFatal("unmarshal config", "err", err)
+		hdutils.LogFatal("unmarshal config", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.LogFatal("sdk initialize", "err", err)
+		hdutils.LogFatal("sdk initialize", "err", err)
 	}
 
 	params := map[string]interface{}{
@@ -526,12 +526,12 @@ func TestRabbitmqSendDelay(t *testing.T) {
 	var conf testConf
 	err := NewConfig("test", "local").ReadString(configTestRabbitmqDelay).Load(&conf)
 	if err != nil {
-		utils.LogFatal("unmarshal democonf", "err", err)
+		hdutils.LogFatal("unmarshal democonf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.LogFatal("sdk initialize", "err", err)
+		hdutils.LogFatal("sdk initialize", "err", err)
 	}
 
 	params := map[string]interface{}{
@@ -555,7 +555,7 @@ func TestRabbitmqSendDelay(t *testing.T) {
 }
 
 func msgProcess(data []byte) types.MqMsgAction {
-	fmt.Println(time.Now(), utils.BytesToString(data))
+	fmt.Println(time.Now(), hdutils.BytesToString(data))
 	return types.Ack
 }
 
@@ -565,12 +565,12 @@ func TestRabbitmqRecv(t *testing.T) {
 	var conf testConf
 	err := NewConfig("test", "local").ReadString(configTestRabbitmq).Load(&conf)
 	if err != nil {
-		utils.LogFatal("unmarshal democonf", "err", err)
+		hdutils.LogFatal("unmarshal democonf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.LogFatal("sdk initialize", "err", err)
+		hdutils.LogFatal("sdk initialize", "err", err)
 	}
 
 	qosOption := Rabbitmq.My().GetDefaultOptions()[types.MqOptionQos].(*rabbitmq.QosOption)
@@ -599,12 +599,12 @@ func TestRabbitmqRecvDelay(t *testing.T) {
 	var conf testConf
 	err := NewConfig("test", "local").ReadString(configTestRabbitmq).Load(&conf)
 	if err != nil {
-		utils.LogFatal("unmarshal democonf", "err", err)
+		hdutils.LogFatal("unmarshal democonf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.LogFatal("sdk initialize", "err", err)
+		hdutils.LogFatal("sdk initialize", "err", err)
 	}
 
 	qosOption := Rabbitmq.My().GetDefaultOptions()[types.MqOptionQos].(*rabbitmq.QosOption)
@@ -634,17 +634,17 @@ func TestKafkaSend(t *testing.T) {
 	var conf testConf
 	err := NewConfig("test", "local").ReadString(configTestKafka).Load(&conf)
 	if err != nil {
-		utils.LogFatal("unmarshal democonf", "err", err)
+		hdutils.LogFatal("unmarshal democonf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.LogFatal("sdk initialize", "err", err)
+		hdutils.LogFatal("sdk initialize", "err", err)
 	}
 
 	p, err := Kafka.My().CreateProducer(nil)
 	if err != nil {
-		utils.LogFatal("kafka create producer", "err", err)
+		hdutils.LogFatal("kafka create producer", "err", err)
 	}
 	defer p.Close()
 
@@ -652,7 +652,7 @@ func TestKafkaSend(t *testing.T) {
 		s := fmt.Sprintf("%d", i)
 		err = p.Publish([]byte(s))
 		if err != nil {
-			utils.LogFatal("kafka producer publish", "err", err)
+			hdutils.LogFatal("kafka producer publish", "err", err)
 		}
 	}
 }
@@ -663,17 +663,17 @@ func TestKafkaRecv(t *testing.T) {
 	var conf testConf
 	err := NewConfig("test", "local").ReadString(configTestKafka).Load(&conf)
 	if err != nil {
-		utils.LogFatal("unmarshal democonf", "err", err)
+		hdutils.LogFatal("unmarshal democonf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.LogFatal("sdk initialize", "err", err)
+		hdutils.LogFatal("sdk initialize", "err", err)
 	}
 
 	c, err := Kafka.My().CreateConsumer(msgProcess, nil)
 	if err != nil {
-		utils.LogFatal("kafka create consumer", "err", err)
+		hdutils.LogFatal("kafka create consumer", "err", err)
 	}
 	defer c.Close()
 
@@ -689,34 +689,34 @@ func BenchmarkHamba(b *testing.B) {
 func parseByHamba() {
 	dts, err := aliyun.New()
 	if err != nil {
-		utils.LogFatal("new alidts", "err", err)
+		hdutils.LogFatal("new alidts", "err", err)
 	}
 
 	data, err := os.ReadFile("alidts.dump")
 	if err != nil {
-		utils.LogFatal("open alidts data", "err", err)
+		hdutils.LogFatal("open alidts data", "err", err)
 	}
 
 	_, err = dts.Parse(data)
 	if err != nil {
-		utils.LogFatal("alidts getrecord", "err", err)
+		hdutils.LogFatal("alidts getrecord", "err", err)
 	}
 }
 
 func TestUtilsAlidts(t *testing.T) {
 	dts, err := aliyun.New()
 	if err != nil {
-		utils.LogFatal("new alidts", "err", err)
+		hdutils.LogFatal("new alidts", "err", err)
 	}
 
 	data, err := os.ReadFile("alidts.dump")
 	if err != nil {
-		utils.LogFatal("open alidts data", "err", err)
+		hdutils.LogFatal("open alidts data", "err", err)
 	}
 
 	r, err := dts.Parse(data)
 	if err != nil {
-		utils.LogFatal("alidts getrecord", "err", err)
+		hdutils.LogFatal("alidts getrecord", "err", err)
 	}
 
 	fmt.Println(r)
@@ -737,13 +737,13 @@ func dtsHandler(data []byte) types.MqMsgAction {
 func parseDtsData(data []byte) *aliyun.DtsRecord {
 	dts, err := aliyun.New()
 	if err != nil {
-		utils.LogError("err new alidts")
+		hdutils.LogError("err new alidts")
 		return nil
 	}
 
 	r, err := dts.Parse(data)
 	if err != nil {
-		utils.LogError("err parse alidts data")
+		hdutils.LogError("err parse alidts data")
 		return nil
 	}
 	return r
@@ -755,17 +755,17 @@ func TestDts(t *testing.T) {
 	var conf testConf
 	err := NewConfig("test", "local").ReadString(configTestAliyunDts).Load(&conf)
 	if err != nil {
-		utils.LogFatal("unmarshal demo conf", "err", err)
+		hdutils.LogFatal("unmarshal demo conf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.LogFatal("sdk initialize", "err", err)
+		hdutils.LogFatal("sdk initialize", "err", err)
 	}
 
 	c, err := Kafka.By("xxx").CreateConsumer(dtsHandler, nil)
 	if err != nil {
-		utils.LogFatal("create consumer", "err", err)
+		hdutils.LogFatal("create consumer", "err", err)
 	}
 
 	c.Consume()
@@ -777,12 +777,12 @@ func TestNeo4j(t *testing.T) {
 	var conf testConf
 	err := NewConfig("test", "local").ReadString(configTestNeo4j).Load(&conf)
 	if err != nil {
-		utils.LogFatal("unmarshal demo conf", "err", err)
+		hdutils.LogFatal("unmarshal demo conf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.LogFatal("sdk initialize", "err", err)
+		hdutils.LogFatal("sdk initialize", "err", err)
 	}
 
 	works := []neo4j.TransactionWork{
@@ -797,12 +797,12 @@ func TestNeo4j(t *testing.T) {
 
 	_, err = Neo4j.Exec(works)
 	if err != nil {
-		utils.LogFatal("neo4j exec", "err", err)
+		hdutils.LogFatal("neo4j exec", "err", err)
 	}
 
 	ret1, err := Neo4j.Select("MATCH (a:Person) RETURN a")
 	if err != nil {
-		utils.LogFatal("neo4j select", "err", err)
+		hdutils.LogFatal("neo4j select", "err", err)
 	}
 	fmt.Println(ret1)
 
@@ -811,7 +811,7 @@ func TestNeo4j(t *testing.T) {
 	}
 	ret2, err := Neo4j.Get("MATCH (a:Person {name: $Name}) RETURN a", &Person{Name: "A"})
 	if err != nil {
-		utils.LogFatal("neo4j get", "err", err)
+		hdutils.LogFatal("neo4j get", "err", err)
 	}
 	fmt.Println(ret2)
 }
@@ -898,17 +898,17 @@ func TestEtcd(t *testing.T) {
 	var conf testConf
 	err := NewConfig("test", "local").ReadString(configTestEtcd).Load(&conf)
 	if err != nil {
-		utils.LogFatal("unmarshal conf", "err", err)
+		hdutils.LogFatal("unmarshal conf", "err", err)
 	}
 
 	err = Initialize(&conf)
 	if err != nil {
-		utils.LogFatal("sdk initialize", "err", err)
+		hdutils.LogFatal("sdk initialize", "err", err)
 	}
 
 	bs, err := Etcd.Get("/setting/app/base")
 	if err != nil {
-		utils.LogFatal("get", "err", err)
+		hdutils.LogFatal("get", "err", err)
 	}
 
 	var v struct {
@@ -919,18 +919,18 @@ func TestEtcd(t *testing.T) {
 	}
 	err = toml.Unmarshal(bs, &v)
 	if err != nil {
-		utils.LogFatal("get", "err", err)
+		hdutils.LogFatal("get", "err", err)
 	}
 	fmt.Println(v)
 	pairs, err := Etcd.List("/setting/app/base")
 	if err != nil {
-		utils.LogFatal("get", "err", err)
+		hdutils.LogFatal("get", "err", err)
 	}
 	assert.Equal(t, 4, len(pairs))
 
 	bs1, _ := toml.Marshal(conf.GetEtcdConfig())
 	err = Etcd.Set("/setting/app/base", bs1)
 	if err != nil {
-		utils.LogFatal("get", "err", err)
+		hdutils.LogFatal("get", "err", err)
 	}
 }

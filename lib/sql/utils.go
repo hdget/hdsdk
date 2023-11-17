@@ -2,7 +2,7 @@ package sql
 
 import (
 	"fmt"
-	"github.com/hdget/hdsdk/utils"
+	"github.com/hdget/hdsdk/hdutils"
 	"strings"
 )
 
@@ -93,6 +93,6 @@ func GetBatchUpdateSQL(tableName, pkName string, pks []int64, values map[string]
 	}
 
 	// convert []int64 to id1,id2,... string
-	sql := fmt.Sprintf("UPDATE %s SET %s WHERE %s IN (%s)", tableName, strings.Join(conditionSQLs, ","), pkName, utils.Int64sToCsv(pks))
+	sql := fmt.Sprintf("UPDATE %s SET %s WHERE %s IN (%s)", tableName, strings.Join(conditionSQLs, ","), pkName, hdutils.Int64sToCsv(pks))
 	return sql
 }

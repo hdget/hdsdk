@@ -3,8 +3,8 @@ package redis
 import (
 	"fmt"
 	"github.com/gomodule/redigo/redis"
+	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/types"
-	"github.com/hdget/hdsdk/utils"
 	"strconv"
 	"time"
 )
@@ -289,7 +289,7 @@ func (r *RedisClient) HGetAll(key string) (map[string]string, error) {
 
 // HSet 设置某个field的值
 func (r *RedisClient) HSet(key string, field interface{}, value interface{}) (int, error) {
-	strValue, err := utils.ToString(value)
+	strValue, err := hdutils.ToString(value)
 	if err != nil {
 		return 0, err
 	}
@@ -359,7 +359,7 @@ func (r *RedisClient) GetString(key string) (string, error) {
 
 // Set 设置某个key为value
 func (r *RedisClient) Set(key string, value interface{}) error {
-	strValue, err := utils.ToString(value)
+	strValue, err := hdutils.ToString(value)
 	if err != nil {
 		return err
 	}
@@ -375,7 +375,7 @@ func (r *RedisClient) Set(key string, value interface{}) error {
 
 // SetEx 设置某个key为value,并设置过期时间(单位为秒)
 func (r *RedisClient) SetEx(key string, value interface{}, expire int) error {
-	strValue, err := utils.ToString(value)
+	strValue, err := hdutils.ToString(value)
 	if err != nil {
 		return err
 	}

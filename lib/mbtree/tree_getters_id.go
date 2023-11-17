@@ -1,7 +1,7 @@
 package mbtree
 
 import (
-	"github.com/hdget/hdsdk/utils"
+	"github.com/hdget/hdsdk/hdutils"
 )
 
 // GetParentId 获取父节点的ID, 如果没找到，返回-1
@@ -35,7 +35,7 @@ func (t *SafeMultiBranchTree) GetPaths(id int64) [][]int64 {
 		}
 		// 倒序
 		if len(pathIds) > 0 {
-			reversedPathIds := utils.ReverseInt64Slice(pathIds)
+			reversedPathIds := hdutils.ReverseInt64Slice(pathIds)
 			paths = append(paths, reversedPathIds)
 		}
 	}

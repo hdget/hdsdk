@@ -1,7 +1,7 @@
 package svc
 
 import (
-	"github.com/hdget/hdsdk/utils"
+	"github.com/hdget/hdsdk/hdutils"
 	"regexp"
 	"strconv"
 )
@@ -17,7 +17,7 @@ func getModuleInfo(svcHolderOrModuleName any) (*moduleInfo, error) {
 	case string:
 		structName = v
 	default:
-		structName = utils.Reflect().GetStructName(v)
+		structName = hdutils.Reflect().GetStructName(v)
 	}
 
 	tokens := regModuleName.FindStringSubmatch(structName)

@@ -1,7 +1,7 @@
 package svc
 
 import (
-	"github.com/hdget/hdsdk/utils"
+	"github.com/hdget/hdsdk/hdutils"
 	"strings"
 )
 
@@ -13,7 +13,7 @@ type invocationHandler struct {
 }
 
 func newInvocationHandler(moduleName, alias string, fn any) *invocationHandler {
-	methodName := utils.Reflect().GetFuncName(fn)
+	methodName := hdutils.Reflect().GetFuncName(fn)
 	return &invocationHandler{
 		id:     genHandlerId(moduleName, methodName),
 		method: methodName,

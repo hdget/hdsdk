@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/hdget/hdsdk/utils"
+	"github.com/hdget/hdsdk/hdutils"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
@@ -165,7 +165,7 @@ func (c *ViperConfig) Load(configVars ...any) error {
 
 	// 如果没有指定远程配置变量，我们认为不需要加载远程配置,
 	// 同时只有当前环境不在disable列表时才需要加载remote配置
-	if remoteConfigVar != nil && !utils.Contains(c.disableRemoteEnvs, c.env) {
+	if remoteConfigVar != nil && !hdutils.Contains(c.disableRemoteEnvs, c.env) {
 		return c.LoadRemote(remoteConfigVar)
 	}
 
@@ -202,13 +202,13 @@ func (c *ViperConfig) LoadRemote(remoteConfigVar any) error {
 	c.remote = viper.New()
 	err := c.loadFromRemote()
 	if err != nil {
-		utils.LogError("load config from remote", "err", err)
+		hdutils.LogError("load config from remote", "err", err)
 	} else {
 		// 如果加载remote成功，则尝试监控配置变化
 		if c.watchOption.enabled {
 			err = c.watchRemote(remoteConfigVar)
 			if err != nil {
-				utils.LogError("watch remote config change", "err", err)
+				hdutils.LogError("watch remote config change", "err", err)
 			}
 		}
 	}
@@ -227,7 +227,7 @@ func (c *ViperConfig) Read(data []byte) *ViperConfig {
 }
 
 func (c *ViperConfig) ReadString(s string) *ViperConfig {
-	_ = c.Read(utils.StringToBytes(s))
+	_ = c.Read(hdutils.StringToBytes(s))
 	return c
 }
 
@@ -252,7 +252,7 @@ func WithConfigDir(args ...string) ConfigOption {
 func WithConfigFilename(filename string) ConfigOption {
 	return func(c *ViperConfig) {
 		if path.Ext(filename) != "" {
-			utils.LogWarn("filename should not contains suffix", "filename", filename)
+			hdutils.LogWarn("filename should not contains suffix", "filename", filename)
 		}
 		c.fileOption.filename = filename
 	}
@@ -260,8 +260,8 @@ func WithConfigFilename(filename string) ConfigOption {
 
 func WithConfigType(configType string) ConfigOption {
 	return func(c *ViperConfig) {
-		if !utils.Contains(viper.SupportedExts, configType) {
-			utils.LogFatal("set config type", "supported", viper.SupportedExts, "err", viper.UnsupportedConfigError(configType))
+		if !hdutils.Contains(viper.SupportedExts, configType) {
+			hdutils.LogFatal("set config type", "supported", viper.SupportedExts, "err", viper.UnsupportedConfigError(configType))
 		}
 		c.configType = configType
 	}
@@ -269,8 +269,8 @@ func WithConfigType(configType string) ConfigOption {
 
 func WithRemote(provider, url, path string) ConfigOption {
 	return func(c *ViperConfig) {
-		if !utils.Contains(viper.SupportedRemoteProviders, provider) {
-			utils.LogFatal("set remote config provider", "supported", viper.SupportedRemoteProviders, "err", viper.UnsupportedRemoteProviderError(provider))
+		if !hdutils.Contains(viper.SupportedRemoteProviders, provider) {
+			hdutils.LogFatal("set remote config provider", "supported", viper.SupportedRemoteProviders, "err", viper.UnsupportedRemoteProviderError(provider))
 		}
 
 		if c.remoteOptions == nil {
@@ -330,7 +330,7 @@ func (c *ViperConfig) watchRemote(remoteConfigVar any) error {
 			err = c.remote.Unmarshal(remoteConfigVar)
 			c.mu.Unlock()
 			if err != nil {
-				utils.LogError("unable to unmarshal remote config", "err", err)
+				hdutils.LogError("unable to unmarshal remote config", "err", err)
 			}
 		}
 	}()
@@ -386,7 +386,7 @@ func (c *ViperConfig) loadFromFile() error {
 			return err
 		}
 	} else {
-		utils.LogDebug("load config from file", "file", c.local.ConfigFileUsed())
+		hdutils.LogDebug("load config from file", "file", c.local.ConfigFileUsed())
 	}
 
 	return nil
@@ -414,7 +414,7 @@ func (c *ViperConfig) loadFromRemote() error {
 	}
 
 	for _, option := range c.remoteOptions {
-		utils.LogDebug("load config from remote", "provider", option.provider, "url", option.url, "path", option.path)
+		hdutils.LogDebug("load config from remote", "provider", option.provider, "url", option.url, "path", option.path)
 	}
 	return nil
 }

@@ -4,8 +4,8 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
+	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/lib/wx/typwx"
-	"github.com/hdget/hdsdk/utils"
 	"time"
 )
 
@@ -31,7 +31,7 @@ func (w *implWxoa) GetSignature(appId, appSecret, url string) (*typwx.WxoaSignat
 // 生成微信签名
 func genSignature(appId, ticket, url string) (*typwx.WxoaSignature, error) {
 	now := time.Now().Unix()
-	noncestr := utils.GenerateRandString(32)
+	noncestr := hdutils.GenerateRandString(32)
 	longstr := fmt.Sprintf(
 		"jsapi_ticket=%s&noncestr=%s&timestamp=%d&url=%s",
 		ticket,

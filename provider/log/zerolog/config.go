@@ -2,9 +2,9 @@ package zerolog
 
 import (
 	"fmt"
+	hdutils "github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/provider/log/typlog"
 	"github.com/hdget/hdsdk/types"
-	"github.com/hdget/hdsdk/utils"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"os"
@@ -45,14 +45,14 @@ var (
 // getLogConfig 解析Config
 func getLogConfig(configer types.Configer) (*ConfigLog, error) {
 	if configer == nil {
-		utils.LogWarn("empty configer")
+		hdutils.LogWarn("empty configer")
 		return getDefaultLogConfig(), nil
 	}
 
 	// if log config not found, use default one
 	v := configer.GetLogConfig()
 	if v == nil {
-		utils.LogWarn("log config not found")
+		hdutils.LogWarn("log config not found")
 		return getDefaultLogConfig(), nil
 	}
 

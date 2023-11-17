@@ -3,8 +3,8 @@ package wxmp
 import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/lib/wx/typwx"
-	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
 )
 
@@ -38,8 +38,8 @@ func (w *implWxmp) CreateLimitedWxaCode(appId, appSecret, path string, width int
 	}
 
 	// 如果不是图像数据，那就是json错误数据
-	if !utils.IsImageData(resp.Body()) {
-		return nil, errors.New(utils.BytesToString(resp.Body()))
+	if !hdutils.IsImageData(resp.Body()) {
+		return nil, errors.New(hdutils.BytesToString(resp.Body()))
 	}
 
 	return resp.Body(), nil
@@ -74,8 +74,8 @@ func (w *implWxmp) CreateUnLimitedWxaCode(appId, appSecret, scene, page string, 
 	}
 
 	// 如果不是图像数据，那就是json错误数据
-	if !utils.IsImageData(resp.Body()) {
-		return nil, errors.New(utils.BytesToString(resp.Body()))
+	if !hdutils.IsImageData(resp.Body()) {
+		return nil, errors.New(hdutils.BytesToString(resp.Body()))
 	}
 
 	return resp.Body(), nil

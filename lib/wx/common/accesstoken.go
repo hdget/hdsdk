@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/lib/wx/typwx"
-	"github.com/hdget/hdsdk/utils"
 	"github.com/pkg/errors"
 )
 
@@ -25,7 +25,7 @@ func RequestAccessToken(appId, appSecret string) (*typwx.WxAccessToken, error) {
 	var result typwx.WxAccessTokenResult
 	err = json.Unmarshal(resp.Body(), &result)
 	if err != nil {
-		return nil, errors.Wrapf(err, "unmarshal result, body: %s", utils.BytesToString(resp.Body()))
+		return nil, errors.Wrapf(err, "unmarshal result, body: %s", hdutils.BytesToString(resp.Body()))
 	}
 
 	if result.Errcode != 0 {
@@ -33,7 +33,7 @@ func RequestAccessToken(appId, appSecret string) (*typwx.WxAccessToken, error) {
 	}
 
 	if result.AccessToken == "" {
-		return nil, fmt.Errorf("empty access token, url: %s, resp: %s", wxAccessTokenURL, utils.BytesToString(resp.Body()))
+		return nil, fmt.Errorf("empty access token, url: %s, resp: %s", wxAccessTokenURL, hdutils.BytesToString(resp.Body()))
 	}
 
 	return &result.WxAccessToken, nil

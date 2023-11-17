@@ -1,4 +1,4 @@
-package utils
+package hdutils
 
 import (
 	"github.com/pkg/errors"

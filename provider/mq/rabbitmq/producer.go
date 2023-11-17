@@ -3,8 +3,8 @@ package rabbitmq
 import (
 	"context"
 	"errors"
+	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/types"
-	"github.com/hdget/hdsdk/utils"
 	"github.com/mitchellh/mapstructure"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"time"
@@ -229,7 +229,7 @@ func parseProducerParameter(params map[string]interface{}) (*ProducerParameter, 
 		return nil, err
 	}
 
-	if producerParams.ExchangeName == "" || !utils.Contains(SupportedExchangeTypes, producerParams.ExchangeType) {
+	if producerParams.ExchangeName == "" || !hdutils.Contains(SupportedExchangeTypes, producerParams.ExchangeType) {
 		return nil, errInvalidProducerParam
 	}
 

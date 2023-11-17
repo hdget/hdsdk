@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/dapr/go-sdk/service/common"
+	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/lib/bizerr"
-	"github.com/hdget/hdsdk/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -28,7 +28,7 @@ func Success(event *common.InvocationEvent, resp any) (*common.Content, error) {
 	var data []byte
 	switch t := resp.(type) {
 	case string:
-		data = utils.StringToBytes(t)
+		data = hdutils.StringToBytes(t)
 	case []byte:
 		data = t
 	default:

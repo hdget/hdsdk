@@ -1,14 +1,16 @@
-package utils
+package hdutils
 
 import (
 	"bytes"
 	"fmt"
+	"github.com/speps/go-hashids/v2"
 	"log"
 	"math"
 	"math/rand"
 	"os"
 	"reflect"
 	"runtime/debug"
+	"strings"
 	"time"
 )
 
@@ -123,4 +125,24 @@ func GetNeo4jPathPattern(args ...int32) string {
 		}
 	}
 	return expr
+}
+
+func Hash(s string, length int, args ...string) string {
+	hdData := hashids.NewData()
+	hdData.MinLength = length
+	switch len(args) {
+	case 1:
+		hdData.Alphabet = args[0]
+	case 2:
+		hdData.Alphabet = args[0]
+		hdData.Salt = args[1]
+	}
+	h, _ := hashids.NewWithData(hdData)
+	value, _ := h.EncodeHex(s)
+	return value
+}
+
+func HashStringSlice(strSlice []string, salt string, length int, args ...string) string {
+	s := strings.Join(strSlice, "")
+	return Hash(s, length, args...)
 }

@@ -2,8 +2,8 @@ package ws
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/types"
-	"github.com/hdget/hdsdk/utils"
 	"time"
 )
 
@@ -16,7 +16,7 @@ func mdwLogger(logger types.LogProvider) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//请求方式
 		reqMethod := c.Request.Method
-		if utils.Contains(SkipHttpMethods, reqMethod) {
+		if hdutils.Contains(SkipHttpMethods, reqMethod) {
 			c.Next()
 			return
 		}
