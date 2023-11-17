@@ -7,7 +7,6 @@ require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.8+incompatible
 	github.com/dapr/go-sdk v1.8.0
-	github.com/dave/jennifer v1.7.0
 	github.com/elgris/sqrl v0.0.0-20210727210741-7e0198b30236
 	github.com/fatih/structs v1.1.0
 	github.com/gin-gonic/gin v1.9.1
@@ -16,6 +15,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/gomodule/redigo v1.8.9
 	github.com/hamba/avro v1.8.0
+	github.com/hdget/hdutils v0.0.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/kabukky/httpscerts v0.0.0-20150320125433-617593d7dcb3
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
@@ -31,7 +31,6 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/volatiletech/sqlboiler/v4 v4.15.0
 	github.com/xuri/excelize/v2 v2.7.1
-	golang.org/x/text v0.13.0
 	google.golang.org/grpc v1.57.0
 )
 
@@ -46,6 +45,7 @@ require (
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
+	github.com/dave/jennifer v1.7.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/eapache/go-resiliency v1.3.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230111030713-bf00bc1b83b6 // indirect
@@ -92,6 +92,7 @@ require (
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
+	github.com/matoous/go-nanoid v1.5.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -128,6 +129,7 @@ require (
 	golang.org/x/oauth2 v0.7.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.122.0 // indirect

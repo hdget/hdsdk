@@ -2,8 +2,8 @@ package ws
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/types"
+	"github.com/hdget/hdutils"
 	"time"
 )
 

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk"
-	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/lib/dapr"
+	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
 )
 

@@ -1,8 +1,8 @@
 package rabbitmq
 
 import (
-	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/types"
+	"github.com/hdget/hdutils"
 	"github.com/mitchellh/mapstructure"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"sync/atomic"

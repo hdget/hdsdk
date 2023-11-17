@@ -1,7 +1,7 @@
 package mbtree
 
 import (
-	"github.com/hdget/hdsdk/hdutils"
+	"github.com/hdget/hdutils"
 )
 
 // GetParentId 获取父节点的ID, 如果没找到，返回-1

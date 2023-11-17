@@ -3,8 +3,8 @@ package redis
 import (
 	"fmt"
 	"github.com/gomodule/redigo/redis"
-	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/types"
+	"github.com/hdget/hdutils"
 	"strconv"
 	"time"
 )

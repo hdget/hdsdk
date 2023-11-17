@@ -2,7 +2,7 @@ package sql
 
 import (
 	"fmt"
-	"github.com/hdget/hdsdk/hdutils"
+	"github.com/hdget/hdutils"
 	"strings"
 )
 

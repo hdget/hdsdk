@@ -1,7 +1,7 @@
 package svc
 
 import (
-	"github.com/hdget/hdsdk/hdutils"
+	"github.com/hdget/hdutils"
 	"strings"
 )
 

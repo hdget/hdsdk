@@ -2,7 +2,7 @@ package svc
 
 import (
 	"encoding/json"
-	"github.com/hdget/hdsdk/hdutils"
+	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
 	"strings"
 )

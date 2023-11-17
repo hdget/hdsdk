@@ -2,9 +2,9 @@ package zerolog
 
 import (
 	"fmt"
-	hdutils "github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/provider/log/typlog"
 	"github.com/hdget/hdsdk/types"
+	hdutils "github.com/hdget/hdutils"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 	"os"

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dapr/go-sdk/client"
-	"github.com/hdget/hdsdk/hdutils"
+	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/metadata"
 	"strings"

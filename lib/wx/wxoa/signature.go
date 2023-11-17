@@ -4,8 +4,8 @@ import (
 	"crypto/sha1"
 	"errors"
 	"fmt"
-	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/lib/wx/typwx"
+	"github.com/hdget/hdutils"
 	"time"
 )
 

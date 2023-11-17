@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
-	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/lib/wx/typwx"
+	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
 )
 

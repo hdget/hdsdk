@@ -2,7 +2,7 @@ package worktool
 
 import (
 	"github.com/go-resty/resty/v2"
-	"github.com/hdget/hdsdk/hdutils"
+	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
 )
 

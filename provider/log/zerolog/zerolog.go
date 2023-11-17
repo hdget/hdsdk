@@ -7,8 +7,8 @@ package zerolog
 
 import (
 	"fmt"
-	"github.com/hdget/hdsdk/hdutils"
 	"github.com/hdget/hdsdk/types"
+	"github.com/hdget/hdutils"
 	"github.com/rs/zerolog"
 	stdlog "log"
 	"os"

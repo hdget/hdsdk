@@ -3,7 +3,7 @@ package dapr
 import (
 	"context"
 	"github.com/dapr/go-sdk/client"
-	"github.com/hdget/hdsdk/hdutils"
+	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
 )
 
