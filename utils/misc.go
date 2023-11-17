@@ -9,7 +9,6 @@ import (
 	"os"
 	"reflect"
 	"runtime/debug"
-	"strings"
 	"time"
 )
 
@@ -101,24 +100,6 @@ func GenerateRandString(n int) string {
 		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 	return string(b)
-}
-
-// IsImageData 是否是图像数据
-func IsImageData(data []byte) bool {
-	// image formats and magic numbers
-	var magicTable = map[string]string{
-		"\xff\xd8\xff":      "image/jpeg",
-		"\x89PNG\r\n\x1a\n": "image/png",
-		"GIF87a":            "image/gif",
-		"GIF89a":            "image/gif",
-	}
-	s := BytesToString(data)
-	for magic := range magicTable {
-		if strings.HasPrefix(s, magic) {
-			return true
-		}
-	}
-	return false
 }
 
 // GetNeo4jPathPattern 解析Neo4j语法的Variable-length pattern
