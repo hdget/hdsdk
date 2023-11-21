@@ -82,7 +82,7 @@ func IfNullZeroString(oldValue string, args ...string) string {
 	if len(args) > 0 {
 		alias = args[0]
 	}
-	return fmt.Sprintf("IFNULL((%s), '') AS %s", oldValue, alias)
+	return fmt.Sprintf("IFNULL((%s), '') AS \"%s\"", oldValue, alias)
 }
 
 // IfNullZeroNumber 如果传了args则用args[0]做为alias, 否则就用oldValue做为alias
@@ -91,7 +91,7 @@ func IfNullZeroNumber(oldValue string, args ...string) string {
 	if len(args) > 0 {
 		alias = args[0]
 	}
-	return fmt.Sprintf("IFNULL((%s), 0) AS %s", oldValue, alias)
+	return fmt.Sprintf("IFNULL((%s), 0) AS \"%s\"", oldValue, alias)
 }
 
 func GetUpdateCols(cols map[string]any, args ...string) map[string]any {
