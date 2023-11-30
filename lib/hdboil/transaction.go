@@ -6,7 +6,7 @@ import (
 )
 
 type Transaction struct {
-	tx         boil.Transactor
+	Tx         boil.Transactor
 	needCommit bool
 }
 
@@ -28,11 +28,11 @@ func NewTransaction(args ...boil.Transactor) (*Transaction, error) {
 		return nil, err
 	}
 
-	return &Transaction{tx: tx, needCommit: needCommit}, nil
+	return &Transaction{Tx: tx, needCommit: needCommit}, nil
 }
 
 func (t Transaction) CommitOrRollback(err error) {
 	if t.needCommit {
-		CommitOrRollback(t.tx, err)
+		CommitOrRollback(t.Tx, err)
 	}
 }
