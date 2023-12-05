@@ -107,3 +107,10 @@ func GetUpdateCols(cols map[string]any, args ...string) map[string]any {
 func AsAliasColumn(alias, colName string) string {
 	return fmt.Sprintf("`%s`.`%s` AS \"%s.%s\"", alias, colName, alias, colName)
 }
+
+func GetDB(args ...boil.Executor) boil.Executor {
+	if len(args) > 0 {
+		return args[0]
+	}
+	return boil.GetDB()
+}
