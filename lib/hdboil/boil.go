@@ -31,13 +31,8 @@ func GetLimitQueryMods(list *protobuf.ListParam) []qm.QueryMod {
 	return []qm.QueryMod{qm.Offset(int(p.Offset)), qm.Limit(int(p.PageSize))}
 }
 
-// ByDesc OrderBy字段加入desc
-func ByDesc(field string) string {
-	return field + " DESC"
-}
-
-// JoinQueryMods 连接QueryMods
-func JoinQueryMods(mods ...any) []qm.QueryMod {
+// AppendQueryMods 连接QueryMods
+func AppendQueryMods(mods ...any) []qm.QueryMod {
 	combined := make([]qm.QueryMod, 0)
 	for _, mod := range mods {
 		switch v := mod.(type) {
