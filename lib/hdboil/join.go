@@ -6,39 +6,70 @@ import (
 	"strings"
 )
 
-func InnerJoin(thisTable, thisTableColumn, thatTableColumn string, args ...any) qm.QueryMod {
-	clause := fmt.Sprintf("%s ON %s=%s", thisTable, thisTableColumn, thatTableColumn)
-	return qm.InnerJoin(clause, args...)
+type joinKind int
+
+const (
+	joinKindUnknown joinKind = iota
+	joinKindInner
+	joinKindLeft
+	joinKindRight
+)
+
+type joinClause struct {
+	kind      joinKind
+	joinTable string
+	asTable   string
+	clauses   []string
 }
 
-func InnerJoinAlias(thisTable, asTable, thisColumn, thatTableColumn string, args ...any) qm.QueryMod {
-	clause := fmt.Sprintf("%s AS %s ON %s.%s=%s", thisTable, asTable, asTable, thisColumn, thatTableColumn)
-	return qm.InnerJoin(clause, args...)
-}
-
-// InnerJoinAnd inner join a on a.x=b.x AND a.y=b.y
-func InnerJoinAnd(thisTable, thisTableColumn, thatTableColumn string, andClauses []string, args ...any) qm.QueryMod {
-	clause := fmt.Sprintf("%s ON %s=%s", thisTable, thisTableColumn, thatTableColumn)
-	if len(andClauses) > 0 {
-		clause = clause + " AND " + strings.Join(andClauses, " AND ")
+func InnerJoin(joinTable string, args ...string) *joinClause {
+	var asTable string
+	if len(args) > 0 {
+		asTable = args[0]
 	}
-	return qm.InnerJoin(clause, args...)
-}
-
-func LeftJoin(thisTable, thisTableColumn, thatTableColumn string, args ...any) qm.QueryMod {
-	clause := fmt.Sprintf("%s ON %s=%s", thisTable, thisTableColumn, thatTableColumn)
-	return qm.LeftOuterJoin(clause, args...)
-}
-
-func LeftJoinAlias(thisTable, asTable, thisColumn, thatTableColumn string, args ...any) qm.QueryMod {
-	clause := fmt.Sprintf("%s AS %s ON %s.%s=%s", thisTable, asTable, asTable, thisColumn, thatTableColumn)
-	return qm.LeftOuterJoin(clause, args...)
-}
-
-func LeftJoinAnd(thisTable, thisTableColumn, thatTableColumn string, andClauses []string, args ...any) qm.QueryMod {
-	clause := fmt.Sprintf("%s ON %s=%s", thisTable, thisTableColumn, thatTableColumn)
-	if len(andClauses) > 0 {
-		clause = clause + " AND " + strings.Join(andClauses, " AND ")
+	return &joinClause{
+		kind:      joinKindInner,
+		joinTable: joinTable,
+		asTable:   asTable,
+		clauses:   make([]string, 0),
 	}
-	return qm.LeftOuterJoin(clause, args...)
+}
+
+func LeftJoin(joinTable string, args ...string) *joinClause {
+	var asTable string
+	if len(args) > 0 {
+		asTable = args[0]
+	}
+	return &joinClause{
+		kind:      joinKindLeft,
+		joinTable: joinTable,
+		asTable:   asTable,
+		clauses:   make([]string, 0),
+	}
+}
+
+func (j *joinClause) On(columnOrTableColumn, thatTableColumn string) *joinClause {
+	if j.asTable != "" {
+		j.clauses = append(j.clauses, fmt.Sprintf("%s AS %s ON %s.%s=%s", j.joinTable, j.asTable, j.asTable, columnOrTableColumn, thatTableColumn))
+	} else {
+		j.clauses = append(j.clauses, fmt.Sprintf("%s ON %s=%s", j.joinTable, columnOrTableColumn, thatTableColumn))
+	}
+	return j
+}
+
+func (j *joinClause) And(clause string) *joinClause {
+	j.clauses = append(j.clauses, clause)
+	return j
+}
+
+func (j *joinClause) Output(args ...any) qm.QueryMod {
+	switch j.kind {
+	case joinKindInner:
+		return qm.InnerJoin(strings.Join(j.clauses, " AND "), args...)
+	case joinKindLeft:
+		return qm.LeftOuterJoin(strings.Join(j.clauses, " AND "), args...)
+	case joinKindRight:
+		return qm.RightOuterJoin(strings.Join(j.clauses, " AND "), args...)
+	}
+	return nil
 }
