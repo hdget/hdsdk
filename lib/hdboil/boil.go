@@ -31,20 +31,6 @@ func GetLimitQueryMods(list *protobuf.ListParam) []qm.QueryMod {
 	return []qm.QueryMod{qm.Offset(int(p.Offset)), qm.Limit(int(p.PageSize))}
 }
 
-// AppendQueryMods 连接QueryMods
-func AppendQueryMods(mods ...any) []qm.QueryMod {
-	combined := make([]qm.QueryMod, 0)
-	for _, mod := range mods {
-		switch v := mod.(type) {
-		case []qm.QueryMod:
-			combined = append(combined, v...)
-		case qm.QueryMod:
-			combined = append(combined, v)
-		}
-	}
-	return combined
-}
-
 // IfNullZeroString 如果传了args则用args[0]做为alias, 否则就用oldValue做为alias
 func IfNullZeroString(oldValue string, args ...string) string {
 	alias := oldValue
