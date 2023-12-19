@@ -6,22 +6,17 @@ type qmBuilder struct {
 	mods []qm.QueryMod
 }
 
-func Qm() *qmBuilder {
+func Qm(mods ...qm.QueryMod) *qmBuilder {
 	return &qmBuilder{
-		mods: make([]qm.QueryMod, 0),
+		mods: mods,
 	}
 }
 
-func (q *qmBuilder) Use(mods ...qm.QueryMod) *qmBuilder {
+func (q *qmBuilder) Append(mods ...qm.QueryMod) *qmBuilder {
 	q.mods = append(q.mods, mods...)
 	return q
 }
 
-func (q *qmBuilder) Slice(mods []qm.QueryMod) *qmBuilder {
-	q.mods = append(q.mods, mods...)
-	return q
-}
-
-func (q *qmBuilder) Output() qm.QueryMod {
-	return qm.Expr(q.mods...)
+func (q *qmBuilder) Output() []qm.QueryMod {
+	return q.mods
 }
