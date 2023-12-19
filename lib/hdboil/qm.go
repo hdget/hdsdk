@@ -12,12 +12,12 @@ func Qm() *qmBuilder {
 	}
 }
 
-func (q *qmBuilder) Append(mods ...qm.QueryMod) *qmBuilder {
+func (q *qmBuilder) Use(mods ...qm.QueryMod) *qmBuilder {
 	q.mods = append(q.mods, mods...)
 	return q
 }
 
-func (q *qmBuilder) Add(mods []qm.QueryMod) *qmBuilder {
+func (q *qmBuilder) Slice(mods []qm.QueryMod) *qmBuilder {
 	q.mods = append(q.mods, mods...)
 	return q
 }
