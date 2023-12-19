@@ -7,7 +7,6 @@ import (
 	"github.com/hdget/hdsdk/protobuf"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
-	"strings"
 	"time"
 )
 
@@ -51,31 +50,6 @@ func JoinQueryMods(mods ...any) []qm.QueryMod {
 	return combined
 }
 
-func JoinAlias(thisTable, alias, thisColumn, thatTableColumn string, args ...string) string {
-	clause := fmt.Sprintf("%s AS %s ON %s.%s=%s", thisTable, alias, alias, thisColumn, thatTableColumn)
-	if len(args) > 0 {
-		return clause + " AND " + strings.Join(args, " AND ")
-	}
-	return clause
-}
-
-func Join(thisTable, thisTableColumn, thatTableColumn string, args ...string) string {
-	clause := fmt.Sprintf("%s ON %s=%s", thisTable, thisTableColumn, thatTableColumn)
-	if len(args) > 0 {
-		return clause + " AND " + strings.Join(args, " AND ")
-	}
-	return clause
-}
-
-// JoinTableColumn 需要指定Table和column
-func JoinTableColumn(thisTable, thisColumn, thatTable, thatColumn string, args ...string) string {
-	clause := fmt.Sprintf("%s ON %s.%s=%s.%s", thisTable, thisTable, thisColumn, thatTable, thatColumn)
-	if len(args) > 0 {
-		return clause + " AND " + strings.Join(args, " AND ")
-	}
-	return clause
-}
-
 // IfNullZeroString 如果传了args则用args[0]做为alias, 否则就用oldValue做为alias
 func IfNullZeroString(oldValue string, args ...string) string {
 	alias := oldValue
@@ -113,4 +87,8 @@ func GetDB(args ...boil.Executor) boil.Executor {
 		return args[0]
 	}
 	return boil.GetDB()
+}
+
+func SUM(col string, args ...string) string {
+	return IfNullZeroNumber(fmt.Sprintf("SUM(%s)", col), args...)
 }
