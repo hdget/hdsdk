@@ -17,7 +17,7 @@ func InnerJoinAlias(thisTable, asTable, thisColumn, thatTableColumn string, args
 }
 
 // InnerJoinAnd inner join a on a.x=b.x AND a.y=b.y
-func InnerJoinAnd(thisTable, thisTableColumn, thatTableColumn, andClauses []string, args ...any) qm.QueryMod {
+func InnerJoinAnd(thisTable, thisTableColumn, thatTableColumn string, andClauses []string, args ...any) qm.QueryMod {
 	clause := fmt.Sprintf("%s ON %s=%s", thisTable, thisTableColumn, thatTableColumn)
 	if len(andClauses) > 0 {
 		clause = clause + " AND " + strings.Join(andClauses, " AND ")
@@ -35,7 +35,7 @@ func LeftJoinAlias(thisTable, asTable, thisColumn, thatTableColumn string, args 
 	return qm.LeftOuterJoin(clause, args...)
 }
 
-func LeftJoinAnd(thisTable, thisTableColumn, thatTableColumn, andClauses []string, args ...any) qm.QueryMod {
+func LeftJoinAnd(thisTable, thisTableColumn, thatTableColumn string, andClauses []string, args ...any) qm.QueryMod {
 	clause := fmt.Sprintf("%s ON %s=%s", thisTable, thisTableColumn, thatTableColumn)
 	if len(andClauses) > 0 {
 		clause = clause + " AND " + strings.Join(andClauses, " AND ")
