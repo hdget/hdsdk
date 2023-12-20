@@ -6,13 +6,13 @@ type qmBuilder struct {
 	mods []qm.QueryMod
 }
 
-func Qm(mods ...qm.QueryMod) *qmBuilder {
+func AppendQueryMod(mods ...qm.QueryMod) *qmBuilder {
 	return &qmBuilder{
 		mods: mods,
 	}
 }
 
-func (q *qmBuilder) Append(mods ...qm.QueryMod) *qmBuilder {
+func (q *qmBuilder) AppendQueryMod(mods ...qm.QueryMod) *qmBuilder {
 	q.mods = append(q.mods, mods...)
 	return q
 }
