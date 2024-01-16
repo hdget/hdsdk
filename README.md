@@ -51,7 +51,7 @@ type rootConf struct {
 var config rootConf
 err := hdsdk.NewConfig("app", "test").Load(&config)
 if err != nil {
-    utils.LogFatal("load config", "err", err)
+    utils.LogFatal("load configer", "err", err)
 }
 
 err = hdsdk.Initialize(config)
@@ -198,7 +198,7 @@ RemoteConfig.xxx.yyy = "xxx"
 
 err := hdsdk.UpdateRemoteConfig(RemoteConfig)
 if err != nil  {
-    utils.LogFatal("update remote config", "err", err)
+    utils.LogFatal("update remote configer", "err", err)
 }
 ```
 
@@ -242,9 +242,9 @@ if err != nil {
 ```go
 const configTestMysql = `
 [sdk]
-    [sdk.log]
-        filename = "demo.log"
-        [sdk.log.rotate]
+    [sdk.logger]
+        filename = "demo.logger"
+        [sdk.logger.rotate]
             # 最大保存时间7天(单位hour)
             max_age = 168
             # 日志切割时间间隔24小时（单位hour)
