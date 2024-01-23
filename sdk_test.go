@@ -2,6 +2,7 @@ package hdsdk
 
 import (
 	"fmt"
+	"github.com/elgris/sqrl"
 	"github.com/hdget/hdsdk/core/config"
 	"github.com/pkg/errors"
 	"log"
@@ -11,21 +12,18 @@ import (
 const configTestLogger = `
 [sdk]
 	[sdk.log]
-        filename = "demo.log"
+        filename = "example.log"
 		[sdk.log.rotate]
 			# 最大保存时间7天(单位天)
-        	max_age  = 1
-			max_size = 0.01`
+        	max_age  = 1`
 
 const configTestMysql = `
 [sdk]
 	[sdk.log]
-        filename = "demo.log"
+        filename = "example.log"
 		[sdk.log.rotate]
-			# 最大保存时间7天(单位hour)
-        	max_age = 168
-        	# 日志切割时间间隔24小时（单位hour)
-        	rotation_time=24
+			# 最大保存时间7天(单位天)
+        	max_age  = 1
 	[sdk.mysql]
 		[sdk.mysql.default]
 			database = "mysql"
@@ -57,12 +55,10 @@ const configTestMysql = `
 const configTestRedis = `
 [sdk]
 	[sdk.log]
-        filename = "demo.log"
+        filename = "example.log"
 		[sdk.log.rotate]
-			# 最大保存时间7天(单位hour)
-        	max_age = 168
-        	# 日志切割时间间隔24小时（单位hour)
-        	rotation_time=24
+			# 最大保存时间7天(单位天)
+        	max_age  = 1
 	[sdk.redis]
 		[sdk.redis.default]
 			host = "127.0.0.1"
@@ -80,12 +76,10 @@ const configTestRedis = `
 const configTestRabbitmq = `
 [sdk]
 	[sdk.log]
-        filename = "demo.log"
+        filename = "example.log"
 		[sdk.log.rotate]
-			# 最大保存时间7天(单位hour)
-        	max_age = 168
-        	# 日志切割时间间隔24小时（单位hour)
-        	rotation_time=24
+			# 最大保存时间7天(单位天)
+        	max_age  = 1
 	[sdk.rabbitmq]
 		[sdk.rabbitmq.default]
 			host="127.0.0.1"
@@ -108,12 +102,10 @@ const configTestRabbitmq = `
 const configTestRabbitmqDelay = `
 [sdk]
 	[sdk.log]
-        filename = "demo.log"
+        filename = "example.log"
 		[sdk.log.rotate]
-			# 最大保存时间7天(单位hour)
-        	max_age = 168
-        	# 日志切割时间间隔24小时（单位hour)
-        	rotation_time=24
+			# 最大保存时间7天(单位天)
+        	max_age  = 1
 	[sdk.rabbitmq]
 		[sdk.rabbitmq.default]
 			host="127.0.0.1"
@@ -141,12 +133,10 @@ const configTestRabbitmqDelay = `
 const configTestKafka = `
 [sdk]
 	[sdk.log]
-        filename = "demo.log"
+        filename = "example.log"
 		[sdk.log.rotate]
-			# 最大保存时间7天(单位hour)
-        	max_age = 168
-        	# 日志切割时间间隔24小时（单位hour)
-        	rotation_time=24
+			# 最大保存时间7天(单位天)
+        	max_age  = 1
 	[sdk.kafka]
 		[sdk.kafka.default]
 			brokers=["192.168.0.114:9094"]
@@ -162,12 +152,10 @@ const configTestKafka = `
 const configTestAliyunDts = `
 [sdk]
 	[sdk.log]
-        filename = "demo.log"
+        filename = "example.log"
 		[sdk.log.rotate]
-			# 最大保存时间7天(单位hour)
-        	max_age = 168
-        	# 日志切割时间间隔24小时（单位hour)
-        	rotation_time=24
+			# 最大保存时间7天(单位天)
+        	max_age  = 1
 	[sdk.kafka]
 		[[sdk.kafka.items]]
 			name = "xxx"
@@ -183,12 +171,10 @@ const configTestAliyunDts = `
 const configTestNeo4j = `
 [sdk]
 	[sdk.log]
-        filename = "demo.log"
+        filename = "example.log"
 		[sdk.log.rotate]
-			# 最大保存时间7天(单位hour)
-        	max_age = 168
-        	# 日志切割时间间隔24小时（单位hour)
-        	rotation_time=24
+			# 最大保存时间7天(单位天)
+        	max_age  = 1
 	[sdk.neo4j]
 		virtual_uri = "neo4j://test.newaigou.com:7687"
 		username = "neo4j"
@@ -201,12 +187,10 @@ const configTestNeo4j = `
 const configTestEtcd = `
 [sdk]
 	[sdk.log]
-        filename = "demo.log"
+        filename = "example.log"
 		[sdk.log.rotate]
-			# 最大保存时间7天(单位hour)
-        	max_age = 168
-        	# 日志切割时间间隔24小时（单位hour)
-        	rotation_time=24
+			# 最大保存时间7天(单位天)
+        	max_age  = 1
 	[sdk.etcd]
 		url = "http://127.0.0.1:2379"
 `
@@ -336,40 +320,36 @@ func TestLogger(t *testing.T) {
 	//Logger.Panic("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 }
 
-//
-//// nolint:errcheck
-//func TestMysql(t *testing.T) {
-//	// 将配置信息转换成对应的数据结构
-//	var conf testConf
-//	err := configer.New("test", "local").ReadString(configTestMysql).Load(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("sdk initialize", "err", err)
-//	}
-//
-//	_ = Initialize(&conf)
-//
-//	bd := sqrl.Select("COUNT(1)").From("db")
-//	total, err := Mysql.My().Sqrl(bd).XCount()
-//	if err != nil {
-//		Logger.Debug("get total from default db", "total", total, "err", err)
-//	}
-//
-//	var total1 int
-//	err = Mysql.My().Get(&total1, "SELECT count(1) FROM db")
-//	Logger.Debug("get total from default db", "total", total1, "err", err)
-//
-//	var total2 int
-//	err = Mysql.Master().Get(&total2, "SELECT count(1) FROM db")
-//	Logger.Debug("get total from master db", "total", total2, "err", err)
-//
-//	var total3 int
-//	err = Mysql.Slave(0).Get(&total3, "SELECT count(1) FROM db")
-//	Logger.Debug("get total from slave db", "total", total3, "err", err)
-//
-//	var total4 int
-//	err = Mysql.By("xxx").Get(&total4, "SELECT count(1) FROM db")
-//	Logger.Debug("get total from extra db", "total", total4, "err", err)
-//}
+// nolint:errcheck
+func TestMysql(t *testing.T) {
+	err := Initialize("test", "test", config.WithConfigContent(configTestMysql))
+	if err != nil {
+		log.Fatalf("msg=\"sdk initialize\" error=\"%v\"", err)
+	}
+
+	bd := sqrl.Select("COUNT(1)").From("db")
+	total, err := Mysql.My().UseBuilder(bd).Count()
+	if err != nil {
+		Logger.Debug("get total from default db", "total", total, "err", err)
+	}
+
+	var total1 int
+	err = Mysql.My().Get(&total1, "SELECT count(1) FROM db")
+	Logger.Debug("get total from default db", "total", total1, "err", err)
+
+	var total2 int
+	err = Mysql.Master().Get(&total2, "SELECT count(1) FROM db")
+	Logger.Debug("get total from master db", "total", total2, "err", err)
+
+	var total3 int
+	err = Mysql.Slave(0).Get(&total3, "SELECT count(1) FROM db")
+	Logger.Debug("get total from slave db", "total", total3, "err", err)
+
+	var total4 int
+	err = Mysql.By("xxx").Get(&total4, "SELECT count(1) FROM db")
+	Logger.Debug("get total from extra db", "total", total4, "err", err)
+}
+
 //
 ////const lusHasStock = `
 //

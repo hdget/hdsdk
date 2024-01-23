@@ -12,7 +12,7 @@ type DbProvider interface {
 }
 
 type DbClient interface {
-	UseBuilder(builder DbBuilder)
+	UseBuilder(builder DbBuilder) DbClient
 	DbApiBasic
 	DbApiExtension
 }
@@ -27,8 +27,12 @@ type DbApiBasic interface {
 	QueryRow(query string, args ...any) *sql.Row
 }
 
+type DbApiSqlx interface {
+	Get(dest interface{}, query string, args ...interface{}) error
+}
+
 type DbApiExtension interface {
-	NamedExec(query string, arg any) (sql.Result, error) // 命名
+	DbApiSqlx
 	One(v any) error
 	All(v any) error
 	Count() (int64, error)
