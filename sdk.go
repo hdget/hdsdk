@@ -16,7 +16,7 @@ var (
 // LoadConfig 将配置文件中的内容加载到configVar中
 func LoadConfig(configVar any) error {
 	if configLoader == nil {
-		return errors.New("need initialize sdk firslty")
+		return errors.New("please initialize sdk first")
 	}
 
 	return configLoader.Load(&configVar)

@@ -1,7 +1,7 @@
 package zerolog
 
 import (
-	"github.com/hdget/hdsdk/core/logger/errdef"
+	"github.com/hdget/hdsdk/errdef"
 	"github.com/natefinch/lumberjack"
 	"io"
 	"os"
@@ -13,7 +13,7 @@ import (
 
 func newRotateLogger(conf *zerologConfig) (io.Writer, error) {
 	if conf.Filename == "" {
-		return nil, errdef.ErrInvalidLogConfig
+		return nil, errdef.ErrInvalidConfig
 	}
 
 	// 获取logDir

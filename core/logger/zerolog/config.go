@@ -2,7 +2,7 @@ package zerolog
 
 import (
 	"fmt"
-	"github.com/hdget/hdsdk/core/logger/errdef"
+	"github.com/hdget/hdsdk/errdef"
 	"github.com/hdget/hdsdk/intf"
 	"github.com/hdget/hdutils"
 	"github.com/mitchellh/mapstructure"
@@ -43,7 +43,7 @@ var (
 )
 
 // NewConfig 解析Config
-func NewConfig(configer intf.Configer) (*zerologConfig, error) {
+func NewConfig(configer intf.SdkConfiger) (*zerologConfig, error) {
 	if configer == nil {
 		hdutils.LogWarn("empty sdkConfig")
 		return getDefaultConfig(), nil
@@ -64,7 +64,7 @@ func NewConfig(configer intf.Configer) (*zerologConfig, error) {
 
 	// validate sdkConfig
 	if conf.Filename == "" || conf.Rotate == nil {
-		return nil, errdef.ErrInvalidLogConfig
+		return nil, errdef.ErrInvalidConfig
 	}
 
 	return &conf, nil

@@ -1,12 +1,5 @@
 package intf
 
-import "github.com/hdget/hdsdk/provider/logger"
-
-// Provider 底层库能力提供者接口
-type Provider interface {
-	Init(rootConfiger Configer, logger logger.LogProvider, args ...interface{}) error // 初始化底层能力
-}
-
 // sdk底层能力分类
 // sdk底层能力分为了几大类：
 // - SdkCategoryDb 数据库底层能力

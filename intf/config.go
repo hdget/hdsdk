@@ -1,6 +1,6 @@
 package intf
 
-type Configer interface {
+type SdkConfiger interface {
 	GetLogConfig() map[string]any      // 日志配置
 	GetMysqlConfig() map[string]any    // mysql数据库配置
 	GetRedisConfig() map[string]any    // redis缓存配置

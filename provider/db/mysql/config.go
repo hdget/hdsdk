@@ -1,60 +1,98 @@
 package mysql
 
-//
-//type ConfigMysql struct {
-//	Default *MySqlConf   `mapstructure:"default"`
-//	Master  *MySqlConf   `mapstructure:"master"`
-//	Slaves  []*MySqlConf `mapstructure:"slaves"`
-//	Items   []*MySqlConf `mapstructure:"items"`
-//}
-//
-//type MySqlConf struct {
-//	Name     string `mapstructure:"name"`
-//	User     string `mapstructure:"user"`
-//	Password string `mapstructure:"password"`
-//	Host     string `mapstructure:"host"`
-//	Port     int    `mapstructure:"port"`
-//	Database string `mapstructure:"database"`
-//	Timeout  int    `mapstructure:"timeout"`
-//}
-//
-//// /////////////////////////////////////////////////////////////////
-//func parseConfig(rootConfiger intf.Configer) (*ConfigMysql, error) {
-//	if rootConfiger == nil {
-//		return nil, intf.ErrEmptyConfig
-//	}
-//
-//	data := rootConfiger.GetMysqlConfig()
-//	if data == nil {
-//		return nil, intf.ErrEmptyConfig
-//	}
-//
-//	values, ok := data.(map[string]interface{})
-//	if !ok {
-//		return nil, intf.ErrInvalidConfig
-//	}
-//
-//	var conf ConfigMysql
-//	err := mapstructure.Decode(values, &conf)
-//	if err != nil {
-//		return nil, errors.Wrap(err, "decode db content")
-//	}
-//
-//	return &conf, nil
-//}
-//
-//func validateConf(providerType string, conf *MySqlConf) error {
-//	if conf == nil {
-//		return intf.ErrEmptyConfig
-//	}
-//
-//	if conf.Host == "" || conf.Database == "" || conf.User == "" {
-//		return intf.ErrInvalidConfig
-//	}
-//
-//	if providerType == intf.ProviderTypeOther && conf.Name == "" {
-//		return intf.ErrInvalidConfig
-//	}
-//
-//	return nil
-//}
+import (
+	"github.com/hdget/hdsdk/errdef"
+	"github.com/hdget/hdsdk/intf"
+	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
+)
+
+type mysqlProviderConfig struct {
+	Default *mysqlConfig   `mapstructure:"default"`
+	Master  *mysqlConfig   `mapstructure:"master"`
+	Slaves  []*mysqlConfig `mapstructure:"slaves"`
+	Items   []*mysqlConfig `mapstructure:"items"`
+}
+
+type mysqlConfig struct {
+	Name     string `mapstructure:"name"`
+	User     string `mapstructure:"user"`
+	Password string `mapstructure:"password"`
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Database string `mapstructure:"database"`
+	Timeout  int    `mapstructure:"timeout"`
+}
+
+func NewConfig(sdkConfiger intf.SdkConfiger) (*mysqlProviderConfig, error) {
+	if sdkConfiger == nil {
+		return nil, errdef.ErrInvalidConfig
+	}
+
+	// if logger sdkConfig not found, use default one
+	values := sdkConfiger.GetMysqlConfig()
+	if len(values) == 0 {
+		return nil, errdef.ErrInvalidConfig
+	}
+
+	var conf mysqlProviderConfig
+	err := mapstructure.Decode(values, &conf)
+	if err != nil {
+		return nil, errors.Wrap(err, "decode db content")
+	}
+
+	err = validateMysqlProviderConfig(&conf)
+	if err != nil {
+		return nil, errors.Wrap(err, "validate db content")
+	}
+
+	return &conf, nil
+}
+
+func validateMysqlProviderConfig(providerConfig *mysqlProviderConfig) error {
+	if providerConfig == nil {
+		return errdef.ErrEmptyConfig
+	}
+
+	if providerConfig.Default != nil {
+		err := validateMysqlConfig(providerConfig.Default)
+		if err != nil {
+			return err
+		}
+	}
+
+	if providerConfig.Master != nil {
+		err := validateMysqlConfig(providerConfig.Master)
+		if providerConfig.Master != nil {
+			return err
+		}
+	}
+
+	for _, slave := range providerConfig.Slaves {
+		err := validateMysqlConfig(slave)
+		if slave != nil {
+			return err
+		}
+	}
+
+	for _, item := range providerConfig.Items {
+		err := validateMysqlConfig(item)
+		if item != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateMysqlConfig(conf *mysqlConfig) error {
+	if conf == nil {
+		return errdef.ErrEmptyConfig
+	}
+
+	if conf.Name == "" || conf.User == "" || conf.Password == "" || conf.Host == "" || conf.Port == 0 || conf.Database == "" {
+		return errdef.ErrInvalidConfig
+	}
+
+	return nil
+}

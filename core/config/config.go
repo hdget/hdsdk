@@ -25,7 +25,7 @@ const (
 	sdkConfigSection = "sdk"
 )
 
-func NewConfiger(loader intf.ConfigLoader) (intf.Configer, error) {
+func NewSdkConfiger(loader intf.ConfigLoader) (intf.SdkConfiger, error) {
 	var config sdkConfig
 	err := loader.LoadKey(sdkConfigSection, &config)
 	if err != nil {
