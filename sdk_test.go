@@ -5,6 +5,8 @@ import (
 	"github.com/elgris/sqrl"
 	"github.com/hdget/hdsdk/v1/config"
 	"github.com/hdget/hdutils"
+	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
+	"github.com/neo4j/neo4j-go-driver/v4/neo4j/dbtype"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"log"
@@ -451,410 +453,409 @@ return 1`, []any{"stock:123:25:2343", "stock:123:25:2342"}, []any{100, 200})
 	assert.Equal(t, k8v[1], int64(1))
 }
 
+// // nolint:errcheck
 //
-//// nolint:errcheck
-//func TestRabbitmqSend(t *testing.T) {
-//	var conf testConf
-//	err := configer.New("test", "local").ReadString(configTestRabbitmq).Load(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("unmarshal configer", "err", err)
+//	func TestRabbitmqSend(t *testing.T) {
+//		var conf testConf
+//		err := configer.New("test", "local").ReadString(configTestRabbitmq).Load(&conf)
+//		if err != nil {
+//			hdutils.LogFatal("unmarshal configer", "err", err)
+//		}
+//
+//		err = Initialize(&conf)
+//		if err != nil {
+//			hdutils.LogFatal("sdk initialize", "err", err)
+//		}
+//
+//		params := map[string]any{
+//			"exchangeName": "default",
+//			"exchangeType": "topic",
+//		}
+//		p, err := Rabbitmq.My().CreateProducer(params)
+//		if err != nil {
+//			Logger.Fatal("create producer", "err", err)
+//		}
+//
+//		for i := 0; i < 10; i++ {
+//			s := fmt.Sprintf("%d", i)
+//			err = p.Publish([]byte(s), "test")
+//			if err != nil {
+//				Logger.Error("publish", "last", p.GetLastConfirmedId(), "err", err)
+//			}
+//			time.Sleep(1 * time.Second)
+//		}
 //	}
 //
-//	err = Initialize(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("sdk initialize", "err", err)
-//	}
+//	func TestRabbitmqSendDelay(t *testing.T) {
+//		// 将配置信息转换成对应的数据结构
+//		var conf testConf
+//		err := configer.New("test", "local").ReadString(configTestRabbitmqDelay).Load(&conf)
+//		if err != nil {
+//			hdutils.LogFatal("unmarshal democonf", "err", err)
+//		}
 //
-//	params := map[string]any{
-//		"exchangeName": "default",
-//		"exchangeType": "topic",
-//	}
-//	p, err := Rabbitmq.My().CreateProducer(params)
-//	if err != nil {
-//		Logger.Fatal("create producer", "err", err)
-//	}
+//		err = Initialize(&conf)
+//		if err != nil {
+//			hdutils.LogFatal("sdk initialize", "err", err)
+//		}
 //
-//	for i := 0; i < 10; i++ {
-//		s := fmt.Sprintf("%d", i)
-//		err = p.Publish([]byte(s), "test")
+//		params := map[string]any{
+//			"exchangeName": "delay",
+//			"exchangeType": "delay:topic",
+//		}
+//		p, err := Rabbitmq.My().CreateProducer(params)
+//		if err != nil {
+//			Logger.Fatal("create producer", "err", err)
+//		}
+//
+//		err = p.PublishDelay([]byte("1"), int64(60000), "close")
 //		if err != nil {
 //			Logger.Error("publish", "last", p.GetLastConfirmedId(), "err", err)
 //		}
-//		time.Sleep(1 * time.Second)
-//	}
-//}
 //
-//func TestRabbitmqSendDelay(t *testing.T) {
-//	// 将配置信息转换成对应的数据结构
-//	var conf testConf
-//	err := configer.New("test", "local").ReadString(configTestRabbitmqDelay).Load(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("unmarshal democonf", "err", err)
-//	}
-//
-//	err = Initialize(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("sdk initialize", "err", err)
-//	}
-//
-//	params := map[string]any{
-//		"exchangeName": "delay",
-//		"exchangeType": "delay:topic",
-//	}
-//	p, err := Rabbitmq.My().CreateProducer(params)
-//	if err != nil {
-//		Logger.Fatal("create producer", "err", err)
-//	}
-//
-//	err = p.PublishDelay([]byte("1"), int64(60000), "close")
-//	if err != nil {
-//		Logger.Error("publish", "last", p.GetLastConfirmedId(), "err", err)
-//	}
-//
-//	err = p.PublishDelay([]byte("2"), int64(70000), "close")
-//	if err != nil {
-//		Logger.Error("publish", "last", p.GetLastConfirmedId(), "err", err)
-//	}
-//}
-//
-//func msgProcess(data []byte) intf.MqMsgAction {
-//	fmt.Println(time.Now(), hdutils.BytesToString(data))
-//	return intf.Ack
-//}
-//
-//// nolint:errcheck
-//func TestRabbitmqRecv(t *testing.T) {
-//	// 将配置信息转换成对应的数据结构
-//	var conf testConf
-//	err := configer.New("test", "local").ReadString(configTestRabbitmq).Load(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("unmarshal democonf", "err", err)
-//	}
-//
-//	err = Initialize(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("sdk initialize", "err", err)
-//	}
-//
-//	qosOption := Rabbitmq.My().GetDefaultOptions()[intf.MqOptionQos].(*rabbitmq_deprecated.QosOption)
-//	qosOption.PrefetchCount = 2
-//	params := map[string]any{
-//		"exchangeName": "default",
-//		"exchangeType": "topic",
-//		"routingKeys":  []string{"test"},
-//	}
-//	c, err := Rabbitmq.My().CreateConsumer(msgProcess, params, qosOption)
-//	if err != nil {
-//		Logger.Fatal("create consumer", "err", err)
-//	}
-//
-//	//go func() {
-//	//	time.Sleep(3 * time.Second)
-//	//	c.close()
-//	//}()
-//
-//	c.Consume()
-//}
-//
-//// nolint:errcheck
-//func TestRabbitmqRecvDelay(t *testing.T) {
-//	// 将配置信息转换成对应的数据结构
-//	var conf testConf
-//	err := configer.New("test", "local").ReadString(configTestRabbitmq).Load(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("unmarshal democonf", "err", err)
-//	}
-//
-//	err = Initialize(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("sdk initialize", "err", err)
-//	}
-//
-//	qosOption := Rabbitmq.My().GetDefaultOptions()[intf.MqOptionQos].(*rabbitmq_deprecated.QosOption)
-//	qosOption.PrefetchCount = 2
-//	params := map[string]any{
-//		"queueName":    "close",
-//		"exchangeName": "delay",
-//		"exchangeType": "delay:topic",
-//		"routingKeys":  []string{"close"},
-//	}
-//	c, err := Rabbitmq.My().CreateConsumer(msgProcess, params, qosOption)
-//	if err != nil {
-//		Logger.Fatal("create consumer", "err", err)
-//	}
-//
-//	//go func() {
-//	//	time.Sleep(3 * time.Second)
-//	//	c.close()
-//	//}()
-//
-//	c.Consume()
-//}
-//
-//// nolint:errcheck
-//func TestKafkaSend(t *testing.T) {
-//	// 将配置信息转换成对应的数据结构
-//	var conf testConf
-//	err := configer.New("test", "local").ReadString(configTestKafka).Load(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("unmarshal democonf", "err", err)
-//	}
-//
-//	err = Initialize(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("sdk initialize", "err", err)
-//	}
-//
-//	p, err := Kafka.My().CreateProducer(nil)
-//	if err != nil {
-//		hdutils.LogFatal("kafka create producer", "err", err)
-//	}
-//	defer p.Close()
-//
-//	for i := 0; i < 10; i++ {
-//		s := fmt.Sprintf("%d", i)
-//		err = p.Publish([]byte(s))
+//		err = p.PublishDelay([]byte("2"), int64(70000), "close")
 //		if err != nil {
-//			hdutils.LogFatal("kafka producer publish", "err", err)
+//			Logger.Error("publish", "last", p.GetLastConfirmedId(), "err", err)
 //		}
 //	}
-//}
 //
-//// nolint:errcheck
-//func TestKafkaRecv(t *testing.T) {
-//	// 将配置信息转换成对应的数据结构
-//	var conf testConf
-//	err := configer.New("test", "local").ReadString(configTestKafka).Load(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("unmarshal democonf", "err", err)
+//	func msgProcess(data []byte) intf.MqMsgAction {
+//		fmt.Println(time.Now(), hdutils.BytesToString(data))
+//		return intf.Ack
 //	}
 //
-//	err = Initialize(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("sdk initialize", "err", err)
-//	}
+// // nolint:errcheck
 //
-//	c, err := Kafka.My().CreateConsumer(msgProcess, nil)
-//	if err != nil {
-//		hdutils.LogFatal("kafka create consumer", "err", err)
-//	}
-//	defer c.Close()
-//
-//	c.Consume()
-//}
-//
-//func BenchmarkHamba(b *testing.B) {
-//	for i := 0; i < b.N; i++ {
-//		parseByHamba()
-//	}
-//}
-//
-//func parseByHamba() {
-//	dts, err := aliyun.New()
-//	if err != nil {
-//		hdutils.LogFatal("new alidts", "err", err)
-//	}
-//
-//	data, err := os.ReadFile("alidts.dump")
-//	if err != nil {
-//		hdutils.LogFatal("open alidts data", "err", err)
-//	}
-//
-//	_, err = dts.Parse(data)
-//	if err != nil {
-//		hdutils.LogFatal("alidts getrecord", "err", err)
-//	}
-//}
-//
-//func TestUtilsAlidts(t *testing.T) {
-//	dts, err := aliyun.New()
-//	if err != nil {
-//		hdutils.LogFatal("new alidts", "err", err)
-//	}
-//
-//	data, err := os.ReadFile("alidts.dump")
-//	if err != nil {
-//		hdutils.LogFatal("open alidts data", "err", err)
-//	}
-//
-//	r, err := dts.Parse(data)
-//	if err != nil {
-//		hdutils.LogFatal("alidts getrecord", "err", err)
-//	}
-//
-//	fmt.Println(r)
-//}
-//
-//func dtsHandler(data []byte) intf.MqMsgAction {
-//	r := parseDtsData(data)
-//	fmt.Printf("%v %s %s.%s [%s]",
-//		time.Unix(r.SourceTimeStamp, 0),
-//		r.SourceTxId,
-//		r.Database,
-//		r.Table,
-//		r.Operation,
-//	)
-//	return intf.Ack
-//}
-//
-//func parseDtsData(data []byte) *aliyun.DtsRecord {
-//	dts, err := aliyun.New()
-//	if err != nil {
-//		hdutils.LogError("err new alidts")
-//		return nil
-//	}
-//
-//	r, err := dts.Parse(data)
-//	if err != nil {
-//		hdutils.LogError("err parse alidts data")
-//		return nil
-//	}
-//	return r
-//}
-//
-//// nolint:errcheck
-//func TestDts(t *testing.T) {
-//	// 将配置信息转换成对应的数据结构
-//	var conf testConf
-//	err := configer.New("test", "local").ReadString(configTestAliyunDts).Load(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("unmarshal demo conf", "err", err)
-//	}
-//
-//	err = Initialize(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("sdk initialize", "err", err)
-//	}
-//
-//	c, err := Kafka.By("xxx").CreateConsumer(dtsHandler, nil)
-//	if err != nil {
-//		hdutils.LogFatal("create consumer", "err", err)
-//	}
-//
-//	c.Consume()
-//}
-//
-//// nolint:errcheck
-//func TestNeo4j(t *testing.T) {
-//	// 将配置信息转换成对应的数据结构
-//	var conf testConf
-//	err := configer.New("test", "local").ReadString(configTestNeo4j).Load(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("unmarshal demo conf", "err", err)
-//	}
-//
-//	err = Initialize(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("sdk initialize", "err", err)
-//	}
-//
-//	works := []neo4j.TransactionWork{
-//		graphDeleteAllPersons(),
-//		graphAddPerson("A"),
-//		graphAddPerson("B"),
-//		graphAddPerson("C"),
-//		graphAddReferralRelation("A", "B"),
-//		graphAddReferralRelation("B", "C"),
-//		graphDeletePerson("B"),
-//	}
-//
-//	_, err = Neo4j.Exec(works)
-//	if err != nil {
-//		hdutils.LogFatal("neo4j exec", "err", err)
-//	}
-//
-//	ret1, err := Neo4j.Select("MATCH (a:Person) RETURN a")
-//	if err != nil {
-//		hdutils.LogFatal("neo4j select", "err", err)
-//	}
-//	fmt.Println(ret1)
-//
-//	type Person struct {
-//		Name string `json:"name"`
-//	}
-//	ret2, err := Neo4j.Get("MATCH (a:Person {name: $Name}) RETURN a", &Person{Name: "A"})
-//	if err != nil {
-//		hdutils.LogFatal("neo4j get", "err", err)
-//	}
-//	fmt.Println(ret2)
-//}
-//
-//// 找到匹配的a节点，然后detach命令会删除a节点相关的所有关系
-//func graphDeleteAllPersons() neo4j.TransactionWork {
-//	return func(tx neo4j.Transaction) (any, error) {
-//		var result, err = tx.Run(
-//			"MATCH (a:Person) DETACH DELETE a", nil)
-//
+//	func TestRabbitmqRecv(t *testing.T) {
+//		// 将配置信息转换成对应的数据结构
+//		var conf testConf
+//		err := configer.New("test", "local").ReadString(configTestRabbitmq).Load(&conf)
 //		if err != nil {
-//			return nil, err
+//			hdutils.LogFatal("unmarshal democonf", "err", err)
 //		}
 //
-//		return result.Consume()
+//		err = Initialize(&conf)
+//		if err != nil {
+//			hdutils.LogFatal("sdk initialize", "err", err)
+//		}
+//
+//		qosOption := Rabbitmq.My().GetDefaultOptions()[intf.MqOptionQos].(*rabbitmq_deprecated.QosOption)
+//		qosOption.PrefetchCount = 2
+//		params := map[string]any{
+//			"exchangeName": "default",
+//			"exchangeType": "topic",
+//			"routingKeys":  []string{"test"},
+//		}
+//		c, err := Rabbitmq.My().CreateConsumer(msgProcess, params, qosOption)
+//		if err != nil {
+//			Logger.Fatal("create consumer", "err", err)
+//		}
+//
+//		//go func() {
+//		//	time.Sleep(3 * time.Second)
+//		//	c.close()
+//		//}()
+//
+//		c.Consume()
 //	}
-//}
 //
-//func graphDeletePerson(name string) neo4j.TransactionWork {
-//	return func(tx neo4j.Transaction) (any, error) {
-//		// 1. 删除
-//		result, err := tx.Run(
-//			"MATCH (a:Person)-[:REFERRAL]-(b:Person {name: $name})-[:REFERRAL]-(c:Person) RETURN a,c", map[string]any{"name": name})
+// // nolint:errcheck
+//
+//	func TestRabbitmqRecvDelay(t *testing.T) {
+//		// 将配置信息转换成对应的数据结构
+//		var conf testConf
+//		err := configer.New("test", "local").ReadString(configTestRabbitmq).Load(&conf)
 //		if err != nil {
-//			return nil, err
+//			hdutils.LogFatal("unmarshal democonf", "err", err)
 //		}
 //
-//		var from, to dbtype.Node
-//		if result.Next() {
-//			from = result.Record().Values[0].(dbtype.Node)
-//			to = result.Record().Values[1].(dbtype.Node)
-//		}
-//
-//		// 2. 删除节点
-//		result, err = tx.Run(
-//			"MATCH (a:Person {name: $name}) DETACH DELETE a", map[string]any{"name": name})
+//		err = Initialize(&conf)
 //		if err != nil {
-//			return nil, err
+//			hdutils.LogFatal("sdk initialize", "err", err)
 //		}
 //
-//		// 3. 增加边
-//		if from.Id > 0 && to.Id > 0 {
-//			result, err = tx.Run(
-//				"MATCH (a:Person {name: $from}),(b:Person {name: $to}) MERGE (a)-[:REFERER]->(b)", map[string]any{"from": from.Props["name"], "to": to.Props["name"]})
+//		qosOption := Rabbitmq.My().GetDefaultOptions()[intf.MqOptionQos].(*rabbitmq_deprecated.QosOption)
+//		qosOption.PrefetchCount = 2
+//		params := map[string]any{
+//			"queueName":    "close",
+//			"exchangeName": "delay",
+//			"exchangeType": "delay:topic",
+//			"routingKeys":  []string{"close"},
+//		}
+//		c, err := Rabbitmq.My().CreateConsumer(msgProcess, params, qosOption)
+//		if err != nil {
+//			Logger.Fatal("create consumer", "err", err)
+//		}
+//
+//		//go func() {
+//		//	time.Sleep(3 * time.Second)
+//		//	c.close()
+//		//}()
+//
+//		c.Consume()
+//	}
+//
+// // nolint:errcheck
+//
+//	func TestKafkaSend(t *testing.T) {
+//		// 将配置信息转换成对应的数据结构
+//		var conf testConf
+//		err := configer.New("test", "local").ReadString(configTestKafka).Load(&conf)
+//		if err != nil {
+//			hdutils.LogFatal("unmarshal democonf", "err", err)
+//		}
+//
+//		err = Initialize(&conf)
+//		if err != nil {
+//			hdutils.LogFatal("sdk initialize", "err", err)
+//		}
+//
+//		p, err := Kafka.My().CreateProducer(nil)
+//		if err != nil {
+//			hdutils.LogFatal("kafka create producer", "err", err)
+//		}
+//		defer p.Close()
+//
+//		for i := 0; i < 10; i++ {
+//			s := fmt.Sprintf("%d", i)
+//			err = p.Publish([]byte(s))
 //			if err != nil {
-//				return nil, err
+//				hdutils.LogFatal("kafka producer publish", "err", err)
 //			}
 //		}
-//		return result.Consume()
 //	}
-//}
 //
-//func graphAddPerson(person1 string) neo4j.TransactionWork {
-//	return func(tx neo4j.Transaction) (any, error) {
-//		var result, err = tx.Run(
-//			"CREATE (a:Person {name: $name1})", map[string]any{"name1": person1})
+// // nolint:errcheck
 //
+//	func TestKafkaRecv(t *testing.T) {
+//		// 将配置信息转换成对应的数据结构
+//		var conf testConf
+//		err := configer.New("test", "local").ReadString(configTestKafka).Load(&conf)
 //		if err != nil {
-//			return nil, err
+//			hdutils.LogFatal("unmarshal democonf", "err", err)
 //		}
 //
-//		return result.Consume()
-//	}
-//}
-//
-//func graphAddReferralRelation(person1 string, person2 string) neo4j.TransactionWork {
-//	return func(tx neo4j.Transaction) (any, error) {
-//		var result, err = tx.Run(
-//			"MATCH (a:Person {name: $name1}),"+
-//				"(b:Person {name: $name2}) "+
-//				"MERGE (a)-[:REFERRAL]->(b)", map[string]any{"name1": person1, "name2": person2})
-//
+//		err = Initialize(&conf)
 //		if err != nil {
-//			return nil, err
+//			hdutils.LogFatal("sdk initialize", "err", err)
 //		}
 //
-//		return result.Consume()
-//	}
-//}
+//		c, err := Kafka.My().CreateConsumer(msgProcess, nil)
+//		if err != nil {
+//			hdutils.LogFatal("kafka create consumer", "err", err)
+//		}
+//		defer c.Close()
 //
+//		c.Consume()
+//	}
+//
+//	func BenchmarkHamba(b *testing.B) {
+//		for i := 0; i < b.N; i++ {
+//			parseByHamba()
+//		}
+//	}
+//
+//	func parseByHamba() {
+//		dts, err := aliyun.New()
+//		if err != nil {
+//			hdutils.LogFatal("new alidts", "err", err)
+//		}
+//
+//		data, err := os.ReadFile("alidts.dump")
+//		if err != nil {
+//			hdutils.LogFatal("open alidts data", "err", err)
+//		}
+//
+//		_, err = dts.Parse(data)
+//		if err != nil {
+//			hdutils.LogFatal("alidts getrecord", "err", err)
+//		}
+//	}
+//
+//	func TestUtilsAlidts(t *testing.T) {
+//		dts, err := aliyun.New()
+//		if err != nil {
+//			hdutils.LogFatal("new alidts", "err", err)
+//		}
+//
+//		data, err := os.ReadFile("alidts.dump")
+//		if err != nil {
+//			hdutils.LogFatal("open alidts data", "err", err)
+//		}
+//
+//		r, err := dts.Parse(data)
+//		if err != nil {
+//			hdutils.LogFatal("alidts getrecord", "err", err)
+//		}
+//
+//		fmt.Println(r)
+//	}
+//
+//	func dtsHandler(data []byte) intf.MqMsgAction {
+//		r := parseDtsData(data)
+//		fmt.Printf("%v %s %s.%s [%s]",
+//			time.Unix(r.SourceTimeStamp, 0),
+//			r.SourceTxId,
+//			r.Database,
+//			r.Table,
+//			r.Operation,
+//		)
+//		return intf.Ack
+//	}
+//
+//	func parseDtsData(data []byte) *aliyun.DtsRecord {
+//		dts, err := aliyun.New()
+//		if err != nil {
+//			hdutils.LogError("err new alidts")
+//			return nil
+//		}
+//
+//		r, err := dts.Parse(data)
+//		if err != nil {
+//			hdutils.LogError("err parse alidts data")
+//			return nil
+//		}
+//		return r
+//	}
+//
+// // nolint:errcheck
+//
+//	func TestDts(t *testing.T) {
+//		// 将配置信息转换成对应的数据结构
+//		var conf testConf
+//		err := configer.New("test", "local").ReadString(configTestAliyunDts).Load(&conf)
+//		if err != nil {
+//			hdutils.LogFatal("unmarshal demo conf", "err", err)
+//		}
+//
+//		err = Initialize(&conf)
+//		if err != nil {
+//			hdutils.LogFatal("sdk initialize", "err", err)
+//		}
+//
+//		c, err := Kafka.By("xxx").CreateConsumer(dtsHandler, nil)
+//		if err != nil {
+//			hdutils.LogFatal("create consumer", "err", err)
+//		}
+//
+//		c.Consume()
+//	}
+//
+// nolint:errcheck
+func TestNeo4j(t *testing.T) {
+	// 将配置信息转换成对应的数据结构
+	err := Initialize("test", "test", config.WithConfigContent(configTestNeo4j))
+	if err != nil {
+		hdutils.LogFatal("sdk initialize", "err", err)
+	}
+
+	works := []neo4j.TransactionWork{
+		graphDeleteAllPersons(),
+		graphAddPerson("A"),
+		graphAddPerson("B"),
+		graphAddPerson("C"),
+		graphAddReferralRelation("A", "B"),
+		graphAddReferralRelation("B", "C"),
+		graphDeletePerson("B"),
+	}
+
+	_, err = Neo4j.Exec(works)
+	if err != nil {
+		hdutils.LogFatal("neo4j exec", "err", err)
+	}
+
+	ret1, err := Neo4j.Select("MATCH (a:Person) RETURN a")
+	if err != nil {
+		hdutils.LogFatal("neo4j select", "err", err)
+	}
+	fmt.Println(ret1)
+
+	type Person struct {
+		Name string `json:"name"`
+	}
+	ret2, err := Neo4j.Get("MATCH (a:Person {name: $Name}) RETURN a", &Person{Name: "A"})
+	if err != nil {
+		hdutils.LogFatal("neo4j get", "err", err)
+	}
+	fmt.Println(ret2)
+}
+
+// 找到匹配的a节点，然后detach命令会删除a节点相关的所有关系
+func graphDeleteAllPersons() neo4j.TransactionWork {
+	return func(tx neo4j.Transaction) (any, error) {
+		var result, err = tx.Run(
+			"MATCH (a:Person) DETACH DELETE a", nil)
+
+		if err != nil {
+			return nil, err
+		}
+
+		return result.Consume()
+	}
+}
+
+func graphDeletePerson(name string) neo4j.TransactionWork {
+	return func(tx neo4j.Transaction) (any, error) {
+		// 1. 删除
+		result, err := tx.Run(
+			"MATCH (a:Person)-[:REFERRAL]-(b:Person {name: $name})-[:REFERRAL]-(c:Person) RETURN a,c", map[string]any{"name": name})
+		if err != nil {
+			return nil, err
+		}
+
+		var from, to dbtype.Node
+		if result.Next() {
+			from = result.Record().Values[0].(dbtype.Node)
+			to = result.Record().Values[1].(dbtype.Node)
+		}
+
+		// 2. 删除节点
+		result, err = tx.Run(
+			"MATCH (a:Person {name: $name}) DETACH DELETE a", map[string]any{"name": name})
+		if err != nil {
+			return nil, err
+		}
+
+		// 3. 增加边
+		if from.Id > 0 && to.Id > 0 {
+			result, err = tx.Run(
+				"MATCH (a:Person {name: $from}),(b:Person {name: $to}) MERGE (a)-[:REFERER]->(b)", map[string]any{"from": from.Props["name"], "to": to.Props["name"]})
+			if err != nil {
+				return nil, err
+			}
+		}
+		return result.Consume()
+	}
+}
+
+func graphAddPerson(person1 string) neo4j.TransactionWork {
+	return func(tx neo4j.Transaction) (any, error) {
+		var result, err = tx.Run(
+			"CREATE (a:Person {name: $name1})", map[string]any{"name1": person1})
+
+		if err != nil {
+			return nil, err
+		}
+
+		return result.Consume()
+	}
+}
+
+func graphAddReferralRelation(person1 string, person2 string) neo4j.TransactionWork {
+	return func(tx neo4j.Transaction) (any, error) {
+		var result, err = tx.Run(
+			"MATCH (a:Person {name: $name1}),"+
+				"(b:Person {name: $name2}) "+
+				"MERGE (a)-[:REFERRAL]->(b)", map[string]any{"name1": person1, "name2": person2})
+
+		if err != nil {
+			return nil, err
+		}
+
+		return result.Consume()
+	}
+}
+
 //// nolint:errcheck
 //func TestEtcd(t *testing.T) {
 //	// 将配置信息转换成对应的数据结构

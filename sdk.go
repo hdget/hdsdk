@@ -5,6 +5,7 @@ import (
 	"github.com/hdget/hdsdk/v1/intf"
 	"github.com/hdget/hdsdk/v1/provider/cache"
 	"github.com/hdget/hdsdk/v1/provider/db"
+	"github.com/hdget/hdsdk/v1/provider/graph"
 	"github.com/hdget/hdsdk/v1/provider/logger"
 	"github.com/pkg/errors"
 	"go.uber.org/fx"
@@ -15,6 +16,7 @@ var (
 	Logger       intf.LoggerProvider
 	Mysql        intf.DbProvider
 	Redis        intf.RedisProvider
+	Neo4j        intf.GraphProvider
 )
 
 // LoadConfig 将配置文件中的内容加载到configVar中
@@ -49,6 +51,10 @@ func Initialize(app, env string, options ...config.Option) error {
 
 	if len(sdkConfiger.GetRedisConfig()) > 0 {
 		fxOptions = append(fxOptions, cache.FxModule, fx.Populate(&Redis))
+	}
+
+	if len(sdkConfiger.GetNeo4jConfig()) > 0 {
+		fxOptions = append(fxOptions, graph.FxModule, fx.Populate(&Neo4j))
 	}
 
 	_ = fx.New(

@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/elgris/sqrl v0.0.0-20210727210741-7e0198b30236
+	github.com/fatih/structs v1.1.0
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gogo/protobuf v1.3.2
 	github.com/gomodule/redigo v1.8.9
@@ -16,6 +17,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.8.1
 	github.com/rs/zerolog v1.30.0
 	github.com/sagikazarmark/crypt v0.10.0
+	github.com/spf13/cast v1.5.1
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/fx v1.20.1
@@ -65,7 +67,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/speps/go-hashids/v2 v2.0.1 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
-	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
