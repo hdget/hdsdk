@@ -45,27 +45,27 @@ func (m *mysqlProvider) Init(logger intf.Logger, args ...any) error {
 	if providerConfig.Default != nil {
 		m.defaultDb, err = newDB(providerConfig.Default)
 		if err != nil {
-			return errors.Wrap(err, "new mysql default connection")
+			return errors.Wrap(err, "init mysql default connection")
 		}
-		logger.Debug("initialize mysql default", "host", providerConfig.Default.Host)
+		logger.Debug("init mysql default", "host", providerConfig.Default.Host)
 	}
 
 	if providerConfig.Master != nil {
 		m.masterDb, err = newDB(providerConfig.Master)
 		if err != nil {
-			return errors.Wrap(err, "new mysql master connection")
+			return errors.Wrap(err, "init mysql master connection")
 		}
-		logger.Debug("initialize mysql master", "host", providerConfig.Master.Host)
+		logger.Debug("init mysql master", "host", providerConfig.Master.Host)
 	}
 
 	for i, slaveConf := range providerConfig.Slaves {
 		slaveClient, err := newDB(slaveConf)
 		if err != nil {
-			return errors.Wrapf(err, "new mysql slave connection, index: %d", i)
+			return errors.Wrapf(err, "init mysql slave connection, index: %d", i)
 		}
 
 		m.slaveDbs[i] = slaveClient
-		logger.Debug("initialize mysql slave", "index", i, "host", slaveConf.Host)
+		logger.Debug("init mysql slave", "index", i, "host", slaveConf.Host)
 	}
 
 	for _, itemConf := range providerConfig.Items {
@@ -75,7 +75,7 @@ func (m *mysqlProvider) Init(logger intf.Logger, args ...any) error {
 		}
 
 		m.extraDbs[itemConf.Name] = itemClient
-		logger.Debug("initialize mysql extra", "name", itemConf.Name, "host", itemConf.Host)
+		logger.Debug("init mysql extra", "name", itemConf.Name, "host", itemConf.Host)
 	}
 
 	return nil
