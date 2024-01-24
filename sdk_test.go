@@ -3,10 +3,13 @@ package hdsdk
 import (
 	"fmt"
 	"github.com/elgris/sqrl"
-	"github.com/hdget/hdsdk/v1/core/config"
+	"github.com/hdget/hdsdk/v1/config"
+	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 	"log"
 	"testing"
+	"time"
 )
 
 const configTestLogger = `
@@ -350,137 +353,104 @@ func TestMysql(t *testing.T) {
 	Logger.Debug("get total from extra db", "total", total4, "err", err)
 }
 
-//
-////const lusHasStock = `
-//
-////for i,v in pairs(KEYS) do
-////	local ret = redis.call("Get", v)
-////	if( ret - ARGV[i] <= 0 ) then
-////		error("not enough stock")
-////	end;
-////end;
-////return 1
-////`
-//
-//const luaDeduckStock = `
-//for i,v in pairs(KEYS) do
-//	local current = redis.call('GET', v)
-//	local delta = current - ARGV[i]
-//	if( delta >= 0 ) then
-//		local leftStock = redis.call("DECRBY", v, ARGV[i])
-//	else
-//		error("not enough stock")
-//	end;
-//end;
-//return 1
-//`
-//
-////const luaRevertStock = `
-////for i,v in pairs(KEYS) do
-////	redis.call("INCRBY", v, ARGV[i])
-////end;
-////return 1
-////`
-//
-//// nolint:errcheck
-//func TestRedis(t *testing.T) {
-//	var conf testConf
-//	err := configer.New("test", "local").ReadString(configTestRedis).Load(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("unmarshal conf", "err", err)
-//	}
-//
-//	err = Initialize(&conf)
-//	if err != nil {
-//		hdutils.LogFatal("sdk initialize", "err", err)
-//	}
-//
-//	result, err := Redis.My().Eval(luaDeduckStock, []interface{}{"stock:123:25:2343", "stock:123:25:2342"}, []interface{}{100, 200})
-//	if err != nil {
-//		fmt.Println(err)
-//	}
-//	fmt.Printf("eval result:%v", result)
-//
-//	_ = Redis.My().Set("key1", 1)
-//	_ = Redis.My().Set("key2", "strvalue")
-//	_ = Redis.My().Set("key3", 123)
-//
-//	value1, _ := Redis.My().GetInt("key1")
-//	assert.Equal(t, value1, 1)
-//
-//	value2, _ := Redis.My().GetString("key2")
-//	assert.Equal(t, value2, "strvalue")
-//
-//	value3, _ := Redis.My().GetInt64("key3")
-//	assert.Equal(t, value3, int64(123))
-//
-//	k1exist, _ := Redis.My().Exists("key1")
-//	assert.Equal(t, k1exist, true)
-//
-//	_ = Redis.My().Del("key1")
-//	k1exist, _ = Redis.My().Exists("key1")
-//	assert.Equal(t, k1exist, false)
-//
-//	_ = Redis.My().Expire("key2", 3)
-//	k2exist, _ := Redis.My().Exists("key2")
-//	assert.Equal(t, k2exist, true)
-//	time.Sleep(time.Second * 4)
-//	k2exist, _ = Redis.My().Exists("key2")
-//	assert.Equal(t, k2exist, false)
-//
-//	_ = Redis.My().Incr("key3")
-//	v3, _ := Redis.My().GetInt("key3")
-//	assert.Equal(t, v3, 124)
-//
-//	err = Redis.My().Ping()
-//	assert.Equal(t, err, nil)
-//
-//	_ = Redis.My().SetEx("key4", 456, 3)
-//	k4exist, _ := Redis.My().Exists("key4")
-//	assert.Equal(t, k4exist, true)
-//	time.Sleep(time.Second * 4)
-//	k4exist, _ = Redis.My().Exists("key4")
-//	assert.Equal(t, k4exist, false)
-//
-//	_, _ = Redis.My().HSet("key5", "field1", 111)
-//	k5f1, _ := Redis.My().HGetInt("key5", "field1")
-//	assert.Equal(t, k5f1, 111)
-//
-//	_, _ = Redis.My().HSet("key5", "field2", "field2value")
-//	k5f2, _ := Redis.My().HGetString("key5", "field2")
-//	assert.Equal(t, k5f2, "field2value")
-//
-//	k5all, _ := Redis.My().HGetAll("key5")
-//	assert.Equal(t, k5all, map[string]string{
-//		"field1": "111",
-//		"field2": "field2value",
-//	})
-//
-//	_ = Redis.My().HMSet("key6", map[string]interface{}{
-//		"field1": "v1",
-//		"field2": "v2",
-//		"field3": "v3",
-//	})
-//	k6values, _ := Redis.My().HMGet("key6", []string{"field1", "field2"})
-//	assert.Equal(t, k6values[0], hdutils.StringToBytes("v1"))
-//	assert.Equal(t, k6values[1], hdutils.StringToBytes("v2"))
-//
-//	_, _ = Redis.My().HDels("key6", []interface{}{"field1", "field2"})
-//	k61v, _ := Redis.My().HGet("key6", "field1")
-//	assert.Equal(t, len(k61v), 0)
-//	k63v, _ := Redis.My().HGet("key6", "field3")
-//	assert.Equal(t, k63v, hdutils.StringToBytes("v3"))
-//
-//	_ = Redis.By("extra1").Set("key7", 333.01)
-//	k7v, _ := Redis.By("extra1").GetFloat64("key7")
-//	assert.Equal(t, k7v, 333.01)
-//
-//	_ = Redis.My().Del("key8")
-//	_ = Redis.My().LPush("key8", 1, 2)
-//	k8v, _ := Redis.My().LRangeInt64("key8", 0, 5)
-//	assert.Equal(t, k8v[0], 1)
-//	assert.Equal(t, k8v[1], 2)
-//}
+// nolint:errcheck
+func TestRedis(t *testing.T) {
+	err := Initialize("test", "test", config.WithConfigContent(configTestRedis))
+	if err != nil {
+		hdutils.LogFatal("sdk initialize", "err", err)
+	}
+
+	result, err := Redis.My().Eval(`
+for i,v in pairs(KEYS) do
+	redis.call("INCRBY", v, ARGV[i])
+end;
+return 1`, []any{"stock:123:25:2343", "stock:123:25:2342"}, []any{100, 200})
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("eval result:%v", result)
+
+	_ = Redis.My().Set("key1", 1)
+	_ = Redis.My().Set("key2", "strvalue")
+	_ = Redis.My().Set("key3", 123)
+
+	value1, _ := Redis.My().GetInt("key1")
+	assert.Equal(t, value1, 1)
+
+	value2, _ := Redis.My().GetString("key2")
+	assert.Equal(t, value2, "strvalue")
+
+	value3, _ := Redis.My().GetInt64("key3")
+	assert.Equal(t, value3, int64(123))
+
+	k1exist, _ := Redis.My().Exists("key1")
+	assert.Equal(t, k1exist, true)
+
+	_ = Redis.My().Del("key1")
+	k1exist, _ = Redis.My().Exists("key1")
+	assert.Equal(t, k1exist, false)
+
+	_ = Redis.My().Expire("key2", 3)
+	k2exist, _ := Redis.My().Exists("key2")
+	assert.Equal(t, k2exist, true)
+	time.Sleep(time.Second * 4)
+	k2exist, _ = Redis.My().Exists("key2")
+	assert.Equal(t, k2exist, false)
+
+	_ = Redis.My().Incr("key3")
+	v3, _ := Redis.My().GetInt("key3")
+	assert.Equal(t, v3, 124)
+
+	err = Redis.My().Ping()
+	assert.Equal(t, err, nil)
+
+	_ = Redis.My().SetEx("key4", 456, 3)
+	k4exist, _ := Redis.My().Exists("key4")
+	assert.Equal(t, k4exist, true)
+	time.Sleep(time.Second * 4)
+	k4exist, _ = Redis.My().Exists("key4")
+	assert.Equal(t, k4exist, false)
+
+	_, _ = Redis.My().HSet("key5", "field1", 111)
+	k5f1, _ := Redis.My().HGetInt("key5", "field1")
+	assert.Equal(t, k5f1, 111)
+
+	_, _ = Redis.My().HSet("key5", "field2", "field2value")
+	k5f2, _ := Redis.My().HGetString("key5", "field2")
+	assert.Equal(t, k5f2, "field2value")
+
+	k5all, _ := Redis.My().HGetAll("key5")
+	assert.Equal(t, k5all, map[string]string{
+		"field1": "111",
+		"field2": "field2value",
+	})
+
+	_ = Redis.My().HMSet("key6", map[string]any{
+		"field1": "v1",
+		"field2": "v2",
+		"field3": "v3",
+	})
+	k6values, _ := Redis.My().HMGet("key6", []string{"field1", "field2"})
+	assert.Equal(t, k6values[0], hdutils.StringToBytes("v1"))
+	assert.Equal(t, k6values[1], hdutils.StringToBytes("v2"))
+
+	_, _ = Redis.My().HDels("key6", []any{"field1", "field2"})
+	k61v, _ := Redis.My().HGet("key6", "field1")
+	assert.Equal(t, len(k61v), 0)
+	k63v, _ := Redis.My().HGet("key6", "field3")
+	assert.Equal(t, k63v, hdutils.StringToBytes("v3"))
+
+	_ = Redis.By("extra1").Set("key7", 333.01)
+	k7v, _ := Redis.By("extra1").GetFloat64("key7")
+	assert.Equal(t, k7v, 333.01)
+
+	_ = Redis.My().Del("key8")
+	_ = Redis.My().LPush("key8", 1, 2)
+	k8v, _ := Redis.My().LRangeInt64("key8", 0, 5)
+	assert.Equal(t, k8v[0], int64(2))
+	assert.Equal(t, k8v[1], int64(1))
+}
+
 //
 //// nolint:errcheck
 //func TestRabbitmqSend(t *testing.T) {
@@ -495,7 +465,7 @@ func TestMysql(t *testing.T) {
 //		hdutils.LogFatal("sdk initialize", "err", err)
 //	}
 //
-//	params := map[string]interface{}{
+//	params := map[string]any{
 //		"exchangeName": "default",
 //		"exchangeType": "topic",
 //	}
@@ -527,7 +497,7 @@ func TestMysql(t *testing.T) {
 //		hdutils.LogFatal("sdk initialize", "err", err)
 //	}
 //
-//	params := map[string]interface{}{
+//	params := map[string]any{
 //		"exchangeName": "delay",
 //		"exchangeType": "delay:topic",
 //	}
@@ -568,7 +538,7 @@ func TestMysql(t *testing.T) {
 //
 //	qosOption := Rabbitmq.My().GetDefaultOptions()[intf.MqOptionQos].(*rabbitmq_deprecated.QosOption)
 //	qosOption.PrefetchCount = 2
-//	params := map[string]interface{}{
+//	params := map[string]any{
 //		"exchangeName": "default",
 //		"exchangeType": "topic",
 //		"routingKeys":  []string{"test"},
@@ -602,7 +572,7 @@ func TestMysql(t *testing.T) {
 //
 //	qosOption := Rabbitmq.My().GetDefaultOptions()[intf.MqOptionQos].(*rabbitmq_deprecated.QosOption)
 //	qosOption.PrefetchCount = 2
-//	params := map[string]interface{}{
+//	params := map[string]any{
 //		"queueName":    "close",
 //		"exchangeName": "delay",
 //		"exchangeType": "delay:topic",
@@ -811,7 +781,7 @@ func TestMysql(t *testing.T) {
 //
 //// 找到匹配的a节点，然后detach命令会删除a节点相关的所有关系
 //func graphDeleteAllPersons() neo4j.TransactionWork {
-//	return func(tx neo4j.Transaction) (interface{}, error) {
+//	return func(tx neo4j.Transaction) (any, error) {
 //		var result, err = tx.Run(
 //			"MATCH (a:Person) DETACH DELETE a", nil)
 //
@@ -824,10 +794,10 @@ func TestMysql(t *testing.T) {
 //}
 //
 //func graphDeletePerson(name string) neo4j.TransactionWork {
-//	return func(tx neo4j.Transaction) (interface{}, error) {
+//	return func(tx neo4j.Transaction) (any, error) {
 //		// 1. 删除
 //		result, err := tx.Run(
-//			"MATCH (a:Person)-[:REFERRAL]-(b:Person {name: $name})-[:REFERRAL]-(c:Person) RETURN a,c", map[string]interface{}{"name": name})
+//			"MATCH (a:Person)-[:REFERRAL]-(b:Person {name: $name})-[:REFERRAL]-(c:Person) RETURN a,c", map[string]any{"name": name})
 //		if err != nil {
 //			return nil, err
 //		}
@@ -840,7 +810,7 @@ func TestMysql(t *testing.T) {
 //
 //		// 2. 删除节点
 //		result, err = tx.Run(
-//			"MATCH (a:Person {name: $name}) DETACH DELETE a", map[string]interface{}{"name": name})
+//			"MATCH (a:Person {name: $name}) DETACH DELETE a", map[string]any{"name": name})
 //		if err != nil {
 //			return nil, err
 //		}
@@ -848,7 +818,7 @@ func TestMysql(t *testing.T) {
 //		// 3. 增加边
 //		if from.Id > 0 && to.Id > 0 {
 //			result, err = tx.Run(
-//				"MATCH (a:Person {name: $from}),(b:Person {name: $to}) MERGE (a)-[:REFERER]->(b)", map[string]interface{}{"from": from.Props["name"], "to": to.Props["name"]})
+//				"MATCH (a:Person {name: $from}),(b:Person {name: $to}) MERGE (a)-[:REFERER]->(b)", map[string]any{"from": from.Props["name"], "to": to.Props["name"]})
 //			if err != nil {
 //				return nil, err
 //			}
@@ -858,9 +828,9 @@ func TestMysql(t *testing.T) {
 //}
 //
 //func graphAddPerson(person1 string) neo4j.TransactionWork {
-//	return func(tx neo4j.Transaction) (interface{}, error) {
+//	return func(tx neo4j.Transaction) (any, error) {
 //		var result, err = tx.Run(
-//			"CREATE (a:Person {name: $name1})", map[string]interface{}{"name1": person1})
+//			"CREATE (a:Person {name: $name1})", map[string]any{"name1": person1})
 //
 //		if err != nil {
 //			return nil, err
@@ -871,11 +841,11 @@ func TestMysql(t *testing.T) {
 //}
 //
 //func graphAddReferralRelation(person1 string, person2 string) neo4j.TransactionWork {
-//	return func(tx neo4j.Transaction) (interface{}, error) {
+//	return func(tx neo4j.Transaction) (any, error) {
 //		var result, err = tx.Run(
 //			"MATCH (a:Person {name: $name1}),"+
 //				"(b:Person {name: $name2}) "+
-//				"MERGE (a)-[:REFERRAL]->(b)", map[string]interface{}{"name1": person1, "name2": person2})
+//				"MERGE (a)-[:REFERRAL]->(b)", map[string]any{"name1": person1, "name2": person2})
 //
 //		if err != nil {
 //			return nil, err

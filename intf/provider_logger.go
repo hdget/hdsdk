@@ -4,7 +4,7 @@ import (
 	"log"
 )
 
-type Logger interface {
+type LoggerProvider interface {
 	GetStdLogger() *log.Logger
 	Log(keyvals ...interface{}) error
 	Trace(msg string, keyvals ...interface{})

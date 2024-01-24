@@ -32,7 +32,7 @@ func NewConfig(sdkConfiger intf.SdkConfiger) (*redisProviderConfig, error) {
 	}
 
 	var providerConfig redisProviderConfig
-	err := mapstructure.Decode(values, providerConfig)
+	err := mapstructure.Decode(values, &providerConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "decode redis provider config")
 	}

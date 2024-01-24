@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"github.com/hdget/hdsdk/v1/core/logger/zerolog"
+	"github.com/hdget/hdsdk/v1/provider/logger/zerolog"
 	"go.uber.org/fx"
 )
 

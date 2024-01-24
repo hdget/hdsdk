@@ -17,7 +17,7 @@ type mysqlProvider struct {
 	extraDbs  map[string]*sqlx.DB
 }
 
-func New(providerConfig *mysqlProviderConfig, logger intf.Logger) (intf.DbProvider, error) {
+func New(providerConfig *mysqlProviderConfig, logger intf.LoggerProvider) (intf.DbProvider, error) {
 	provider := &mysqlProvider{
 		slaveDbs: make([]*sqlx.DB, len(providerConfig.Slaves)),
 		extraDbs: make(map[string]*sqlx.DB),
@@ -31,7 +31,7 @@ func New(providerConfig *mysqlProviderConfig, logger intf.Logger) (intf.DbProvid
 	return provider, nil
 }
 
-func (m *mysqlProvider) Init(logger intf.Logger, args ...any) error {
+func (m *mysqlProvider) Init(logger intf.LoggerProvider, args ...any) error {
 	if len(args) == 0 {
 		return errors.New("need mysql provider config")
 	}

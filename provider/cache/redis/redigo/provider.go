@@ -11,7 +11,7 @@ type redigoProvider struct {
 	extraClients  map[string]intf.RedisClient // 额外的redis
 }
 
-func New(providerConfig *redisProviderConfig, logger intf.Logger) (intf.RedisProvider, error) {
+func New(providerConfig *redisProviderConfig, logger intf.LoggerProvider) (intf.RedisProvider, error) {
 	if providerConfig == nil {
 		return nil, errdef.ErrEmptyConfig
 	}
@@ -23,13 +23,13 @@ func New(providerConfig *redisProviderConfig, logger intf.Logger) (intf.RedisPro
 
 	err := provider.Init(logger, providerConfig)
 	if err != nil {
-		logger.Fatal("init mysql provider", "err", err)
+		logger.Fatal("init redis provider", "err", err)
 	}
 
 	return provider, nil
 }
 
-func (r *redigoProvider) Init(logger intf.Logger, args ...any) error {
+func (r *redigoProvider) Init(logger intf.LoggerProvider, args ...any) error {
 	if len(args) == 0 {
 		return errors.New("need redis provider config")
 	}
@@ -45,7 +45,7 @@ func (r *redigoProvider) Init(logger intf.Logger, args ...any) error {
 		if err != nil {
 			return errors.Wrap(err, "init redis default client")
 		}
-		logger.Debug("init redis default", "host", providerConfig.Default.Host)
+		logger.Debug("init redis default client", "host", providerConfig.Default.Host)
 	}
 
 	for _, itemConf := range providerConfig.Items {

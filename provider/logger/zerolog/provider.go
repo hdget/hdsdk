@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-type zerologLogger struct {
+type zerologLoggerProvider struct {
 	logger zerolog.Logger
 }
 
@@ -23,7 +23,7 @@ const (
 )
 
 // New initialize zerolog instance
-func New(conf *zerologConfig) (intf.Logger, error) {
+func New(conf *zerologConfig) (intf.LoggerProvider, error) {
 	// 设置日志级别
 	switch strings.ToLower(conf.Level) {
 	case "debug":
@@ -55,50 +55,50 @@ func New(conf *zerologConfig) (intf.Logger, error) {
 	multi := zerolog.MultiLevelWriter(rotateLogger, consoleLogger)
 
 	// 给zerorlogger和stdlogger实例赋值
-	return &zerologLogger{logger: zerolog.New(multi).With().Timestamp().Logger()}, nil
+	return &zerologLoggerProvider{logger: zerolog.New(multi).With().Timestamp().Logger()}, nil
 }
 
-func (p zerologLogger) GetStdLogger() *log.Logger {
+func (p zerologLoggerProvider) GetStdLogger() *log.Logger {
 	return log.New(p.logger, "stdlog: ", log.Lshortfile|log.Ldate|log.Ltime)
 }
 
-func (p *zerologLogger) Log(keyvals ...interface{}) error {
+func (p *zerologLoggerProvider) Log(keyvals ...interface{}) error {
 	msgValue, errValue, fields := hdutils.ParseArgs(keyvals...)
 	p.logger.Trace().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msgValue)
 	return nil
 }
 
-func (p *zerologLogger) Trace(msg string, keyvals ...interface{}) {
+func (p *zerologLoggerProvider) Trace(msg string, keyvals ...interface{}) {
 	_, errValue, fields := hdutils.ParseArgs(keyvals...)
 	p.logger.Trace().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
-func (p *zerologLogger) Debug(msg string, keyvals ...interface{}) {
+func (p *zerologLoggerProvider) Debug(msg string, keyvals ...interface{}) {
 	_, errValue, fields := hdutils.ParseArgs(keyvals...)
 	p.logger.Debug().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
-func (p *zerologLogger) Info(msg string, keyvals ...interface{}) {
+func (p *zerologLoggerProvider) Info(msg string, keyvals ...interface{}) {
 	_, errValue, fields := hdutils.ParseArgs(keyvals...)
 	p.logger.Info().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
-func (p *zerologLogger) Warn(msg string, keyvals ...interface{}) {
+func (p *zerologLoggerProvider) Warn(msg string, keyvals ...interface{}) {
 	_, errValue, fields := hdutils.ParseArgs(keyvals...)
 	p.logger.Warn().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
-func (p *zerologLogger) Error(msg string, keyvals ...interface{}) {
+func (p *zerologLoggerProvider) Error(msg string, keyvals ...interface{}) {
 	_, errValue, fields := hdutils.ParseArgs(keyvals...)
 	p.logger.Error().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
-func (p *zerologLogger) Fatal(msg string, keyvals ...interface{}) {
+func (p *zerologLoggerProvider) Fatal(msg string, keyvals ...interface{}) {
 	_, errValue, fields := hdutils.ParseArgs(keyvals...)
 	p.logger.Fatal().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
-func (p *zerologLogger) Panic(msg string, keyvals ...interface{}) {
+func (p *zerologLoggerProvider) Panic(msg string, keyvals ...interface{}) {
 	_, errValue, fields := hdutils.ParseArgs(keyvals...)
 	p.logger.Panic().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }

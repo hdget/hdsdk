@@ -1,18 +1,18 @@
 package hdsdk
 
 import (
-	"github.com/hdget/hdsdk/v1/core/config"
-	"github.com/hdget/hdsdk/v1/core/logger"
+	"github.com/hdget/hdsdk/v1/config"
 	"github.com/hdget/hdsdk/v1/intf"
 	"github.com/hdget/hdsdk/v1/provider/cache"
 	"github.com/hdget/hdsdk/v1/provider/db"
+	"github.com/hdget/hdsdk/v1/provider/logger"
 	"github.com/pkg/errors"
 	"go.uber.org/fx"
 )
 
 var (
 	configLoader intf.ConfigLoader
-	Logger       intf.Logger
+	Logger       intf.LoggerProvider
 	Mysql        intf.DbProvider
 	Redis        intf.RedisProvider
 )
@@ -27,23 +27,32 @@ func LoadConfig(configVar any) error {
 
 // Initialize 初始化SDK
 func Initialize(app, env string, options ...config.Option) error {
-	_ = fx.New(
-		//fx.NopLogger,
-		config.FxModule,
+	// 初始化configLoader
+	configLoader = config.NewConfigLoader(app, env, options...)
+
+	// 加载SDKConfig
+	sdkConfiger, err := config.NewSdkConfiger(configLoader)
+	if err != nil {
+		return err
+	}
+
+	// 默认加载LoggerProvider
+	fxOptions := []fx.Option{
+		fx.Provide(func() intf.SdkConfiger { return sdkConfiger }),
 		logger.FxModule,
-		db.FxModule,
-		cache.FxModule,
-		fx.Provide(func() config.Params {
-			return config.Params{
-				App:     app,
-				Env:     env,
-				Options: options,
-			}
-		}),
-		fx.Populate(&configLoader),
 		fx.Populate(&Logger),
-		fx.Populate(&Mysql),
-		fx.Populate(&Redis),
+	}
+
+	if len(sdkConfiger.GetMysqlConfig()) > 0 {
+		fxOptions = append(fxOptions, db.FxModule, fx.Populate(&Mysql))
+	}
+
+	if len(sdkConfiger.GetRedisConfig()) > 0 {
+		fxOptions = append(fxOptions, cache.FxModule, fx.Populate(&Redis))
+	}
+
+	_ = fx.New(
+		fxOptions...,
 	)
 
 	return nil

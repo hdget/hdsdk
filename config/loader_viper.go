@@ -88,12 +88,12 @@ type Params struct {
 }
 
 // NewConfigLoader 初始化config loader
-func NewConfigLoader(params Params) intf.ConfigLoader {
+func NewConfigLoader(app, env string, options ...Option) intf.ConfigLoader {
 	loader := &viperConfigLoader{
 		local:             viper.New(),
 		remote:            viper.New(),
-		app:               params.App,
-		env:               params.Env,
+		app:               app,
+		env:               env,
 		envPrefix:         defaultValue.EnvPrefix,
 		rootParts:         defaultValue.RootParts,
 		configType:        defaultValue.ConfigType,
@@ -103,7 +103,7 @@ func NewConfigLoader(params Params) intf.ConfigLoader {
 		watchOption:       defaultValue.WatchOption,
 	}
 
-	for _, option := range params.Options {
+	for _, option := range options {
 		option(loader)
 	}
 
