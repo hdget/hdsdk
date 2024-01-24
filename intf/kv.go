@@ -10,9 +10,3 @@ type KvProvider interface {
 	Set(key string, value []byte) error
 	Watch(key string, stop chan bool) <-chan *kv.Response
 }
-
-// key/value storage ability
-const (
-	_             = SdkCategoryKv + iota
-	SdkTypeKvEtcd // etcd能力
-)

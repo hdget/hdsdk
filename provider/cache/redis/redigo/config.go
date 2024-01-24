@@ -65,7 +65,7 @@ func (rp *redisProviderConfig) validate() error {
 
 func (rp *redisProviderConfig) validateRedisConfig(conf *redisConfig) error {
 	if conf.Host == "" {
-		return intf.ErrInvalidConfig
+		return errdef.ErrInvalidConfig
 	}
 
 	// setup default config value
@@ -78,7 +78,7 @@ func (rp *redisProviderConfig) validateRedisConfig(conf *redisConfig) error {
 
 func (rp *redisProviderConfig) validateExtraRedisConfig(conf *redisConfig) error {
 	if conf.Name == "" || conf.Host == "" {
-		return intf.ErrInvalidConfig
+		return errdef.ErrInvalidConfig
 	}
 
 	// setup default config value

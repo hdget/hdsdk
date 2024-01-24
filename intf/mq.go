@@ -60,10 +60,3 @@ const (
 	MqOptionConsume               // 消费选项
 	MqOptionQos                   // Qos选项
 )
-
-// message queue provider
-const (
-	_                 = SdkCategoryMq + iota
-	SdkTypeMqRabbitmq // rabbitmq消息队列能力
-	SdkTypeMqKafka    // kafka
-)

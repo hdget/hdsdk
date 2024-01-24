@@ -11,9 +11,3 @@ type GraphProvider interface {
 	Reader(bookmarks ...string) neo4j.Session
 	Writer(bookmarks ...string) neo4j.Session
 }
-
-// database capability
-const (
-	_ = SdkCategoryGraph + iota
-	SdkTypeGraphNeo4j
-)

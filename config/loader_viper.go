@@ -8,20 +8,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
-	"go.uber.org/fx"
 	"path"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 )
-
-type vipConfigLoaderParams struct {
-	fx.In
-	app     string
-	env     string
-	options []Option
-}
 
 // viperConfigLoader 命令行配置
 type viperConfigLoader struct {

@@ -10,7 +10,6 @@ import (
 )
 
 type mysqlProvider struct {
-	builder   intf.DbBuilder
 	defaultDb *sqlx.DB
 	masterDb  *sqlx.DB
 	slaveDbs  []*sqlx.DB
