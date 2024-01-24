@@ -1,8 +1,8 @@
 package mysql
 
 import (
-	"github.com/hdget/hdsdk/errdef"
-	"github.com/hdget/hdsdk/intf"
+	"github.com/hdget/hdsdk/v1/errdef"
+	"github.com/hdget/hdsdk/v1/intf"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
 )
@@ -35,49 +35,45 @@ func NewConfig(sdkConfiger intf.SdkConfiger) (*mysqlProviderConfig, error) {
 		return nil, errdef.ErrInvalidConfig
 	}
 
-	var conf mysqlProviderConfig
-	err := mapstructure.Decode(values, &conf)
+	var providerConfig mysqlProviderConfig
+	err := mapstructure.Decode(values, &providerConfig)
 	if err != nil {
-		return nil, errors.Wrap(err, "decode db content")
+		return nil, errors.Wrap(err, "decode mysql provider config")
 	}
 
-	err = validateMysqlProviderConfig(&conf)
+	err = providerConfig.validate()
 	if err != nil {
-		return nil, errors.Wrap(err, "validate db content")
+		return nil, errors.Wrap(err, "validate mysql provider config")
 	}
 
-	return &conf, nil
+	return &providerConfig, nil
 }
 
-func validateMysqlProviderConfig(providerConfig *mysqlProviderConfig) error {
-	if providerConfig == nil {
-		return errdef.ErrEmptyConfig
-	}
-
-	if providerConfig.Default != nil {
-		err := validateMysqlConfig(providerConfig.Default)
+func (pc *mysqlProviderConfig) validate() error {
+	if pc.Default != nil {
+		err := pc.validateMysqlConfig(pc.Default)
 		if err != nil {
 			return err
 		}
 	}
 
-	if providerConfig.Master != nil {
-		err := validateMysqlConfig(providerConfig.Master)
-		if providerConfig.Master != nil {
+	if pc.Master != nil {
+		err := pc.validateMysqlConfig(pc.Master)
+		if err != nil {
 			return err
 		}
 	}
 
-	for _, slave := range providerConfig.Slaves {
-		err := validateMysqlConfig(slave)
-		if slave != nil {
+	for _, slave := range pc.Slaves {
+		err := pc.validateMysqlConfig(slave)
+		if err != nil {
 			return err
 		}
 	}
 
-	for _, item := range providerConfig.Items {
-		err := validateMysqlConfig(item)
-		if item != nil {
+	for _, item := range pc.Items {
+		err := pc.validateMysqlExtraConfig(item)
+		if err != nil {
 			return err
 		}
 	}
@@ -85,7 +81,7 @@ func validateMysqlProviderConfig(providerConfig *mysqlProviderConfig) error {
 	return nil
 }
 
-func validateMysqlConfig(conf *mysqlConfig) error {
+func (pc *mysqlProviderConfig) validateMysqlConfig(conf *mysqlConfig) error {
 	if conf == nil || conf.Host == "" || conf.User == "" {
 		return errdef.ErrEmptyConfig
 	}
@@ -93,6 +89,19 @@ func validateMysqlConfig(conf *mysqlConfig) error {
 	// setup default config value
 	if conf.Port == 0 {
 		conf.Port = 3306
+	}
+
+	return nil
+}
+
+func (pc *mysqlProviderConfig) validateMysqlExtraConfig(conf *mysqlConfig) error {
+	if conf == nil || conf.Host == "" || pc.Master.User == "" || conf.Name == "" {
+		return errdef.ErrEmptyConfig
+	}
+
+	// setup default config value
+	if pc.Master.Port == 0 {
+		pc.Master.Port = 3306
 	}
 
 	return nil

@@ -1,4 +1,4 @@
-module github.com/hdget/hdsdk
+module github.com/hdget/hdsdk/v1
 
 go 1.19
 
@@ -6,6 +6,7 @@ require (
 	github.com/elgris/sqrl v0.0.0-20210727210741-7e0198b30236
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gogo/protobuf v1.3.2
+	github.com/gomodule/redigo v1.8.9
 	github.com/hdget/hdutils v0.0.5
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/mitchellh/mapstructure v1.5.0

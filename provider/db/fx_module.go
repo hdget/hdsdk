@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/hdget/hdsdk/provider/db/mysql"
+	"github.com/hdget/hdsdk/v1/provider/db/mysql"
 	"go.uber.org/fx"
 )
 

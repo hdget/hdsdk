@@ -3,7 +3,7 @@ package config
 import (
 	"bytes"
 	"fmt"
-	"github.com/hdget/hdsdk/intf"
+	"github.com/hdget/hdsdk/v1/intf"
 	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"

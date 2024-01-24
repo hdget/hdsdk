@@ -3,7 +3,7 @@ package hdsdk
 import (
 	"fmt"
 	"github.com/elgris/sqrl"
-	"github.com/hdget/hdsdk/core/config"
+	"github.com/hdget/hdsdk/v1/core/config"
 	"github.com/pkg/errors"
 	"log"
 	"testing"

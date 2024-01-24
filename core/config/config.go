@@ -1,15 +1,6 @@
 package config
 
-import "github.com/hdget/hdsdk/intf"
-
-// 首先必须创建一个继承自hdsdk.Config的配置struct
-// e,g:
-//
-// import "github.com/hdget/hdsdk"
-//
-// type XXXConfig struct {
-//		*hdsdk.Config `mapstructure:",squash"`
-// }
+import "github.com/hdget/hdsdk/v1/intf"
 
 // ConfigItem items
 type sdkConfig struct {

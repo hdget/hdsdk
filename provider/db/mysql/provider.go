@@ -3,7 +3,7 @@ package mysql
 import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/hdget/hdsdk/intf"
+	"github.com/hdget/hdsdk/v1/intf"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"time"
@@ -17,13 +17,13 @@ type mysqlProvider struct {
 	extraDbs  map[string]*sqlx.DB
 }
 
-func New(mysqlProviderConfig *mysqlProviderConfig, logger intf.Logger) (intf.DbProvider, error) {
+func New(providerConfig *mysqlProviderConfig, logger intf.Logger) (intf.DbProvider, error) {
 	provider := &mysqlProvider{
-		slaveDbs: make([]*sqlx.DB, len(mysqlProviderConfig.Slaves)),
+		slaveDbs: make([]*sqlx.DB, len(providerConfig.Slaves)),
 		extraDbs: make(map[string]*sqlx.DB),
 	}
 
-	err := provider.Init(logger, mysqlProviderConfig)
+	err := provider.Init(logger, providerConfig)
 	if err != nil {
 		logger.Fatal("init mysql provider", "err", err)
 	}
@@ -71,7 +71,7 @@ func (m *mysqlProvider) Init(logger intf.Logger, args ...any) error {
 	for _, itemConf := range providerConfig.Items {
 		itemClient, err := newDB(itemConf)
 		if err != nil {
-			return errors.Wrapf(err, "new mysql extra connection, name: %d", itemConf.Name)
+			return errors.Wrapf(err, "new mysql extra connection, name: %s", itemConf.Name)
 		}
 
 		m.extraDbs[itemConf.Name] = itemClient

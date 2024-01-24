@@ -5,13 +5,12 @@ type CacheCommand struct {
 	Args []interface{}
 }
 
-type CacheProvider interface {
-	Provider
-	My() CacheClient
-	By(string) CacheClient
+type RedisProvider interface {
+	My() RedisClient
+	By(string) RedisClient
 }
 
-type CacheClient interface {
+type RedisClient interface {
 	// general purpose
 	Del(key string) error
 	Dels(keys []string) error
@@ -85,9 +84,3 @@ type CacheClient interface {
 	BfAddMulti(key string, items []interface{}) ([]int64, error)
 	BfExistsMulti(key string, items []interface{}) ([]int64, error)
 }
-
-// cache ability
-const (
-	_                 SdkType = SdkCategoryCache + iota
-	SdkTypeCacheRedis         // redis缓存能力
-)

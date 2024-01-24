@@ -1,10 +1,11 @@
 package hdsdk
 
 import (
-	"github.com/hdget/hdsdk/core/config"
-	"github.com/hdget/hdsdk/core/logger"
-	"github.com/hdget/hdsdk/intf"
-	"github.com/hdget/hdsdk/provider/db"
+	"github.com/hdget/hdsdk/v1/core/config"
+	"github.com/hdget/hdsdk/v1/core/logger"
+	"github.com/hdget/hdsdk/v1/intf"
+	"github.com/hdget/hdsdk/v1/provider/cache"
+	"github.com/hdget/hdsdk/v1/provider/db"
 	"github.com/pkg/errors"
 	"go.uber.org/fx"
 )
@@ -13,6 +14,7 @@ var (
 	configLoader intf.ConfigLoader
 	Logger       intf.Logger
 	Mysql        intf.DbProvider
+	Redis        intf.RedisProvider
 )
 
 // LoadConfig 将配置文件中的内容加载到configVar中
@@ -30,6 +32,7 @@ func Initialize(app, env string, options ...config.Option) error {
 		config.FxModule,
 		logger.FxModule,
 		db.FxModule,
+		cache.FxModule,
 		fx.Provide(func() config.Params {
 			return config.Params{
 				App:     app,
@@ -40,6 +43,7 @@ func Initialize(app, env string, options ...config.Option) error {
 		fx.Populate(&configLoader),
 		fx.Populate(&Logger),
 		fx.Populate(&Mysql),
+		fx.Populate(&Redis),
 	)
 
 	return nil

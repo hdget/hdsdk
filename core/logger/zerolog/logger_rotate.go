@@ -1,7 +1,7 @@
 package zerolog
 
 import (
-	"github.com/hdget/hdsdk/errdef"
+	"github.com/hdget/hdsdk/v1/errdef"
 	"github.com/natefinch/lumberjack"
 	"io"
 	"os"
