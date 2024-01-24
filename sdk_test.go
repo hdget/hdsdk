@@ -28,26 +28,26 @@ const configTestMysql = `
 		[sdk.mysql.default]
 			database = "mysql"
 			user = "root"
-			password = "password"
+			password = ""
 			host = "127.0.0.1"
 			port = 3306
 		[sdk.mysql.master]
 			database = "mysql"
 			user = "root"
-			password = "password"
+			password = ""
 			host = "127.0.0.1"
 			port = 3306
 		[[sdk.mysql.slaves]]
 			database = "mysql"
 			user = "root"
-			password = "password"
+			password = ""
 			host = "127.0.0.1"
 			port = 3306
 		[[sdk.mysql.items]]
 			name = "xxx"
 			database = "mysql"
 			user = "root"
-			password = "password"
+			password = ""
 			host = "127.0.0.1"
 			port = 3306
 `
@@ -176,7 +176,7 @@ const configTestNeo4j = `
 			# 最大保存时间7天(单位天)
         	max_age  = 1
 	[sdk.neo4j]
-		virtual_uri = "neo4j://test.newaigou.com:7687"
+		virtual_uri = "neo4j://127.0.0.1:7687"
 		username = "neo4j"
 		password = "123456"
 		#[[sdk.neo4j.servers]]

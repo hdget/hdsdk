@@ -4,6 +4,7 @@ import (
 	"github.com/hdget/hdsdk/core/config"
 	"github.com/hdget/hdsdk/core/logger"
 	"github.com/hdget/hdsdk/intf"
+	"github.com/hdget/hdsdk/provider/db"
 	"github.com/pkg/errors"
 	"go.uber.org/fx"
 )
@@ -25,9 +26,10 @@ func LoadConfig(configVar any) error {
 // Initialize 初始化SDK
 func Initialize(app, env string, options ...config.Option) error {
 	_ = fx.New(
-		fx.NopLogger,
+		//fx.NopLogger,
 		config.FxModule,
 		logger.FxModule,
+		db.FxModule,
 		fx.Provide(func() config.Params {
 			return config.Params{
 				App:     app,

@@ -29,7 +29,7 @@ func NewConfig(sdkConfiger intf.SdkConfiger) (*mysqlProviderConfig, error) {
 		return nil, errdef.ErrInvalidConfig
 	}
 
-	// if logger sdkConfig not found, use default one
+	// if logger config not found, do nothing
 	values := sdkConfiger.GetMysqlConfig()
 	if len(values) == 0 {
 		return nil, errdef.ErrInvalidConfig
@@ -86,12 +86,13 @@ func validateMysqlProviderConfig(providerConfig *mysqlProviderConfig) error {
 }
 
 func validateMysqlConfig(conf *mysqlConfig) error {
-	if conf == nil {
+	if conf == nil || conf.Host == "" || conf.User == "" {
 		return errdef.ErrEmptyConfig
 	}
 
-	if conf.Name == "" || conf.User == "" || conf.Password == "" || conf.Host == "" || conf.Port == 0 || conf.Database == "" {
-		return errdef.ErrInvalidConfig
+	// setup default config value
+	if conf.Port == 0 {
+		conf.Port = 3306
 	}
 
 	return nil

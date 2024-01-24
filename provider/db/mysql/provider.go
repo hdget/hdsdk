@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/hdget/hdsdk/intf"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -44,7 +45,7 @@ func (m *mysqlProvider) Init(logger intf.Logger, args ...any) error {
 	if providerConfig.Default != nil {
 		m.defaultDb, err = newDB(providerConfig.Default)
 		if err != nil {
-			return errors.Wrap(err, "new mysql default builder")
+			return errors.Wrap(err, "new mysql default connection")
 		}
 		logger.Debug("initialize mysql default", "host", providerConfig.Default.Host)
 	}
@@ -52,7 +53,7 @@ func (m *mysqlProvider) Init(logger intf.Logger, args ...any) error {
 	if providerConfig.Master != nil {
 		m.masterDb, err = newDB(providerConfig.Master)
 		if err != nil {
-			return errors.Wrap(err, "new mysql master builder")
+			return errors.Wrap(err, "new mysql master connection")
 		}
 		logger.Debug("initialize mysql master", "host", providerConfig.Master.Host)
 	}
@@ -60,7 +61,7 @@ func (m *mysqlProvider) Init(logger intf.Logger, args ...any) error {
 	for i, slaveConf := range providerConfig.Slaves {
 		slaveClient, err := newDB(slaveConf)
 		if err != nil {
-			return errors.Wrapf(err, "new mysql slave builder, index: %d", i)
+			return errors.Wrapf(err, "new mysql slave connection, index: %d", i)
 		}
 
 		m.slaveDbs[i] = slaveClient
@@ -70,7 +71,7 @@ func (m *mysqlProvider) Init(logger intf.Logger, args ...any) error {
 	for _, itemConf := range providerConfig.Items {
 		itemClient, err := newDB(itemConf)
 		if err != nil {
-			return errors.Wrapf(err, "new mysql extra builder, name: %d", itemConf.Name)
+			return errors.Wrapf(err, "new mysql extra connection, name: %d", itemConf.Name)
 		}
 
 		m.extraDbs[itemConf.Name] = itemClient

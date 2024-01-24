@@ -16,7 +16,7 @@ func newClient(db *sqlx.DB) *dbClient {
 	return &dbClient{DB: db}
 }
 
-func (s *dbClient) UseBuilder(builder intf.DbBuilder) *dbClient {
+func (s *dbClient) UseBuilder(builder intf.DbBuilder) intf.DbClient {
 	s.builder = builder
 	return s
 }
