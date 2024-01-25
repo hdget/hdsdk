@@ -1,38 +1,35 @@
 package intf
 
 import (
-	"github.com/Masterminds/squirrel"
-	"github.com/hdget/hdsdk/protobuf"
-	"github.com/jmoiron/sqlx"
+	"database/sql"
 )
 
 type DbProvider interface {
-	My() DbBuilder
-	Master() DbBuilder
-	Slave(i int) DbBuilder
-	By(name string) DbBuilder
+	My() DbClient
+	Master() DbClient
+	Slave(i int) DbClient
+	By(name string) DbClient
+}
+
+type DbClient interface {
+	UseBuilder(builder DbBuilder)
+	DbApiBasic
+	DbApiExtension
 }
 
 type DbBuilder interface {
-	Squirrel(builder squirrel.Sqlizer) ApiDbClient // squirrel builder support
-	Sqrl(builder squirrel.Sqlizer) ApiDbClient     // squirrel builder support
-	Db() *sqlx.DB
-	ApiDbClient
-}
-
-type ApiDbClient interface {
 	ToSql() (string, []any, error)
-	Get(v any) error
-	Select(v any, args ...*protobuf.ListParam) error
-	Count() (int64, error)
-	Query(args ...*protobuf.ListParam) (*sqlx.Rows, error)
 }
 
-//
-//type DbClient interface {
-//	SqlxClient
-//	BuilderClient
-//	Sq(builder squirrel.Sqlizer) DbClient // squirrel builder support
-//	Sqrl(builder sqrl.Sqlizer) DbClient   // sqrl builder support
-//	Db() *sqlx.DB
-//}
+type DbApiBasic interface {
+	Exec(query string, args ...any) (sql.Result, error)
+	Query(query string, args ...any) (*sql.Rows, error)
+	QueryRow(query string, args ...any) *sql.Row
+}
+
+type DbApiExtension interface {
+	NamedExec(query string, arg any) (sql.Result, error) // 命名
+	One(v any) error
+	All(v any) error
+	Count() (int64, error)
+}

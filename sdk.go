@@ -11,6 +11,7 @@ import (
 var (
 	configLoader intf.ConfigLoader
 	Logger       intf.Logger
+	Mysql        intf.DbProvider
 )
 
 // LoadConfig 将配置文件中的内容加载到configVar中
@@ -18,7 +19,6 @@ func LoadConfig(configVar any) error {
 	if configLoader == nil {
 		return errors.New("please initialize sdk first")
 	}
-
 	return configLoader.Load(&configVar)
 }
 
@@ -37,6 +37,7 @@ func Initialize(app, env string, options ...config.Option) error {
 		}),
 		fx.Populate(&configLoader),
 		fx.Populate(&Logger),
+		fx.Populate(&Mysql),
 	)
 
 	return nil

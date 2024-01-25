@@ -8,5 +8,5 @@ import (
 var FxModule = fx.Module(
 	"db",
 	fx.Provide(mysql.NewConfig),
-	fx.Provide(mysql.Init),
+	fx.Provide(mysql.New),
 )

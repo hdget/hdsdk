@@ -2,21 +2,26 @@ package hdsdk
 
 import (
 	"fmt"
-
+	"github.com/hdget/hdsdk/core/config"
 	"github.com/pkg/errors"
 	"log"
 	"testing"
 )
 
-//type testConf struct {
-//	configloader.Config `mapstructure:",squash"`
-//}
+const configTestLogger = `
+[sdk]
+	[sdk.log]
+        filename = "demo.log"
+		[sdk.log.rotate]
+			# 最大保存时间7天(单位天)
+        	max_age  = 1
+			max_size = 0.01`
 
 const configTestMysql = `
 [sdk]
-	[sdk.logger]
-        filename = "demo.logger"
-		[sdk.logger.rotate]
+	[sdk.log]
+        filename = "demo.log"
+		[sdk.log.rotate]
 			# 最大保存时间7天(单位hour)
         	max_age = 168
         	# 日志切割时间间隔24小时（单位hour)
@@ -51,9 +56,9 @@ const configTestMysql = `
 
 const configTestRedis = `
 [sdk]
-	[sdk.logger]
-        filename = "demo.logger"
-		[sdk.logger.rotate]
+	[sdk.log]
+        filename = "demo.log"
+		[sdk.log.rotate]
 			# 最大保存时间7天(单位hour)
         	max_age = 168
         	# 日志切割时间间隔24小时（单位hour)
@@ -74,9 +79,9 @@ const configTestRedis = `
 
 const configTestRabbitmq = `
 [sdk]
-	[sdk.logger]
-        filename = "demo.logger"
-		[sdk.logger.rotate]
+	[sdk.log]
+        filename = "demo.log"
+		[sdk.log.rotate]
 			# 最大保存时间7天(单位hour)
         	max_age = 168
         	# 日志切割时间间隔24小时（单位hour)
@@ -102,9 +107,9 @@ const configTestRabbitmq = `
 
 const configTestRabbitmqDelay = `
 [sdk]
-	[sdk.logger]
-        filename = "demo.logger"
-		[sdk.logger.rotate]
+	[sdk.log]
+        filename = "demo.log"
+		[sdk.log.rotate]
 			# 最大保存时间7天(单位hour)
         	max_age = 168
         	# 日志切割时间间隔24小时（单位hour)
@@ -135,9 +140,9 @@ const configTestRabbitmqDelay = `
 
 const configTestKafka = `
 [sdk]
-	[sdk.logger]
-        filename = "demo.logger"
-		[sdk.logger.rotate]
+	[sdk.log]
+        filename = "demo.log"
+		[sdk.log.rotate]
 			# 最大保存时间7天(单位hour)
         	max_age = 168
         	# 日志切割时间间隔24小时（单位hour)
@@ -156,9 +161,9 @@ const configTestKafka = `
 
 const configTestAliyunDts = `
 [sdk]
-	[sdk.logger]
-        filename = "demo.logger"
-		[sdk.logger.rotate]
+	[sdk.log]
+        filename = "demo.log"
+		[sdk.log.rotate]
 			# 最大保存时间7天(单位hour)
         	max_age = 168
         	# 日志切割时间间隔24小时（单位hour)
@@ -177,9 +182,9 @@ const configTestAliyunDts = `
 
 const configTestNeo4j = `
 [sdk]
-	[sdk.logger]
-        filename = "demo.logger"
-		[sdk.logger.rotate]
+	[sdk.log]
+        filename = "demo.log"
+		[sdk.log.rotate]
 			# 最大保存时间7天(单位hour)
         	max_age = 168
         	# 日志切割时间间隔24小时（单位hour)
@@ -195,9 +200,9 @@ const configTestNeo4j = `
 
 const configTestEtcd = `
 [sdk]
-	[sdk.logger]
-        filename = "demo.logger"
-		[sdk.logger.rotate]
+	[sdk.log]
+        filename = "demo.log"
+		[sdk.log.rotate]
 			# 最大保存时间7天(单位hour)
         	max_age = 168
         	# 日志切割时间间隔24小时（单位hour)
@@ -214,7 +219,7 @@ type App struct {
 	MaxBuySkus int `mapstructure:"max_buy_skus"` // 一次购买的最多sku种类
 }
 
-func TestFx(t *testing.T) {
+func TestInitialize(t *testing.T) {
 	err := Initialize("product", "test")
 	if err != nil {
 		log.Fatalf("msg=\"sdk initialize\" error=\"%v\"", err)
@@ -281,62 +286,56 @@ func TestEmptyLogger(t *testing.T) {
 	Logger.Panic("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 }
 
-//
-//// nolint:errcheck
-//func TestLogger(t *testing.T) {
-//	var conf testConf
-//	err := configer.New("test", "").Load(&conf)
-//	if err != nil {
-//		log.Fatalf("unmarshal democonf, error=%v", err)
-//	}
-//
-//	err = Initialize(&conf)
-//	if err != nil {
-//		log.Fatalf("msg=\"sdk initialize\" error=\"%v\"", err)
-//	}
-//
-//	e1 := errors.New("e1")
-//	e2 := errors.Wrap(e1, "e2")
-//
-//	Logger.Info("msg content")
-//	Logger.Info("msg content", "err")
-//	Logger.Info("msg content", "err", nil)
-//	Logger.Info("msg content", "err", errors.New("new error"))
-//	Logger.Info("msg content", "err", e2)
-//	Logger.Info("msg content", "err", errors.New("new error"), "key1 ")
-//	Logger.Info("msg content", "err", errors.New("new error"), "key1 ", 123)
-//	Logger.Info("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
-//
-//	Logger.Warn("msg content")
-//	Logger.Warn("msg content", "err")
-//	Logger.Warn("msg content", "err", nil)
-//	Logger.Warn("msg content", "err", errors.New("new error"))
-//	Logger.Warn("msg content", "err", e2)
-//	Logger.Warn("msg content", "err", errors.New("new error"), "key1 ")
-//	Logger.Warn("msg content", "err", errors.New("new error"), "key1 ", 123)
-//	Logger.Warn("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
-//
-//	Logger.Debug("msg content")
-//	Logger.Debug("msg content", "err")
-//	Logger.Debug("msg content", "err", nil)
-//	Logger.Debug("msg content", "err", errors.New("new error"))
-//	Logger.Debug("msg content", "err", e2)
-//	Logger.Debug("msg content", "err", errors.New("new error"), "key1 ")
-//	Logger.Debug("msg content", "err", errors.New("new error"), "key1 ", 123)
-//	Logger.Debug("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
-//
-//	Logger.Error("msg content")
-//	Logger.Error("msg content", "err")
-//	Logger.Error("msg content", "err", nil)
-//	Logger.Error("msg content", "err", errors.New("new error"))
-//	Logger.Error("msg content", "err", e2)
-//	Logger.Error("msg content", "err", errors.New("new error"), "key1 ")
-//	Logger.Error("msg content", "err", errors.New("new error"), "key1 ", 123)
-//	Logger.Error("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
-//
-//	// Logger.LogFatal("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
-//	Logger.Panic("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
-//}
+// nolint:errcheck
+func TestLogger(t *testing.T) {
+	err := Initialize("test", "test", config.WithConfigContent(configTestLogger))
+	if err != nil {
+		log.Fatalf("msg=\"sdk initialize\" error=\"%v\"", err)
+	}
+
+	e1 := errors.New("e1")
+	e2 := errors.Wrap(e1, "e2")
+
+	Logger.Info("msg content")
+	Logger.Info("msg content", "err")
+	Logger.Info("msg content", "err", nil)
+	Logger.Info("msg content", "err", errors.New("new error"))
+	Logger.Info("msg content", "err", e2)
+	Logger.Info("msg content", "err", errors.New("new error"), "key1 ")
+	Logger.Info("msg content", "err", errors.New("new error"), "key1 ", 123)
+	Logger.Info("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+
+	Logger.Warn("msg content")
+	Logger.Warn("msg content", "err")
+	Logger.Warn("msg content", "err", nil)
+	Logger.Warn("msg content", "err", errors.New("new error"))
+	Logger.Warn("msg content", "err", e2)
+	Logger.Warn("msg content", "err", errors.New("new error"), "key1 ")
+	Logger.Warn("msg content", "err", errors.New("new error"), "key1 ", 123)
+	Logger.Warn("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+
+	Logger.Debug("msg content")
+	Logger.Debug("msg content", "err")
+	Logger.Debug("msg content", "err", nil)
+	Logger.Debug("msg content", "err", errors.New("new error"))
+	Logger.Debug("msg content", "err", e2)
+	Logger.Debug("msg content", "err", errors.New("new error"), "key1 ")
+	Logger.Debug("msg content", "err", errors.New("new error"), "key1 ", 123)
+	Logger.Debug("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+
+	Logger.Error("msg content")
+	Logger.Error("msg content", "err")
+	Logger.Error("msg content", "err", nil)
+	Logger.Error("msg content", "err", errors.New("new error"))
+	Logger.Error("msg content", "err", e2)
+	Logger.Error("msg content", "err", errors.New("new error"), "key1 ")
+	Logger.Error("msg content", "err", errors.New("new error"), "key1 ", 123)
+	Logger.Error("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+
+	Logger.Fatal("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+	//Logger.Panic("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+}
+
 //
 //// nolint:errcheck
 //func TestMysql(t *testing.T) {

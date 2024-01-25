@@ -1,21 +1,25 @@
 package mysql
 
 import (
+	"fmt"
 	"github.com/hdget/hdsdk/intf"
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"time"
 )
 
 type mysqlProvider struct {
-	defaultClient intf.DbClient
-	masterClient  intf.DbClient
-	slaveClients  []intf.DbClient
-	extraClients  map[string]intf.DbClient
+	builder   intf.DbBuilder
+	defaultDb *sqlx.DB
+	masterDb  *sqlx.DB
+	slaveDbs  []*sqlx.DB
+	extraDbs  map[string]*sqlx.DB
 }
 
 func New(mysqlProviderConfig *mysqlProviderConfig, logger intf.Logger) (intf.DbProvider, error) {
 	provider := &mysqlProvider{
-		slaveClients: make([]intf.DbClient, len(mysqlProviderConfig.Slaves)),
-		extraClients: make(map[string]intf.DbClient),
+		slaveDbs: make([]*sqlx.DB, len(mysqlProviderConfig.Slaves)),
+		extraDbs: make(map[string]*sqlx.DB),
 	}
 
 	err := provider.Init(logger, mysqlProviderConfig)
@@ -38,55 +42,80 @@ func (m *mysqlProvider) Init(logger intf.Logger, args ...any) error {
 
 	var err error
 	if providerConfig.Default != nil {
-		m.defaultClient, err = newMysqlClient(providerConfig.Default)
+		m.defaultDb, err = newDB(providerConfig.Default)
 		if err != nil {
-			return errors.Wrap(err, "new mysql default client")
+			return errors.Wrap(err, "new mysql default builder")
 		}
+		logger.Debug("initialize mysql default", "host", providerConfig.Default.Host)
 	}
 
 	if providerConfig.Master != nil {
-		m.masterClient, err = newMysqlClient(providerConfig.Master)
+		m.masterDb, err = newDB(providerConfig.Master)
 		if err != nil {
-			return errors.Wrap(err, "new mysql master client")
+			return errors.Wrap(err, "new mysql master builder")
 		}
+		logger.Debug("initialize mysql master", "host", providerConfig.Master.Host)
 	}
 
 	for i, slaveConf := range providerConfig.Slaves {
-		slaveClient, err := newMysqlClient(slaveConf)
+		slaveClient, err := newDB(slaveConf)
 		if err != nil {
-			return errors.Wrapf(err, "new mysql slave client, index: %d", i)
+			return errors.Wrapf(err, "new mysql slave builder, index: %d", i)
 		}
 
-		m.slaveClients[i] = slaveClient
+		m.slaveDbs[i] = slaveClient
+		logger.Debug("initialize mysql slave", "index", i, "host", slaveConf.Host)
 	}
 
 	for _, itemConf := range providerConfig.Items {
-		itemClient, err := newMysqlClient(itemConf)
+		itemClient, err := newDB(itemConf)
 		if err != nil {
-			return errors.Wrapf(err, "new mysql extra client, name: %d", itemConf.Name)
+			return errors.Wrapf(err, "new mysql extra builder, name: %d", itemConf.Name)
 		}
 
-		m.extraClients[itemConf.Name] = itemClient
+		m.extraDbs[itemConf.Name] = itemClient
+		logger.Debug("initialize mysql extra", "name", itemConf.Name, "host", itemConf.Host)
 	}
 
 	return nil
 }
 
 func (m mysqlProvider) My() intf.DbClient {
-	return m.defaultClient
+	return newClient(m.defaultDb)
 }
 
 func (m mysqlProvider) Master() intf.DbClient {
-	return m.masterClient
+	return newClient(m.masterDb)
 }
 
 func (m mysqlProvider) Slave(i int) intf.DbClient {
-	if i >= len(m.slaveClients) {
-		return nil
+	var db *sqlx.DB
+	if i <= len(m.slaveDbs) {
+		db = m.slaveDbs[i]
 	}
-	return m.slaveClients[i]
+	return newClient(db)
 }
 
 func (m mysqlProvider) By(name string) intf.DbClient {
-	return m.extraClients[name]
+	return newClient(m.extraDbs[name])
+}
+
+func newDB(mysqlConfig *mysqlConfig) (*sqlx.DB, error) {
+	// 这里设置解析时间类型https://github.com/go-sql-driver/mysql#timetime-support
+	// DSN (Data Type NickName): username:password@protocol(address)/dbname?param=value
+	t := "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local"
+	// 构造连接参数
+	connStr := fmt.Sprintf(t, mysqlConfig.User, mysqlConfig.Password, mysqlConfig.Host, mysqlConfig.Port, mysqlConfig.Database)
+	instance, err := sqlx.Connect("mysql", connStr)
+	if err != nil {
+		return nil, errors.Wrap(err, "mysql connect")
+	}
+
+	// https://www.alexedwards.net/blog/configuring-sqldb
+	// https://making.pusher.com/production-ready-connection-pooling-in-go
+	// Avoid issue:
+	// packets.go:123: closing bad idle connection: EOF
+	// connection.go:173: driver: bad connection
+	instance.SetConnMaxLifetime(3 * time.Minute)
+	return instance, nil
 }

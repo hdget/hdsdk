@@ -99,3 +99,9 @@ func WithDisableRemoteEnvs(args ...string) Option {
 		c.disableRemoteEnvs = append(disableRemoteEnvs, args...)
 	}
 }
+
+func WithConfigContent(content string) Option {
+	return func(c *viperConfigLoader) {
+		c.content = hdutils.StringToBytes(content)
+	}
+}

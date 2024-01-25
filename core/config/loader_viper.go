@@ -37,6 +37,7 @@ type viperConfigLoader struct {
 	fileOption        *fileOption     // 文件配置选项
 	remoteOptions     []*remoteOption // 远程加载配置选项
 	watchOption       *watchOption    // 检测配置变化选项
+	content           []byte          // 如果用WithConfigContent指定了配置内容，则这里不为空
 }
 
 // 缺省配置选项
@@ -77,8 +78,7 @@ const (
 	   level = "debug"
 	   filename = "%s.log"
 	   [sdk.logger.rotate]
-		   max_age = 168
-		   rotation_time=24`
+		   max_age = 7`
 )
 
 type Params struct {
@@ -157,6 +157,21 @@ func (vcLoader *viperConfigLoader) Load(configVar any) error {
 //	return nil
 //}
 
+//func (vcLoader *viperConfigLoader) Read(data []byte) *viperConfigLoader {
+//	vcLoader.local.SetConfigType(vcLoader.configType)
+//	_ = vcLoader.local.MergeConfig(bytes.NewReader(data))
+//	return vcLoader
+//}
+//
+//func (vcLoader *viperConfigLoader) ReadString(s string) *viperConfigLoader {
+//	_ = vcLoader.Read(hdutils.StringToBytes(s))
+//	return vcLoader
+//}
+
+// ///////////////////////////////////////////////////////////////
+// private functions
+// //////////////////////////////////////////////////////////////
+
 // Load 从各个配置源获取配置数据, 并加载到configVar中， 同名变量配置高的覆盖低的
 // - remote: kvstore配置（低）
 // - configFile: 文件配置(中）
@@ -164,6 +179,11 @@ func (vcLoader *viperConfigLoader) Load(configVar any) error {
 func (vcLoader *viperConfigLoader) loadLocal() error {
 	// 必须设置config的类型
 	vcLoader.local.SetConfigType(vcLoader.configType)
+
+	// 如果指定了配置内容，则合并
+	if vcLoader.content != nil {
+		_ = vcLoader.local.MergeConfig(bytes.NewReader(vcLoader.content))
+	}
 
 	// 如果环境变量为空，则加载最小基本配置
 	if vcLoader.env == "" {
@@ -200,20 +220,6 @@ func (vcLoader *viperConfigLoader) loadRemote() error {
 	return nil
 }
 
-//func (vcLoader *viperConfigLoader) Read(data []byte) *viperConfigLoader {
-//	vcLoader.local.SetConfigType(vcLoader.configType)
-//	_ = vcLoader.local.MergeConfig(bytes.NewReader(data))
-//	return vcLoader
-//}
-//
-//func (vcLoader *viperConfigLoader) ReadString(s string) *viperConfigLoader {
-//	_ = vcLoader.Read(hdutils.StringToBytes(s))
-//	return vcLoader
-//}
-
-// ///////////////////////////////////////////////////////////////
-// private functions
-// //////////////////////////////////////////////////////////////
 func (vcLoader *viperConfigLoader) watchRemote(remoteConfigVar any) error {
 	// 如果无任何远程配置设置，忽略
 	if len(vcLoader.remoteOptions) == 0 {

@@ -20,10 +20,10 @@ type zerologConfig struct {
 }
 
 type rotateConfig struct {
-	MaxAge    int  `mapstructure:"max_age"`  // 单位为天
-	MaxBackup int  `mapstructure:"max_age"`  // 保留多少个日志文件
-	MaxSize   int  `mapstructure:"max_size"` // 日志文件为多大开始rotate
-	Compress  bool `mapstructure:"compress"` // 是否压缩日志文件
+	MaxAge    int  `mapstructure:"max_age"`    // 多少天以后的日志删除
+	MaxBackup int  `mapstructure:"max_backup"` // 保留多少个日志文件
+	MaxSize   int  `mapstructure:"max_size"`   // 日志文件为多大开始rotate
+	Compress  bool `mapstructure:"compress"`   // 是否压缩日志文件
 }
 
 const (
@@ -37,7 +37,7 @@ var (
 			MaxAge: 7, // 最大保存时间7天(单位hour)
 		},
 		Dir:      "logs",
-		Filename: "app.logger",
+		Filename: "app.log",
 		Level:    "debug",
 	}
 )
@@ -45,21 +45,19 @@ var (
 // NewConfig 解析Config
 func NewConfig(configer intf.SdkConfiger) (*zerologConfig, error) {
 	if configer == nil {
-		hdutils.LogWarn("empty sdkConfig")
 		return getDefaultConfig(), nil
 	}
 
 	// if logger sdkConfig not found, use default one
 	v := configer.GetLogConfig()
 	if v == nil {
-		hdutils.LogWarn("logger sdkConfig not found")
 		return getDefaultConfig(), nil
 	}
 
 	var conf zerologConfig
 	err := mapstructure.Decode(v, &conf)
 	if err != nil {
-		return nil, errors.Wrap(err, "decode logger configloader")
+		return nil, errors.Wrap(err, "decode logger config")
 	}
 
 	// validate sdkConfig
@@ -71,9 +69,10 @@ func NewConfig(configer intf.SdkConfiger) (*zerologConfig, error) {
 }
 
 func getDefaultConfig() *zerologConfig {
+	hdutils.LogDebug("use default logger config")
 	if dir, err := os.Getwd(); err == nil {
 		guessAppName := filepath.Base(dir)
-		defaultConfig.Filename = fmt.Sprintf("%s.logger", guessAppName)
+		defaultConfig.Filename = fmt.Sprintf("%s.log", guessAppName)
 	}
 
 	switch runtime.GOOS {

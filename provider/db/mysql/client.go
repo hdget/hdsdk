@@ -1,64 +1,118 @@
 package mysql
 
 import (
-	"fmt"
+	"database/sql"
+	"github.com/hdget/hdsdk/errdef"
 	"github.com/hdget/hdsdk/intf"
 	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
-	"time"
+	"reflect"
 )
 
-type mysqlClient struct {
-	DB *sqlx.DB
+type dbClient struct {
+	builder intf.DbBuilder
+	db      *sqlx.DB
 }
 
-func (c *mysqlClient) Get(v any) error {
-	//TODO implement me
-	panic("implement me")
+func newClient(db *sqlx.DB) *dbClient {
+	return &dbClient{db: db}
 }
 
-func (c *mysqlClient) Select(v any, args ...*interface{}) error {
-	//TODO implement me
-	panic("implement me")
+func (s dbClient) UseBuilder(builder intf.DbBuilder) {
+	s.builder = builder
 }
 
-func (c *mysqlClient) Count() (int64, error) {
-	//TODO implement me
-	panic("implement me")
-}
+/* basic api */
 
-func (c *mysqlClient) Query(args ...*interface{}) (*sqlx.Rows, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func newMysqlClient(mysqlConfig *mysqlConfig) (intf.DbClient, error) {
-	client := &mysqlClient{}
-	err := client.connect(mysqlConfig)
-	if err != nil {
-		return nil, err
-	}
-	return client, nil
-}
-
-func (c *mysqlClient) connect(mysqlConfig *mysqlConfig) error {
-	// 这里设置解析时间类型https://github.com/go-sql-driver/mysql#timetime-support
-	// DSN (Data Type NickName): username:password@protocol(address)/dbname?param=value
-	t := "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local"
-	// 构造连接参数
-	connStr := fmt.Sprintf(t, mysqlConfig.User, mysqlConfig.Password, mysqlConfig.Host, mysqlConfig.Port, mysqlConfig.Database)
-	instance, err := sqlx.Connect("mysql", connStr)
-	if err != nil {
-		return errors.Wrap(err, "mysql connect")
+func (s dbClient) Exec(query string, args ...any) (sql.Result, error) {
+	if s.db == nil {
+		return nil, errdef.ErrEmptyDb
 	}
 
-	// https://www.alexedwards.net/blog/configuring-sqldb
-	// https://making.pusher.com/production-ready-connection-pooling-in-go
-	// Avoid issue:
-	// packets.go:123: closing bad idle connection: EOF
-	// connection.go:173: driver: bad connection
-	instance.SetConnMaxLifetime(3 * time.Minute)
+	return s.db.Exec(query, args...)
+}
 
-	c.DB = instance
-	return nil
+func (s dbClient) Query(query string, args ...any) (*sql.Rows, error) {
+	if s.db == nil {
+		return nil, errdef.ErrEmptyDb
+	}
+
+	return s.db.Query(query, args...)
+}
+
+func (s dbClient) QueryRow(query string, args ...any) *sql.Row {
+	if s.db == nil {
+		return nil
+	}
+
+	return s.db.QueryRow(query, args...)
+}
+
+func (s dbClient) NamedExec(query string, arg any) (sql.Result, error) {
+	if s.db == nil {
+		return nil, errdef.ErrEmptyDb
+	}
+
+	return s.db.NamedExec(query, arg)
+}
+
+func (s dbClient) One(v any) error {
+	if s.db == nil {
+		return errdef.ErrEmptyDb
+	}
+
+	if s.builder == nil {
+		return errdef.ErrEmptyDbBuilder
+	}
+
+	if !reflect.ValueOf(v).CanSet() {
+		return errdef.ErrValueNotSettable
+	}
+
+	sqlQuery, sqlArgs, err := s.builder.ToSql()
+	if err != nil {
+		return err
+	}
+
+	return s.db.Get(v, sqlQuery, sqlArgs)
+}
+
+func (s dbClient) All(v any) error {
+	if s.db == nil {
+		return errdef.ErrEmptyDb
+	}
+
+	if s.builder == nil {
+		return errdef.ErrEmptyDbBuilder
+	}
+
+	if !reflect.ValueOf(v).CanSet() {
+		return errdef.ErrValueNotSettable
+	}
+
+	sqlQuery, sqlArgs, err := s.builder.ToSql()
+	if err != nil {
+		return err
+	}
+	return s.db.Select(v, sqlQuery, sqlArgs...)
+}
+
+func (s dbClient) Count() (int64, error) {
+	if s.db == nil {
+		return 0, errdef.ErrEmptyDb
+	}
+
+	if s.builder == nil {
+		return 0, errdef.ErrEmptyDbBuilder
+	}
+
+	sqlQuery, sqlArgs, err := s.builder.ToSql()
+	if err != nil {
+		return 0, err
+	}
+	var total int64
+	err = s.db.Get(&total, sqlQuery, sqlArgs...)
+	if err != nil {
+		return 0, err
+	}
+	return total, nil
 }
