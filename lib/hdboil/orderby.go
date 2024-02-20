@@ -5,25 +5,25 @@ import (
 	"strings"
 )
 
-type orderByClause struct {
+type orderByBuilder struct {
 	tokens []string
 }
 
 // OrderBy OrderBy字段加入desc
-func OrderBy() *orderByClause {
-	return &orderByClause{tokens: make([]string, 0)}
+func OrderBy() *orderByBuilder {
+	return &orderByBuilder{tokens: make([]string, 0)}
 }
 
-func (o *orderByClause) Desc(col string) *orderByClause {
+func (o *orderByBuilder) Desc(col string) *orderByBuilder {
 	o.tokens = append(o.tokens, col+" DESC")
 	return o
 }
 
-func (o *orderByClause) Asc(col string) *orderByClause {
+func (o *orderByBuilder) Asc(col string) *orderByBuilder {
 	o.tokens = append(o.tokens, col+" ASC")
 	return o
 }
 
-func (o orderByClause) Output(args ...any) qm.QueryMod {
+func (o orderByBuilder) Output(args ...any) qm.QueryMod {
 	return qm.OrderBy(strings.Join(o.tokens, ","), args...)
 }

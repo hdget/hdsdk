@@ -17,7 +17,7 @@ func NewTransaction(args ...boil.Transactor) (*Transaction, error) {
 	)
 
 	needCommit := true
-	if len(args) > 0 {
+	if len(args) > 0 && args[0] != nil {
 		tx = args[0]
 		// 外部传递过来的transactor我们不需要commit
 		needCommit = false
