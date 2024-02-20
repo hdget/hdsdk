@@ -1,19 +1,37 @@
 package hdboil
 
-import "github.com/volatiletech/sqlboiler/v4/queries/qm"
+import (
+	"github.com/hdget/hdsdk/lib/pagination"
+	"github.com/hdget/hdsdk/protobuf"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
+)
 
 type qmBuilder struct {
-	mods []qm.QueryMod
+	mods    []qm.QueryMod
+	orderBy *orderByBuilder
 }
 
-func AppendQueryMod(mods ...qm.QueryMod) *qmBuilder {
+func NewQmBuilder(mods ...qm.QueryMod) *qmBuilder {
 	return &qmBuilder{
 		mods: mods,
 	}
 }
 
-func (q *qmBuilder) AppendQueryMod(mods ...qm.QueryMod) *qmBuilder {
+func (q *qmBuilder) Append(mods ...qm.QueryMod) *qmBuilder {
 	q.mods = append(q.mods, mods...)
+	return q
+}
+
+func (q *qmBuilder) Concat(modSlices ...[]qm.QueryMod) *qmBuilder {
+	for _, mods := range modSlices {
+		q.mods = append(q.mods, mods...)
+	}
+	return q
+}
+
+func (q *qmBuilder) Limit(list *protobuf.ListParam) *qmBuilder {
+	p := pagination.NewWithParam(list)
+	q.mods = append(q.mods, qm.Offset(int(p.Offset)), qm.Limit(int(p.PageSize)))
 	return q
 }
 
