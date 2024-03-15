@@ -7,8 +7,7 @@ import (
 )
 
 type qmBuilder struct {
-	mods    []qm.QueryMod
-	orderBy *orderByBuilder
+	mods []qm.QueryMod
 }
 
 func NewQmBuilder(mods ...qm.QueryMod) *qmBuilder {
