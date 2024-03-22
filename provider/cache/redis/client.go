@@ -3,6 +3,8 @@ package redis
 import (
 	"fmt"
 	"github.com/gomodule/redigo/redis"
+	"github.com/hdget/hdsdk/lib/pagination"
+	"github.com/hdget/hdsdk/protobuf"
 	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdutils"
 	"strconv"
@@ -473,12 +475,23 @@ func (r *RedisClient) ZRemRangeByScore(key string, min, max interface{}) error {
 }
 
 // ZRangeByScore get members by score
-func (r *RedisClient) ZRangeByScore(key string, min, max interface{}) ([]string, error) {
+func (r *RedisClient) ZRangeByScore(key string, min, max interface{}, withScores bool, list *protobuf.ListParam) ([]string, error) {
 	conn := r.pool.Get()
 	defer func(conn redis.Conn) {
 		_ = conn.Close()
 	}(conn)
-	return redis.Strings(conn.Do("ZRANGEBYSCORE", key, min, max))
+
+	args := []interface{}{key, min, max}
+	if withScores {
+		args = append(args, "WITHSCORES")
+	}
+
+	if list != nil {
+		p := pagination.NewWithParam(list)
+		args = append(args, "LIMIT", p.Offset, p.PageSize)
+	}
+
+	return redis.Strings(conn.Do("ZRANGEBYSCORE", args...))
 }
 
 // ZRange get members

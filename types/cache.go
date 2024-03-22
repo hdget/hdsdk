@@ -1,5 +1,7 @@
 package types
 
+import "github.com/hdget/hdsdk/protobuf"
+
 type CacheCommand struct {
 	Name string
 	Args []interface{}
@@ -63,7 +65,7 @@ type CacheClient interface {
 	ZCard(key string) (int, error)
 	ZRange(key string, min, max int64) (map[string]string, error)
 	ZRemRangeByScore(key string, min, max interface{}) error
-	ZRangeByScore(key string, min, max interface{}) ([]string, error)
+	ZRangeByScore(key string, min, max interface{}, withScores bool, list *protobuf.ListParam) ([]string, error)
 	ZScore(key string, member interface{}) (int64, error)
 	ZInterstore(newKey string, keys ...interface{}) (int64, error)
 	ZIncrBy(key string, increment int64, member interface{}) error
