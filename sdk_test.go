@@ -264,7 +264,7 @@ func TestEmptyLogger(t *testing.T) {
 	Logger.Error("msg content", "err", errors.New("new error"), "key1 ", 123)
 	Logger.Error("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 
-	// Logger.LogFatal("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+	// logger.LogFatal("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 	Logger.Panic("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 }
 
@@ -320,7 +320,7 @@ func TestLogger(t *testing.T) {
 	Logger.Error("msg content", "err", errors.New("new error"), "key1 ", 123)
 	Logger.Error("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 
-	// Logger.LogFatal("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
+	// logger.LogFatal("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 	Logger.Panic("msg content", "err", errors.New("new error"), "key1 ", "value1 123")
 }
 

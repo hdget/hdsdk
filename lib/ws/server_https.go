@@ -2,7 +2,6 @@ package ws
 
 import (
 	"context"
-	"github.com/gin-gonic/gin"
 	"github.com/hdget/hdsdk"
 	"github.com/hdget/hdsdk/types"
 	"github.com/hdget/hdutils/parallel"
@@ -12,38 +11,36 @@ import (
 	"syscall"
 )
 
-type HttpsServer struct {
-	*HttpServer
+type httpsServerImpl struct {
+	*baseServer
 	CertPath string
 	KeyPath  string
 }
 
-func NewHttpsServer(logger types.LogProvider, certPath, keyPath, address string) (WebServer, error) {
-	srv := &HttpsServer{
-		HttpServer: createHttpServer(logger, address),
-		CertPath:   certPath,
-		KeyPath:    keyPath,
-	}
-
+func NewHttpsServer(logger types.LogProvider, address, certPath, keyPath string, options ...ServerOption) (WebServer, error) {
 	// Check if the cert files are available.
-	if err := httpscerts.Check(srv.CertPath, srv.KeyPath); err != nil {
+	if err := httpscerts.Check(certPath, keyPath); err != nil {
 		// If they are not available, generate new ones.
-		if err = httpscerts.Generate(srv.CertPath, srv.KeyPath, address); err != nil {
+		if err = httpscerts.Generate(certPath, keyPath, address); err != nil {
 			return nil, errors.Wrap(err, "generate secure credential")
 		}
 	}
 
-	return srv, nil
+	return &httpsServerImpl{
+		baseServer: newBaseServer(logger, address),
+		CertPath:   certPath,
+		KeyPath:    keyPath,
+	}, nil
 }
 
-func (srv *HttpsServer) Run() {
+func (w httpsServerImpl) Run() {
 	listenFunc := func() error {
-		return srv.ListenAndServeTLS(srv.CertPath, srv.KeyPath)
+		return w.ListenAndServeTLS(w.CertPath, w.KeyPath)
 	}
 
 	var group parallel.Group
 	{
-		group.Add(listenFunc, srv.shutdown)
+		group.Add(listenFunc, w.shutdown)
 	}
 	{
 		group.Add(
@@ -59,17 +56,5 @@ func (srv *HttpsServer) Run() {
 
 	if err := group.Run(); err != nil && errors.Is(err, http.ErrServerClosed) {
 		hdsdk.Logger.Error("https server quit", "error", err)
-	}
-}
-
-func createHttpServer(logger types.LogProvider, address string) *HttpServer {
-	router := NewRouter(logger)
-	return &HttpServer{
-		Server: &http.Server{
-			Addr:    address,
-			Handler: router,
-		},
-		router:       router,
-		routerGroups: make(map[string]*gin.RouterGroup),
 	}
 }
