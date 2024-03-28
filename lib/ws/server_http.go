@@ -2,7 +2,6 @@ package ws
 
 import (
 	"errors"
-	"github.com/fvbock/endless"
 	"github.com/hdget/hdsdk/types"
 	"net/http"
 )
@@ -23,7 +22,7 @@ func (w httpServerImpl) Run() {
 	// 接收到syscall.SIGHUP信号将触发`fork/restart`实现优雅重启(kill -1 pid会发送SIGHUP信号）
 	// 接收到syscall.SIGINT或syscall.SIGTERM信号将触发优雅关机
 	// 接收到syscall.SIGUSR2信号将触发HammerTime
-	if err := endless.ListenAndServe(w.Server.Addr, w.engine); err != nil && errors.Is(err, http.ErrServerClosed) {
+	if err := w.ListenAndServe(); err != nil && errors.Is(err, http.ErrServerClosed) {
 		w.logger.Error("http server quit", "error", err)
 	}
 }
