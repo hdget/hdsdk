@@ -68,12 +68,10 @@ func (w *baseServer) addRouterGroup(name, urlPrefix string, middlewares []gin.Ha
 
 		// 添加到router group
 		switch route.Method {
-		case Get:
+		case HttpMethodGet:
 			w.routerGroups[name].GET(route.Path, route.Handler)
-		case Post:
+		case HttpMethodPost:
 			w.routerGroups[name].POST(route.Path, route.Handler)
-		case Delete:
-			w.routerGroups[name].DELETE(route.Path, route.Handler)
 		}
 	}
 	return nil
@@ -90,12 +88,10 @@ func (w *baseServer) AddRoutes(routes []*Route) error {
 
 		// 添加到router group
 		switch route.Method {
-		case Get:
+		case HttpMethodGet:
 			w.engine.GET(route.Path, route.Handler)
-		case Post:
+		case HttpMethodPost:
 			w.engine.POST(route.Path, route.Handler)
-		case Delete:
-			w.engine.DELETE(route.Path, route.Handler)
 		}
 	}
 	return nil

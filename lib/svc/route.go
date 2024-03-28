@@ -11,10 +11,10 @@ type RouteAnnotation struct {
 	*moduleInfo
 	Handler       string   // dapr method
 	Endpoint      string   // endpoint
-	Methods       []string // http methods
+	HttpMethods   []string // http methods
 	Origin        string   // 请求来源
-	IsRawResponse bool     // 是否返回原始消息
-	IsPublic      bool     // 是否是公共方法
+	IsRawResponse int      // 是否返回原始消息, 1：返回原始消息
+	IsPublic      int      // 是否是公共路由, 0：否, 1: 是
 	Permission    string   // 权限名称
 	Comments      []string // 备注
 }
@@ -24,7 +24,7 @@ type rawRouteAnnotation struct {
 	Methods       []string `json:"methods"`       // http methods
 	Origin        string   `json:"origin"`        // 请求来源
 	IsRawResponse bool     `json:"isRawResponse"` // 是否返回原始消息
-	IsPublic      bool     `json:"isPublic"`      // 是否是公共方法
+	IsPublic      bool     `json:"isPublic"`      // 是否是公共路由
 	Permission    string   `json:"permission"`    // 权限名称
 }
 
@@ -97,19 +97,29 @@ func (b *baseInvocationModule) toRouteAnnotation(alias string, fnInfo *hdutils.A
 	}
 
 	// 处理特殊情况, 设置缺省值
-	methods := raw.Methods
-	if len(methods) == 0 {
-		methods = []string{"GET"}
+	methods := []string{"GET"}
+	if len(methods) > 0 {
+		methods = raw.Methods
+	}
+
+	isRawResponse := 0
+	if raw.IsRawResponse {
+		isRawResponse = 1
+	}
+
+	isPublic := 0
+	if raw.IsPublic {
+		isPublic = 1
 	}
 
 	return &RouteAnnotation{
 		moduleInfo:    b.moduleInfo,
 		Handler:       alias,
 		Endpoint:      raw.Endpoint,
-		Methods:       methods,
+		HttpMethods:   methods,
 		Origin:        raw.Origin,
-		IsRawResponse: raw.IsRawResponse,
-		IsPublic:      raw.IsPublic,
+		IsRawResponse: isRawResponse,
+		IsPublic:      isPublic,
 		Comments:      fnInfo.PlainComments,
 	}, nil
 }

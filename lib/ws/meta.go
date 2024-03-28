@@ -2,15 +2,6 @@ package ws
 
 import "github.com/gin-gonic/gin"
 
-// HttpMethod http 方法
-type HttpMethod int
-
-const (
-	Get HttpMethod = iota
-	Post
-	Delete
-)
-
 const keyMeta = "meta"
 
 // GetMetaKvs 获取meta的[key, value] slice
