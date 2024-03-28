@@ -29,9 +29,10 @@ func newBaseServer(logger types.LogProvider, address string, options ...ServerOp
 			Addr:    address,
 			Handler: getDefaultGinEngine(logger),
 		},
-		engine: getDefaultGinEngine(logger),
-		logger: logger,
-		params: defaultServerParams,
+		engine:       getDefaultGinEngine(logger),
+		logger:       logger,
+		params:       defaultServerParams,
+		routerGroups: make(map[string]*gin.RouterGroup),
 	}
 
 	for _, option := range options {

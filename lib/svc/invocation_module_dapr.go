@@ -83,7 +83,7 @@ func (m *DaprInvocationModule) GetHandlers() map[string]any {
 	// h为*invocationHandler
 	for _, h := range m.handlers {
 		// daprMethodName = v2:xxx:alias
-		daprMethodName := dapr.GetServiceInvocationName(m.Version, m.Module, h.alias)
+		daprMethodName := dapr.GetServiceInvocationName(m.ModuleVersion, m.Module, h.alias)
 		daprMethod := m.toDaprServiceInvocationHandler(h.fn)
 		if daprMethod != nil {
 			handlers[daprMethodName] = daprMethod
@@ -126,20 +126,9 @@ func (m *DaprInvocationModule) ValidateHandler(handler any) error {
 	return nil
 }
 
-// GetRoutes 获取路由
-func (m *DaprInvocationModule) GetRoutes(srcPath string, args ...HandlerMatch) ([]*Route, error) {
-	return m.parseRoutes(
-		srcPath,
-		annotationPrefix,
-		[]string{"context.Context", "*common.InvocationEvent"},
-		[]string{"any", "error"},
-		args...,
-	)
-}
-
-// GetPermissions 获取权限
-func (m *DaprInvocationModule) GetPermissions(srcPath string, args ...HandlerMatch) ([]*Permission, error) {
-	return m.parsePermissions(
+// GetRouteAnnotations 获取路由注解
+func (m *DaprInvocationModule) GetRouteAnnotations(srcPath string, args ...HandlerMatch) ([]*RouteAnnotation, error) {
+	return m.parseRouteAnnotations(
 		srcPath,
 		annotationPrefix,
 		[]string{"context.Context", "*common.InvocationEvent"},

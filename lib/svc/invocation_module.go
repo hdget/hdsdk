@@ -7,18 +7,17 @@ import (
 
 type InvocationModule interface {
 	GetName() string
-	GetRoutes(srcPath string, args ...HandlerMatch) ([]*Route, error)
+	GetRouteAnnotations(srcPath string, args ...HandlerMatch) ([]*RouteAnnotation, error)
 	DiscoverHandlers(args ...HandlerMatch) (map[string]any, error) // 通过反射发现Handlers
 	RegisterHandlers(handlers map[string]any) error
 	GetHandlers() map[string]any // 获取手动注册的handlers
 	ValidateHandler(handler any) error
-	GetPermissions(srcPath string, args ...HandlerMatch) ([]*Permission, error)
 }
 
 type moduleInfo struct {
-	Name    string // 结构名
-	Module  string // 模块名， 结构名后去掉v<版本号>_的部分
-	Version int    // 版本号
+	Name          string // 结构名, 格式: "v<模块版本号>_<模块名>"
+	Module        string // 模块名
+	ModuleVersion int    // 模块版本号
 }
 
 type HandlerMatch func(funcName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的method名

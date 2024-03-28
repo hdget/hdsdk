@@ -30,9 +30,9 @@ func getModuleInfo(svcHolderOrModuleName any) (*moduleInfo, error) {
 	}
 
 	return &moduleInfo{
-		Name:    structName,
-		Module:  tokens[2],
-		Version: version,
+		Name:          structName,
+		Module:        tokens[2],
+		ModuleVersion: version,
 	}, nil
 
 }

@@ -7,28 +7,29 @@ import (
 	"strings"
 )
 
-type Route struct {
+type RouteAnnotation struct {
 	*moduleInfo
 	Handler       string   // dapr method
 	Endpoint      string   // endpoint
 	Methods       []string // http methods
-	CallerId      int64    // 第三方回调应用id
+	Origin        string   // 请求来源
 	IsRawResponse bool     // 是否返回原始消息
 	IsPublic      bool     // 是否是公共方法
+	Permission    string   // 权限名称
 	Comments      []string // 备注
 }
 
-type RouteAnnotation struct {
-	Endpoint      string   // endpoint
-	Methods       []string // http methods
-	CallerId      int64    // 第三方回调应用id
-	IsRawResponse bool     // 是否返回原始消息
-	IsPublic      bool     // 是否是公共方法
-	Comments      []string // 备注
+type rawRouteAnnotation struct {
+	Endpoint      string   `json:"endpoint"`      // endpoint
+	Methods       []string `json:"methods"`       // http methods
+	Origin        string   `json:"origin"`        // 请求来源
+	IsRawResponse bool     `json:"isRawResponse"` // 是否返回原始消息
+	IsPublic      bool     `json:"isPublic"`      // 是否是公共方法
+	Permission    string   `json:"permission"`    // 权限名称
 }
 
-// parseRoutes 从源代码的注解中解析路由
-func (b *baseInvocationModule) parseRoutes(srcPath, annotationPrefix string, fnParams, fnResults []string, args ...HandlerMatch) ([]*Route, error) {
+// parseRouteAnnotations 从源代码的注解中解析路由注解
+func (b *baseInvocationModule) parseRouteAnnotations(srcPath, annotationPrefix string, fnParams, fnResults []string, args ...HandlerMatch) ([]*RouteAnnotation, error) {
 	matchFn := defaultHandlerMatchFunction
 	if len(args) > 0 {
 		matchFn = args[0]
@@ -42,7 +43,7 @@ func (b *baseInvocationModule) parseRoutes(srcPath, annotationPrefix string, fnP
 		return nil, err
 	}
 
-	routes := make([]*Route, 0)
+	routeAnnotations := make([]*RouteAnnotation, 0)
 	for _, fnInfo := range funcInfos {
 		modInfo, err := getModuleInfo(fnInfo.Receiver)
 		if err != nil {
@@ -72,39 +73,43 @@ func (b *baseInvocationModule) parseRoutes(srcPath, annotationPrefix string, fnP
 			continue
 		}
 
-		route, err := b.buildRoute(h.alias, fnInfo, ann)
+		routeAnnotation, err := b.toRouteAnnotation(h.alias, fnInfo, ann)
 		if err != nil {
 			return nil, err
 		}
 
-		routes = append(routes, route)
+		routeAnnotations = append(routeAnnotations, routeAnnotation)
 	}
 
-	return routes, nil
+	return routeAnnotations, nil
 }
 
-// buildRoute alias为register或者discover handler时候使用的别名
-func (b *baseInvocationModule) buildRoute(alias string, fnInfo *hdutils.AstFunction, ann *hdutils.AstAnnotation) (*Route, error) {
+// toRouteAnnotation alias为register或者discover handler时候使用的别名
+func (b *baseInvocationModule) toRouteAnnotation(alias string, fnInfo *hdutils.AstFunction, ann *hdutils.AstAnnotation) (*RouteAnnotation, error) {
 	// 尝试将注解后的值进行jsonUnmarshal
-	var routeAnnotation *RouteAnnotation
+	var raw *rawRouteAnnotation
 	if strings.HasPrefix(ann.Value, "{") && strings.HasSuffix(ann.Value, "}") {
 		// 如果定义不为空，尝试unmarshal
-		err := json.Unmarshal(hdutils.StringToBytes(ann.Value), &routeAnnotation)
+		err := json.Unmarshal(hdutils.StringToBytes(ann.Value), &raw)
 		if err != nil {
 			return nil, errors.Wrapf(err, "parse route annotation, annotation: %s", ann.Value)
 		}
-	} else {
-		routeAnnotation = &RouteAnnotation{}
 	}
 
-	return &Route{
+	// 处理特殊情况, 设置缺省值
+	methods := raw.Methods
+	if len(methods) == 0 {
+		methods = []string{"GET"}
+	}
+
+	return &RouteAnnotation{
 		moduleInfo:    b.moduleInfo,
 		Handler:       alias,
-		Endpoint:      routeAnnotation.Endpoint,
-		Methods:       routeAnnotation.Methods,
-		CallerId:      routeAnnotation.CallerId,
-		IsRawResponse: routeAnnotation.IsRawResponse,
-		IsPublic:      routeAnnotation.IsPublic,
+		Endpoint:      raw.Endpoint,
+		Methods:       methods,
+		Origin:        raw.Origin,
+		IsRawResponse: raw.IsRawResponse,
+		IsPublic:      raw.IsPublic,
 		Comments:      fnInfo.PlainComments,
 	}, nil
 }
