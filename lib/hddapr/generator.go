@@ -1,4 +1,4 @@
-package dapr
+package hddapr
 
 type Generator interface {
 	Register() error          // 通过生成的源文件来注册相关信息

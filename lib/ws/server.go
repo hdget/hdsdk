@@ -8,8 +8,17 @@ import (
 	"github.com/pkg/errors"
 	"io"
 	"net/http"
-	"time"
 )
+
+type WebServer interface {
+	Start() error
+	Stop() error
+	GracefulStop(ctx context.Context) error
+	AddPublicRouterGroup(middlewares []gin.HandlerFunc, routes []*Route) error
+	AddProtectRouterGroup(middlewares []gin.HandlerFunc, routes []*Route) error
+	AddRoutes(routes []*Route) error
+	SetMode(mode string)
+}
 
 type baseServer struct {
 	*http.Server
@@ -18,10 +27,6 @@ type baseServer struct {
 	params       *ServerParam
 	routerGroups map[string]*gin.RouterGroup
 }
-
-const (
-	gracefulShutdownWaitTime = 3 * time.Second
-)
 
 func newBaseServer(logger types.LogProvider, address string, options ...ServerOption) *baseServer {
 	s := &baseServer{
@@ -42,15 +47,70 @@ func newBaseServer(logger types.LogProvider, address string, options ...ServerOp
 	return s
 }
 
-func (w *baseServer) AddPublicRouterGroup(middlewares []gin.HandlerFunc, routes []*Route) error {
+func (w baseServer) AddPublicRouterGroup(middlewares []gin.HandlerFunc, routes []*Route) error {
 	return w.addRouterGroup(w.params.publicRouterGroup.Name, w.params.publicRouterGroup.UrlPrefix, middlewares, routes)
 }
 
-func (w *baseServer) AddProtectRouterGroup(middlewares []gin.HandlerFunc, routes []*Route) error {
+func (w baseServer) AddProtectRouterGroup(middlewares []gin.HandlerFunc, routes []*Route) error {
 	return w.addRouterGroup(w.params.protectRouterGroup.Name, w.params.protectRouterGroup.UrlPrefix, middlewares, routes)
 }
 
-func (w *baseServer) addRouterGroup(name, urlPrefix string, middlewares []gin.HandlerFunc, routes []*Route) error {
+func (w baseServer) Stop() error {
+	if err := w.Stop(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (w baseServer) GracefulStop(ctx context.Context) error {
+	if err := w.Shutdown(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (w baseServer) AddRoutes(routes []*Route) error {
+	routeMap := make(map[string]struct{})
+	for _, route := range routes {
+		// 先检查是否有重复的路由
+		k := fmt.Sprintf("%d_%s", route.Method, route.Path)
+		if _, exist := routeMap[k]; exist {
+			return fmt.Errorf("duplicate route, url: %s, method: %d", route.Path, route.Method)
+		}
+
+		// 添加到router group
+		switch route.Method {
+		case HttpMethodGet:
+			w.engine.GET(route.Path, route.Handler)
+		case HttpMethodPost:
+			w.engine.POST(route.Path, route.Handler)
+		}
+	}
+	return nil
+}
+
+// SetMode set gin to specific mode
+func (w baseServer) SetMode(mode string) {
+	gin.SetMode(mode)
+}
+
+func getDefaultGinEngine(logger types.LogProvider) *gin.Engine {
+	// new router
+	engine := gin.New()
+
+	// set gin to logout to stdout and file
+	gin.DefaultWriter = io.MultiWriter(logger.GetStdLogger().Writer())
+
+	// add basic middleware
+	engine.Use(
+		gin.Recovery(),
+		newLoggerMiddleware(logger), // logger middleware
+	)
+
+	return engine
+}
+
+func (w baseServer) addRouterGroup(name, urlPrefix string, middlewares []gin.HandlerFunc, routes []*Route) error {
 	if _, exists := w.routerGroups[name]; exists {
 		return errors.Wrapf(ErrDuplicateRouterGroup, "name: %s", name)
 	}
@@ -75,53 +135,4 @@ func (w *baseServer) addRouterGroup(name, urlPrefix string, middlewares []gin.Ha
 		}
 	}
 	return nil
-}
-
-func (w *baseServer) AddRoutes(routes []*Route) error {
-	routeMap := make(map[string]struct{})
-	for _, route := range routes {
-		// 先检查是否有重复的路由
-		k := fmt.Sprintf("%d_%s", route.Method, route.Path)
-		if _, exist := routeMap[k]; exist {
-			return fmt.Errorf("duplicate route, url: %s, method: %d", route.Path, route.Method)
-		}
-
-		// 添加到router group
-		switch route.Method {
-		case HttpMethodGet:
-			w.engine.GET(route.Path, route.Handler)
-		case HttpMethodPost:
-			w.engine.POST(route.Path, route.Handler)
-		}
-	}
-	return nil
-}
-
-// SetMode set gin to specific mode
-func (w *baseServer) SetMode(mode string) {
-	gin.SetMode(mode)
-}
-
-func (w *baseServer) shutdown(err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), gracefulShutdownWaitTime)
-	defer cancel()
-	if e := w.Shutdown(ctx); e != nil {
-		w.logger.Fatal("http server shutdown", "reason", err, "error", e)
-	}
-}
-
-func getDefaultGinEngine(logger types.LogProvider) *gin.Engine {
-	// new router
-	engine := gin.New()
-
-	// set gin to logout to stdout and file
-	gin.DefaultWriter = io.MultiWriter(logger.GetStdLogger().Writer())
-
-	// add basic middleware
-	engine.Use(
-		gin.Recovery(),
-		newLoggerMiddleware(logger), // logger middleware
-	)
-
-	return engine
 }

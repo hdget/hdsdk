@@ -1,4 +1,4 @@
-package dapr
+package hddapr
 
 import (
 	"github.com/dapr/go-sdk/service/common"

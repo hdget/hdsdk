@@ -1,4 +1,4 @@
-package dapr
+package hddapr
 
 import (
 	"encoding/json"

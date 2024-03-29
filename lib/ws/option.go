@@ -1,10 +1,13 @@
 package ws
 
+import "time"
+
 type ServerOption func(param *ServerParam)
 
 type ServerParam struct {
-	publicRouterGroup  *routerGroupParam
-	protectRouterGroup *routerGroupParam
+	publicRouterGroup        *routerGroupParam
+	protectRouterGroup       *routerGroupParam
+	gracefulShutdownWaitTime time.Duration
 }
 
 type routerGroupParam struct {
@@ -22,11 +25,12 @@ var (
 			Name:      "protect",
 			UrlPrefix: "/api",
 		},
+		gracefulShutdownWaitTime: 10 * time.Second,
 	}
 )
 
-func WithPublicUrlPrefix(publicUrlPrefix string) ServerOption {
+func WithGracefulShutdownWaitTime(waitTime time.Duration) ServerOption {
 	return func(param *ServerParam) {
-		param.publicRouterGroup.UrlPrefix = publicUrlPrefix
+		param.gracefulShutdownWaitTime = waitTime
 	}
 }
