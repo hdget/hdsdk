@@ -20,7 +20,7 @@ const ContentTypeJson = "application/json"
 //var jsonpbMarshaler = jsonpb.Marshaler{EmitDefaults: true}
 
 // Invoke 调用dapr服务
-func Invoke(appId string, version int, module, method string, data any, args ...string) ([]byte, error) {
+func Invoke(appId string, moduleVersion int, module, method string, data any, args ...string) ([]byte, error) {
 	var value []byte
 	switch t := data.(type) {
 	case string:
@@ -52,7 +52,7 @@ func Invoke(appId string, version int, module, method string, data any, args ...
 		ctx = metadata.NewOutgoingContext(ctx, md)
 	}
 
-	fullMethodName := GetServiceInvocationName(version, module, method)
+	fullMethodName := GetServiceInvocationName(moduleVersion, module, method)
 	resp, err := daprClient.InvokeMethodWithContent(ctx, appId, fullMethodName, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,

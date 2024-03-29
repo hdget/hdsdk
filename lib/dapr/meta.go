@@ -1,8 +1,8 @@
-package svc
+package dapr
 
 const (
 	MetaPrefix  = "Hd-"
-	MetaAppId   = MetaPrefix + "App-Id"
+	MetaAppId   = MetaPrefix + "Application"
 	MetaVersion = MetaPrefix + "Version"
 )
 

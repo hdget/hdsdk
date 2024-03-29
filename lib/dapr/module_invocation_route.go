@@ -1,4 +1,4 @@
-package svc
+package dapr
 
 import (
 	"encoding/json"
@@ -28,9 +28,24 @@ type rawRouteAnnotation struct {
 	Permissions   []string `json:"permissions"`   // 所属权限列表
 }
 
+// 注解的前缀
+const annotationPrefix = "@hd."
+const annotationRoute = annotationPrefix + "route"
+
+// GetRouteAnnotations 获取路由注解
+func (b *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...HandlerMatch) ([]*RouteAnnotation, error) {
+	return b.parseRouteAnnotations(
+		srcPath,
+		annotationPrefix,
+		[]string{"context.Context", "*common.InvocationEvent"},
+		[]string{"any", "error"},
+		args...,
+	)
+}
+
 // parseRouteAnnotations 从源代码的注解中解析路由注解
-func (b *baseInvocationModule) parseRouteAnnotations(srcPath, annotationPrefix string, fnParams, fnResults []string, args ...HandlerMatch) ([]*RouteAnnotation, error) {
-	matchFn := defaultHandlerMatchFunction
+func (b *invocationModuleImpl) parseRouteAnnotations(srcPath, annotationPrefix string, fnParams, fnResults []string, args ...HandlerMatch) ([]*RouteAnnotation, error) {
+	matchFn := b.defaultHandlerMatchFunction
 	if len(args) > 0 {
 		matchFn = args[0]
 	}
@@ -45,7 +60,7 @@ func (b *baseInvocationModule) parseRouteAnnotations(srcPath, annotationPrefix s
 
 	routeAnnotations := make([]*RouteAnnotation, 0)
 	for _, fnInfo := range funcInfos {
-		modInfo, err := getModuleInfo(fnInfo.Receiver)
+		modInfo, err := toModuleInfo(fnInfo.Receiver)
 		if err != nil {
 			return nil, err
 		}
@@ -85,7 +100,7 @@ func (b *baseInvocationModule) parseRouteAnnotations(srcPath, annotationPrefix s
 }
 
 // toRouteAnnotation alias为register或者discover handler时候使用的别名
-func (b *baseInvocationModule) toRouteAnnotation(alias string, fnInfo *hdutils.AstFunction, ann *hdutils.AstAnnotation) (*RouteAnnotation, error) {
+func (b *invocationModuleImpl) toRouteAnnotation(alias string, fnInfo *hdutils.AstFunction, ann *hdutils.AstAnnotation) (*RouteAnnotation, error) {
 	// 尝试将注解后的值进行jsonUnmarshal
 	var raw *rawRouteAnnotation
 	if strings.HasPrefix(ann.Value, "{") && strings.HasSuffix(ann.Value, "}") {
