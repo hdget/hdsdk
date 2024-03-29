@@ -7,7 +7,6 @@ import (
 )
 
 type Server interface {
-	Initialize(generators ...Generator) error
 	Start() error
 	Stop() error
 	GracefulStop() error
@@ -18,31 +17,38 @@ type Server interface {
 
 type serverImpl struct {
 	common.Service
+	generators []Generator
 }
 
 var (
 	_moduleName2invocationModule = make(map[string]InvocationModule) // service invocation module
 )
 
-func NewGrpcServer(address string) (Server, error) {
+func NewGrpcServer(address string, generators ...Generator) (Server, error) {
 	service, err := grpc.NewService(address)
 	if err != nil {
 		return nil, errors.Wrap(err, "new dapr grpc server")
 	}
 
-	return &serverImpl{
-		Service: service,
-	}, nil
+	srv := &serverImpl{Service: service, generators: generators}
+	if err = srv.initialize(); err != nil {
+		return nil, err
+	}
+
+	return srv, nil
 }
 
-func NewHttpServer(address string) (Server, error) {
+func NewHttpServer(address string, generators ...Generator) (Server, error) {
 	service, err := grpc.NewService(address)
 	if err != nil {
 		return nil, errors.Wrap(err, "new dapr http server")
 	}
-	return &serverImpl{
-		Service: service,
-	}, nil
+
+	srv := &serverImpl{Service: service, generators: generators}
+	if err = srv.initialize(); err != nil {
+		return nil, err
+	}
+	return srv, nil
 }
 
 func GetInvocationModules() map[string]InvocationModule {
@@ -62,7 +68,7 @@ func (impl *serverImpl) GracefulStop() error {
 }
 
 // Initialize 初始化server
-func (impl *serverImpl) Initialize(generators ...Generator) error {
+func (impl *serverImpl) initialize() error {
 	// 注册各种类型的handlers
 	for method, handler := range impl.GetInvocationHandlers() {
 		if err := impl.AddServiceInvocationHandler(method, handler); err != nil {
@@ -83,7 +89,7 @@ func (impl *serverImpl) Initialize(generators ...Generator) error {
 	}
 
 	// 注册生成的依赖文件
-	for _, gen := range generators {
+	for _, gen := range impl.generators {
 		err := gen.Register()
 		if err != nil {
 			return err
