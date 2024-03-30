@@ -101,8 +101,17 @@ func (b *invocationModuleImpl) parseRouteAnnotations(srcPath, annotationPrefix s
 
 // toRouteAnnotation alias为register或者discover handler时候使用的别名
 func (b *invocationModuleImpl) toRouteAnnotation(alias string, fnInfo *hdutils.AstFunction, ann *hdutils.AstAnnotation) (*RouteAnnotation, error) {
+	// 设置初始值
+	raw := &rawRouteAnnotation{
+		Endpoint:      "",
+		Methods:       []string{"GET"},
+		Origin:        "",
+		IsRawResponse: false,
+		IsPublic:      false,
+		Permissions:   []string{},
+	}
+
 	// 尝试将注解后的值进行jsonUnmarshal
-	var raw *rawRouteAnnotation
 	if strings.HasPrefix(ann.Value, "{") && strings.HasSuffix(ann.Value, "}") {
 		// 如果定义不为空，尝试unmarshal
 		err := json.Unmarshal(hdutils.StringToBytes(ann.Value), &raw)
@@ -112,19 +121,19 @@ func (b *invocationModuleImpl) toRouteAnnotation(alias string, fnInfo *hdutils.A
 	}
 
 	// 处理特殊情况, 设置缺省值
-	methods := []string{"GET"}
-	if len(methods) > 0 {
-		methods = raw.Methods
+	if len(raw.Methods) == 0 {
+		raw.Methods = []string{"GET"}
 	}
 
 	return &RouteAnnotation{
 		moduleInfo:    b.moduleInfo,
 		Handler:       alias,
 		Endpoint:      raw.Endpoint,
-		HttpMethods:   methods,
+		HttpMethods:   raw.Methods,
 		Origin:        raw.Origin,
 		IsRawResponse: raw.IsRawResponse,
 		IsPublic:      raw.IsPublic,
+		Permissions:   raw.Permissions,
 		Comments:      fnInfo.PlainComments,
 	}, nil
 }

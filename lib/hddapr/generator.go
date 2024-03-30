@@ -1,27 +1,25 @@
 package hddapr
 
 type Generator interface {
-	Register() error          // 通过生成的源文件来注册相关信息
-	Gen(srcPath string) error // 通过解析源代码来生成源文件
-	Get() any                 // 获取生成的内容
+	Register() error // 通过生成的源文件来注册相关信息
+	Gen() error      // 通过解析源代码来生成源文件
+	Get() any        // 获取生成的内容
 }
 
-type BaseGenerator struct {
+type baseGeneratorImpl struct {
 }
 
-func NewGenerator() Generator {
-	return &BaseGenerator{}
+func (b baseGeneratorImpl) Register() error {
+	//TODO implement me
+	panic("implement me")
 }
 
-func (m *BaseGenerator) Get() any {
-	return nil
+func (b baseGeneratorImpl) Gen() error {
+	//TODO implement me
+	panic("implement me")
 }
 
-func (m *BaseGenerator) Register() error {
-	return nil
-}
-
-func (m *BaseGenerator) Gen(srcPath string) error {
+func (b baseGeneratorImpl) Get() any {
 	//TODO implement me
 	panic("implement me")
 }
