@@ -6,6 +6,7 @@ import (
 	"github.com/dave/jennifer/jen"
 	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
+	"path"
 	"runtime"
 	"strings"
 )
@@ -73,16 +74,17 @@ func (m *routeGeneratorImpl) Gen() error {
 		fmt.Printf(" - module: %-25s total: %-5d handlers: [%s]\n", moduleName, len(routeAnnotations), strings.Join(handlerNames, ", "))
 	}
 
+	// 获取当前函数所在的包
 	pc, _, _, _ := runtime.Caller(0)
 	splitFuncName := strings.Split(runtime.FuncForPC(pc).Name(), ".")
 	packagePath := strings.Join(splitFuncName[0:len(splitFuncName)-2], ".")
 
 	varName := "routes"
 	return hdutils.
-		NewGoFile("main", map[string]string{packagePath: "hddapr"}).
+		NewGoFile("autogen", map[string]string{packagePath: ""}).
 		DeclareSliceVar(varName, packagePath, routeItems).
 		AddMethod(hdutils.Reflect().GetStructName(m), hdutils.Reflect().GetFuncName(m.Get), nil, []string{"any"}, []jen.Code{jen.Return(jen.Id(varName))}).
-		Save("autogen_routes.go")
+		Save(path.Join("autogen", "routes.go"))
 }
 
 func (m *routeGeneratorImpl) Register() error {
