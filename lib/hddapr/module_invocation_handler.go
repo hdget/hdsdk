@@ -20,6 +20,10 @@ type invocationHandler struct {
 type HandlerMatch func(funcName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的method名
 type InvocationHandler func(ctx context.Context, event *common.InvocationEvent) (any, error)
 
+const (
+	maxRequestLength = 120
+)
+
 // DiscoverHandlers 获取Module作为receiver的所有MethodMatchFunction匹配的方法, MethodMatchFunction生成新的方法名和判断是否匹配
 func (b *invocationModuleImpl) DiscoverHandlers(args ...HandlerMatch) (map[string]any, error) {
 	matchFn := b.defaultHandlerMatchFunction
@@ -118,7 +122,11 @@ func (b *invocationModuleImpl) toDaprServiceInvocationHandler(method any) common
 
 		response, err := realHandler(ctx, event)
 		if err != nil {
-			hdsdk.Logger.Error("handle", "module", b.Name, "method", hdutils.Reflect().GetFuncName(method), "err", err, "req", hdutils.BytesToString(event.Data))
+			req := []rune(hdutils.BytesToString(event.Data))
+			if len(req) > maxRequestLength {
+				req = append(req[:maxRequestLength], []rune("...")...)
+			}
+			hdsdk.Logger.Error("handle", "module", b.Name, "method", hdutils.Reflect().GetFuncName(method), "err", err, "req", req)
 			return Error(err)
 		}
 
