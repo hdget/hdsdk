@@ -12,6 +12,12 @@ var (
 	errInvalidModule = errors.New("invalid module, it must be struct")
 )
 
+type moduleInfo struct {
+	Name          string // 结构名, 格式: "v<模块版本号>_<模块名>"
+	Module        string // 模块名
+	ModuleVersion int    // 模块版本号
+}
+
 // parseModuleInfo 从约定的结构名中解析模块名和版本, 结构名需要为v<number>_<module>
 func parseModuleInfo(moduleObject any) (*moduleInfo, error) {
 	structName := hdutils.Reflect().GetStructName(moduleObject)

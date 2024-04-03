@@ -20,7 +20,7 @@ func Publish(pubSubName, topic string, data interface{}, args ...bool) error {
 		return errors.Wrap(err, "new dapr client")
 	}
 	if daprClient == nil {
-		return errors.New("dapr client is null, name resolution service may not started, please check it")
+		return errors.New("dapr client is null, handlerName resolution service may not started, please check it")
 	}
 
 	// IMPORTANT: daprClient是全局的连接, 不能关闭

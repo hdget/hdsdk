@@ -2,6 +2,7 @@ package hddapr
 
 import (
 	"encoding/json"
+	"github.com/elliotchance/pie/v2"
 	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
 	"strings"
@@ -9,7 +10,7 @@ import (
 
 type RouteAnnotation struct {
 	*moduleInfo
-	Handler       string   // dapr method
+	Handler       string   // dapr fnName
 	Endpoint      string   // endpoint
 	HttpMethods   []string // http methods
 	Origin        string   // 请求来源
@@ -33,8 +34,8 @@ const annotationPrefix = "@hd."
 const annotationRoute = annotationPrefix + "route"
 
 // GetRouteAnnotations 获取路由注解
-func (b *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...HandlerMatch) ([]*RouteAnnotation, error) {
-	return b.parseRouteAnnotations(
+func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...HandlerNameMatcher) ([]*RouteAnnotation, error) {
+	return m.parseRouteAnnotations(
 		srcPath,
 		annotationPrefix,
 		[]string{"context.Context", "*common.InvocationEvent"},
@@ -44,8 +45,8 @@ func (b *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...Handl
 }
 
 // parseRouteAnnotations 从源代码的注解中解析路由注解
-func (b *invocationModuleImpl) parseRouteAnnotations(srcPath, annotationPrefix string, fnParams, fnResults []string, args ...HandlerMatch) ([]*RouteAnnotation, error) {
-	matchFn := b.defaultHandlerMatchFunction
+func (m *invocationModuleImpl) parseRouteAnnotations(srcPath, annotationPrefix string, fnParams, fnResults []string, args ...HandlerNameMatcher) ([]*RouteAnnotation, error) {
+	matchFn := m.defaultHandlerNameMatcher
 	if len(args) > 0 {
 		matchFn = args[0]
 	}
@@ -66,7 +67,7 @@ func (b *invocationModuleImpl) parseRouteAnnotations(srcPath, annotationPrefix s
 		}
 
 		// 忽略掉不是本模块的备注
-		if modInfo.Module != b.Module {
+		if modInfo.Module != m.Module {
 			continue
 		}
 
@@ -82,13 +83,15 @@ func (b *invocationModuleImpl) parseRouteAnnotations(srcPath, annotationPrefix s
 			continue
 		}
 
-		// 通过handlerId获取注册时候的invocationHandler
-		h := b.handlers[genHandlerId(b.Name, fnInfo.Function)]
-		if h == nil {
+		foundIndex := pie.FindFirstUsing(m.handlers, func(h InvocationHandler) bool {
+			return h.GetName() == fnInfo.Function
+		})
+		if foundIndex == -1 {
 			continue
 		}
 
-		routeAnnotation, err := b.toRouteAnnotation(h.alias, fnInfo, ann)
+		h := m.handlers[foundIndex]
+		routeAnnotation, err := m.toRouteAnnotation(h.GetName(), fnInfo, ann)
 		if err != nil {
 			return nil, err
 		}
@@ -99,8 +102,8 @@ func (b *invocationModuleImpl) parseRouteAnnotations(srcPath, annotationPrefix s
 	return routeAnnotations, nil
 }
 
-// toRouteAnnotation alias为register或者discover handler时候使用的别名
-func (b *invocationModuleImpl) toRouteAnnotation(alias string, fnInfo *hdutils.AstFunction, ann *hdutils.AstAnnotation) (*RouteAnnotation, error) {
+// toRouteAnnotation handlerName为register或者discover handler时候使用的handlerName
+func (m *invocationModuleImpl) toRouteAnnotation(handlerName string, fnInfo *hdutils.AstFunction, ann *hdutils.AstAnnotation) (*RouteAnnotation, error) {
 	// 设置初始值
 	raw := &rawRouteAnnotation{
 		Endpoint:      "",
@@ -126,8 +129,8 @@ func (b *invocationModuleImpl) toRouteAnnotation(alias string, fnInfo *hdutils.A
 	}
 
 	return &RouteAnnotation{
-		moduleInfo:    b.moduleInfo,
-		Handler:       alias,
+		moduleInfo:    m.moduleInfo,
+		Handler:       handlerName,
 		Endpoint:      raw.Endpoint,
 		HttpMethods:   raw.Methods,
 		Origin:        raw.Origin,

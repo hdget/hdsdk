@@ -71,7 +71,7 @@ func (m *routeGeneratorImpl) Gen() error {
 			handlerNames = append(handlerNames, ann.Handler)
 		}
 
-		fmt.Printf(" - module: %-25s total: %-5d handlers: [%s]\n", moduleName, len(routeAnnotations), strings.Join(handlerNames, ", "))
+		fmt.Printf(" - module: %-25s total: %-5d functions: [%s]\n", moduleName, len(routeAnnotations), strings.Join(handlerNames, ", "))
 	}
 
 	// 获取当前函数所在的包

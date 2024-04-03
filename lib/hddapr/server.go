@@ -124,6 +124,6 @@ func (impl *serverImpl) GetEvents() []Event {
 	return nil
 }
 
-func registerInvocationModule(moduleName string, module InvocationModule) {
-	_moduleName2invocationModule[moduleName] = module
+func registerInvocationModule(module InvocationModule) {
+	_moduleName2invocationModule[module.GetName()] = module
 }

@@ -11,7 +11,14 @@ import (
 	"strings"
 )
 
+type apiServiceInvocation struct {
+}
+
 const ContentTypeJson = "application/json"
+
+func NewApiServiceInvocation() *apiServiceInvocation {
+	return &apiServiceInvocation{}
+}
 
 // as we use gogoprotobuf which doesn't has protojson.Message interface
 //var jsonpb = protojson.MarshalOptions{
@@ -20,7 +27,7 @@ const ContentTypeJson = "application/json"
 //var jsonpbMarshaler = jsonpb.Marshaler{EmitDefaults: true}
 
 // Invoke 调用dapr服务
-func Invoke(appId string, moduleVersion int, module, method string, data any, args ...string) ([]byte, error) {
+func (a apiServiceInvocation) Invoke(appId string, moduleVersion int, module, method string, data any, args ...string) ([]byte, error) {
 	var value []byte
 	switch t := data.(type) {
 	case string:
@@ -40,7 +47,7 @@ func Invoke(appId string, moduleVersion int, module, method string, data any, ar
 		return nil, errors.Wrap(err, "new dapr client")
 	}
 	if daprClient == nil {
-		return nil, errors.New("dapr client is null, name resolution service may not started, please check it")
+		return nil, errors.New("dapr client is null, handlerName resolution service may not started, please check it")
 	}
 
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
@@ -52,7 +59,7 @@ func Invoke(appId string, moduleVersion int, module, method string, data any, ar
 		ctx = metadata.NewOutgoingContext(ctx, md)
 	}
 
-	fullMethodName := GetServiceInvocationName(moduleVersion, module, method)
+	fullMethodName := a.GetServiceInvocationName(moduleVersion, module, method)
 	resp, err := daprClient.InvokeMethodWithContent(ctx, appId, fullMethodName, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
@@ -87,6 +94,6 @@ func GetMetaValue(ctx context.Context, key string) string {
 }
 
 // GetServiceInvocationName 构造version:module:realMethod的方法名
-func GetServiceInvocationName(version int, module, method string) string {
+func (apiServiceInvocation) GetServiceInvocationName(version int, module, method string) string {
 	return strings.Join([]string{fmt.Sprintf("v%d", version), module, method}, ":")
 }

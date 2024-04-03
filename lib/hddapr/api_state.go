@@ -19,7 +19,7 @@ func SaveState(storeName, key string, value interface{}) error {
 		return errors.Wrap(err, "new dapr client")
 	}
 	if daprClient == nil {
-		return errors.New("dapr client is null, name resolution service may not started, please check it")
+		return errors.New("dapr client is null, handlerName resolution service may not started, please check it")
 	}
 
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
@@ -40,7 +40,7 @@ func GetState(storeName, key string) ([]byte, error) {
 		return nil, errors.Wrap(err, "new dapr client")
 	}
 	if daprClient == nil {
-		return nil, errors.New("dapr client is null, name resolution service may not started, please check it")
+		return nil, errors.New("dapr client is null, handlerName resolution service may not started, please check it")
 	}
 
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
@@ -60,7 +60,7 @@ func DeleteState(storeName, key string) error {
 		return errors.Wrap(err, "new dapr client")
 	}
 	if daprClient == nil {
-		return errors.New("dapr client is null, name resolution service may not started, please check it")
+		return errors.New("dapr client is null, handlerName resolution service may not started, please check it")
 	}
 
 	// IMPORTANT: daprClient是全局的连接, 不能关闭

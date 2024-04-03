@@ -1,39 +1,34 @@
 package hddapr
 
 import (
+	"context"
+	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 type InvocationModule interface {
 	GetName() string
-	GetRouteAnnotations(srcPath string, args ...HandlerMatch) ([]*RouteAnnotation, error)
-	DiscoverHandlers(args ...HandlerMatch) (map[string]any, error) // 通过反射发现Handlers
-	RegisterHandlers(handlers map[string]any) error
+	GetRouteAnnotations(srcPath string, args ...HandlerNameMatcher) ([]*RouteAnnotation, error)
+	DiscoverHandlers(args ...HandlerNameMatcher) ([]InvocationHandler, error) // 通过反射发现Handlers
+	RegisterHandlers(functions map[string]InvocationFunction) error
 	GetHandlers() map[string]any // 获取手动注册的handlers
-	ValidateHandler(handler any) error
-}
-
-type moduleInfo struct {
-	Name          string // 结构名, 格式: "v<模块版本号>_<模块名>"
-	Module        string // 模块名
-	ModuleVersion int    // 模块版本号
 }
 
 type invocationModuleImpl struct {
 	*moduleInfo
 	concrete any // 实际module
 	App      string
-	handlers map[string]*invocationHandler
+	handlers []InvocationHandler
 }
 
 var (
 	errInvalidModuleName = errors.New("invalid module name, it should be: v<number>_name, e,g: v1_abc")
-	errDuplicateHandler  = errors.New("duplicate handler")
+	errInvalidFunction   = errors.New("invalid invocation function signature, it should be: func(context.Context, *common.InvocationEvent) (any, error)")
 )
 
-// NewInvocationModule 实例化invocation module
-func NewInvocationModule(app string, moduleObject any) (InvocationModule, error) {
+func AsInvocationModule(app string, moduleObject any) (InvocationModule, error) {
 	modInfo, err := parseModuleInfo(moduleObject)
 	if err != nil {
 		return nil, err
@@ -43,11 +38,10 @@ func NewInvocationModule(app string, moduleObject any) (InvocationModule, error)
 		moduleInfo: modInfo,
 		concrete:   moduleObject,
 		App:        app,
-		handlers:   make(map[string]*invocationHandler),
 	}
 
-	// 将实例化的module设置入Module接口中
-	err = hdutils.Reflect().StructSet(moduleObject, (*InvocationModule)(nil), moduleInstance)
+	// 初始化module
+	err = hdutils.Reflect().StructSet(moduleObject, (InvocationModule)(nil), moduleInstance)
 	if err != nil {
 		return nil, errors.Wrapf(err, "install module for: %s ", moduleInstance.GetName())
 	}
@@ -60,34 +54,90 @@ func NewInvocationModule(app string, moduleObject any) (InvocationModule, error)
 	return module, nil
 }
 
-// AsInvocationModule 将struct注册为DaprInvocationModule
-func AsInvocationModule(app string, moduleObject any, args ...map[string]InvocationHandler) error {
-	module, err := NewInvocationModule(app, moduleObject)
+// AnnotateInvocationModule 注解模块会执行下列操作:
+// 1. 实例化invocation module
+// 2. 注册invocation functions
+// 3. 注册module
+func AnnotateInvocationModule(app string, moduleObject InvocationModule, functions map[string]InvocationFunction) error {
+	// 首先实例化module
+	module, err := AsInvocationModule(app, moduleObject)
 	if err != nil {
 		return err
 	}
 
-	// 注册handlers, alias=>receiver.method
-	handlers := make(map[string]any)
-	if len(args) > 0 {
-		for alias, fn := range args[0] {
-			handlers[alias] = fn
-		}
-	} else {
-		handlers, err = module.DiscoverHandlers()
-		if err != nil {
-			return errors.Wrap(err, "discover invocationHandlers")
-		}
-	}
-
-	err = module.RegisterHandlers(handlers)
+	// 然后注册handlers
+	err = module.RegisterHandlers(functions)
 	if err != nil {
 		return err
 	}
+
+	// 最后注册module
+	registerInvocationModule(module)
 
 	return nil
 }
 
-func (b *invocationModuleImpl) GetName() string {
-	return b.Name
+// RegisterHandlers 参数handlers为alias=>receiver.fnName, 保存为handler.id=>*invocationHandler
+func (m *invocationModuleImpl) RegisterHandlers(functions map[string]InvocationFunction) error {
+	m.handlers = make([]InvocationHandler, 0)
+	for handlerName, fn := range functions {
+		m.handlers = append(m.handlers, newInvocationHandler(m.App, handlerName, m.moduleInfo, fn))
+	}
+	return nil
+}
+
+// DiscoverHandlers 获取Module作为receiver的所有MethodMatchFunction匹配的方法, MethodMatchFunction生成新的方法名和判断是否匹配
+func (m *invocationModuleImpl) DiscoverHandlers(args ...HandlerNameMatcher) ([]InvocationHandler, error) {
+	matchFn := m.defaultHandlerNameMatcher
+	if len(args) > 0 {
+		matchFn = args[0]
+	}
+
+	handlers := make([]InvocationHandler, 0)
+	// 这里需要传入当前实际正在使用的服务模块，即带有common.ServiceInvocationHandler的struct实例
+	for methodName, method := range hdutils.Reflect().MatchReceiverMethods(m.concrete, InvocationFunction(nil)) {
+		handlerName, matched := matchFn(methodName)
+		if !matched {
+			continue
+		}
+
+		fn, err := m.toInvocationFunction(method)
+		if err != nil {
+			return nil, err
+		}
+
+		handlers = append(handlers, newInvocationHandler(m.App, handlerName, m.moduleInfo, fn))
+	}
+
+	return handlers, nil
+}
+
+func (m *invocationModuleImpl) GetName() string {
+	return m.Name
+}
+
+func (m *invocationModuleImpl) toInvocationFunction(fn any) (InvocationFunction, error) {
+	realFunction, ok := fn.(InvocationFunction)
+	// 如果不是DaprInvocationHandler, 可能为实际的函数体
+	if !ok {
+		realFunction, ok = fn.(func(context.Context, *common.InvocationEvent) (any, error))
+		if !ok {
+			return nil, errInvalidFunction
+		}
+	}
+	return realFunction, nil
+}
+
+// matchHandlerSuffix 匹配方法名是否以handler结尾并将新方法名转为SnakeCase格式
+func (m *invocationModuleImpl) defaultHandlerNameMatcher(methodName string) (string, bool) {
+	lowerName := strings.ToLower(methodName)
+	lastIndex := strings.LastIndex(lowerName, "handler")
+	if lastIndex <= 0 {
+		return "", false
+	}
+	// handler字符串长度为7, 确保handler结尾
+	if lowerName[lastIndex+7:] != "" {
+		return "", false
+	}
+	return lowerName[:lastIndex], true
 }
