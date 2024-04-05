@@ -13,6 +13,7 @@ import (
 
 type RouteManager interface {
 	GetRouteItems(args ...HandlerNameMatcher) ([]*RouteItem, error) // 获取路由项
+	GetModulePath() string                                          // 获取模块路径
 }
 
 type RouteManagerImpl struct {
@@ -54,6 +55,10 @@ func NewRouteManager(baseDir string, skipDirs ...string) (RouteManager, error) {
 		baseDir:       baseDir,
 		relModulePath: relModulePath,
 	}, nil
+}
+
+func (rm RouteManagerImpl) GetModulePath() string {
+	return rm.relModulePath
 }
 
 func (rm RouteManagerImpl) GetRouteItems(handlerNameMatchers ...HandlerNameMatcher) ([]*RouteItem, error) {
