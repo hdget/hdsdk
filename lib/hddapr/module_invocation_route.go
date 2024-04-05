@@ -91,7 +91,7 @@ func (m *invocationModuleImpl) parseRouteAnnotations(srcPath, annotationPrefix s
 		}
 
 		h := m.handlers[foundIndex]
-		routeAnnotation, err := m.toRouteAnnotation(h.GetName(), fnInfo, ann)
+		routeAnnotation, err := m.toRouteAnnotation(h.GetAlias(), fnInfo, ann)
 		if err != nil {
 			return nil, err
 		}

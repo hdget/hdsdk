@@ -24,6 +24,7 @@ type invocationModuleImpl struct {
 }
 
 var (
+	handlerNameSuffix    = "handler"
 	errInvalidModuleName = errors.New("invalid module name, it should be: v<number>_name, e,g: v1_abc")
 	errInvalidFunction   = errors.New("invalid invocation function signature, it should be: func(context.Context, *common.InvocationEvent) (any, error)")
 
@@ -82,8 +83,8 @@ func AnnotateInvocationModule(app string, moduleObject InvocationModule, functio
 // RegisterHandlers 参数handlers为alias=>receiver.fnName, 保存为handler.id=>*invocationHandler
 func (m *invocationModuleImpl) RegisterHandlers(functions map[string]InvocationFunction) error {
 	m.handlers = make([]InvocationHandler, 0)
-	for handlerName, fn := range functions {
-		m.handlers = append(m.handlers, newInvocationHandler(m.App, handlerName, m.moduleInfo, fn))
+	for handlerAlias, fn := range functions {
+		m.handlers = append(m.handlers, newInvocationHandler(m.App, handlerAlias, m.moduleInfo, fn))
 	}
 	return nil
 }
@@ -136,14 +137,9 @@ func (m *invocationModuleImpl) toInvocationFunction(fn any) (InvocationFunction,
 
 // matchHandlerSuffix 匹配方法名是否以handler结尾并将新方法名转为SnakeCase格式
 func (m *invocationModuleImpl) defaultHandlerNameMatcher(methodName string) (string, bool) {
-	lowerName := strings.ToLower(methodName)
-	lastIndex := strings.LastIndex(lowerName, "handler")
+	lastIndex := strings.LastIndex(strings.ToLower(methodName), strings.ToLower(handlerNameSuffix))
 	if lastIndex <= 0 {
 		return "", false
 	}
-	// handler字符串长度为7, 确保handler结尾
-	if lowerName[lastIndex+7:] != "" {
-		return "", false
-	}
-	return lowerName[:lastIndex], true
+	return methodName[:lastIndex], true
 }

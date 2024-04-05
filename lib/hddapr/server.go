@@ -4,6 +4,7 @@ import (
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/dapr/go-sdk/service/grpc"
 	"github.com/pkg/errors"
+	"go/importer"
 )
 
 type Server interface {
@@ -51,7 +52,9 @@ func NewHttpServer(address string, generators ...Generator) (Server, error) {
 	return srv, nil
 }
 
-func GetInvocationModules() map[string]InvocationModule {
+// GetInvocationModules 获取所有服务调用模块, args为服务模块所在的文件路径
+func GetInvocationModules(invocationModulePath string) map[string]InvocationModule {
+	_, _ = importer.Default().Import(invocationModulePath)
 	return _moduleName2invocationModule
 }
 
