@@ -1,11 +1,9 @@
 package hddapr
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/dave/jennifer/jen"
 	"github.com/hdget/hdutils"
-	"github.com/pkg/errors"
 	"path"
 	"runtime"
 	"strings"
@@ -87,18 +85,19 @@ func (m *routeGeneratorImpl) Gen() error {
 		Save(path.Join("autogen", "routes.go"))
 }
 
-func (m *routeGeneratorImpl) Register() error {
-	generated := m.Get()
-	if generated == nil {
-		return errors.New("invalid generated stuff")
-	}
-
-	routeItems := generated.([]*RouteItem)
-	if len(routeItems) == 0 {
-		return nil
-	}
-
-	data, _ := json.Marshal(routeItems)
-	_, err := Invoke("gateway", 2, "route", "update", data)
-	return err
-}
+//
+//func (m *routeGeneratorImpl) Register() error {
+//	generated := m.Get()
+//	if generated == nil {
+//		return errors.New("invalid generated stuff")
+//	}
+//
+//	routeItems := generated.([]*RouteItem)
+//	if len(routeItems) == 0 {
+//		return nil
+//	}
+//
+//	data, _ := json.Marshal(routeItems)
+//	_, err := Invoke("gateway", 2, "route", "update", data)
+//	return err
+//}

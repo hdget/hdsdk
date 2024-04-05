@@ -9,8 +9,8 @@ import (
 
 type InvocationHandler interface {
 	GetName() string
-	GetDaprHandlerName() string                                       // 注册的dapr函数
-	GetDaprServiceInvocationHandler() common.ServiceInvocationHandler // 具体的DAPR调用函数
+	GetInvokeName() string                              // 调用名字
+	GetInvokeFunction() common.ServiceInvocationHandler // 具体的调用函数
 }
 
 type invocationHandlerImpl struct {
@@ -40,11 +40,11 @@ func (h invocationHandlerImpl) GetName() string {
 	return h.handlerName
 }
 
-func (h invocationHandlerImpl) GetDaprHandlerName() string {
+func (h invocationHandlerImpl) GetInvokeName() string {
 	return NewApiServiceInvocation().GetServiceInvocationName(h.moduleInfo.ModuleVersion, h.moduleInfo.Name, h.handlerName)
 }
 
-func (h invocationHandlerImpl) GetDaprServiceInvocationHandler() common.ServiceInvocationHandler {
+func (h invocationHandlerImpl) GetInvokeFunction() common.ServiceInvocationHandler {
 	return func(ctx context.Context, event *common.InvocationEvent) (*common.Content, error) {
 		// 挂载defer函数
 		defer func() {

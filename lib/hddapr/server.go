@@ -88,13 +88,13 @@ func (impl *serverImpl) initialize() error {
 		}
 	}
 
-	// 注册生成的依赖文件
-	for _, gen := range impl.generators {
-		err := gen.Register()
-		if err != nil {
-			return err
-		}
-	}
+	//// 注册生成的依赖文件
+	//for _, gen := range impl.generators {
+	//	err := gen.Register()
+	//	if err != nil {
+	//		return err
+	//	}
+	//}
 
 	return nil
 }
@@ -103,11 +103,8 @@ func (impl *serverImpl) GetInvocationHandlers() map[string]common.ServiceInvocat
 	// 获取handlers
 	handlers := make(map[string]common.ServiceInvocationHandler)
 	for _, invocationModule := range _moduleName2invocationModule {
-		for name, anyHandler := range invocationModule.GetHandlers() {
-			handler, ok := anyHandler.(common.ServiceInvocationHandler)
-			if ok {
-				handlers[name] = handler
-			}
+		for _, h := range invocationModule.GetHandlers() {
+			handlers[h.GetInvokeName()] = h.GetInvokeFunction()
 		}
 	}
 

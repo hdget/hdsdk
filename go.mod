@@ -7,7 +7,9 @@ require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.8+incompatible
 	github.com/dapr/go-sdk v1.8.0
+	github.com/dave/jennifer v1.7.0
 	github.com/elgris/sqrl v0.0.0-20210727210741-7e0198b30236
+	github.com/elliotchance/pie/v2 v2.8.0
 	github.com/fatih/structs v1.1.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-resty/resty/v2 v2.10.0
@@ -15,7 +17,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/gomodule/redigo v1.8.9
 	github.com/hamba/avro v1.8.0
-	github.com/hdget/hdutils v0.0.5
+	github.com/hdget/hdutils v0.0.7
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/kabukky/httpscerts v0.0.0-20150320125433-617593d7dcb3
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
@@ -45,12 +47,10 @@ require (
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
-	github.com/dave/jennifer v1.7.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/eapache/go-resiliency v1.3.0 // indirect
 	github.com/eapache/go-xerial-snappy v0.0.0-20230111030713-bf00bc1b83b6 // indirect
 	github.com/eapache/queue v1.1.0 // indirect
-	github.com/elliotchance/pie/v2 v2.8.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/friendsofgo/errors v0.9.2 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
@@ -93,7 +93,7 @@ require (
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/lestrrat-go/strftime v1.0.6 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
-	github.com/matoous/go-nanoid v1.5.0 // indirect
+	github.com/matoous/go-nanoid/v2 v2.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect

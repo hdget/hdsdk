@@ -13,7 +13,7 @@ type InvocationModule interface {
 	GetRouteAnnotations(srcPath string, args ...HandlerNameMatcher) ([]*RouteAnnotation, error)
 	DiscoverHandlers(args ...HandlerNameMatcher) ([]InvocationHandler, error) // 通过反射发现Handlers
 	RegisterHandlers(functions map[string]InvocationFunction) error
-	GetHandlers() map[string]any // 获取手动注册的handlers
+	GetHandlers() []InvocationHandler // 获取手动注册的handlers
 }
 
 type invocationModuleImpl struct {
@@ -26,6 +26,8 @@ type invocationModuleImpl struct {
 var (
 	errInvalidModuleName = errors.New("invalid module name, it should be: v<number>_name, e,g: v1_abc")
 	errInvalidFunction   = errors.New("invalid invocation function signature, it should be: func(context.Context, *common.InvocationEvent) (any, error)")
+
+	_ InvocationModule = (*invocationModuleImpl)(nil)
 )
 
 func AsInvocationModule(app string, moduleObject any) (InvocationModule, error) {
@@ -41,7 +43,7 @@ func AsInvocationModule(app string, moduleObject any) (InvocationModule, error) 
 	}
 
 	// 初始化module
-	err = hdutils.Reflect().StructSet(moduleObject, (InvocationModule)(nil), moduleInstance)
+	err = hdutils.Reflect().StructSet(moduleObject, (*InvocationModule)(nil), moduleInstance)
 	if err != nil {
 		return nil, errors.Wrapf(err, "install module for: %s ", moduleInstance.GetName())
 	}
@@ -110,6 +112,10 @@ func (m *invocationModuleImpl) DiscoverHandlers(args ...HandlerNameMatcher) ([]I
 	}
 
 	return handlers, nil
+}
+
+func (m *invocationModuleImpl) GetHandlers() []InvocationHandler {
+	return m.handlers
 }
 
 func (m *invocationModuleImpl) GetName() string {
