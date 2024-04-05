@@ -11,14 +11,7 @@ import (
 	"strings"
 )
 
-type apiServiceInvocation struct {
-}
-
 const ContentTypeJson = "application/json"
-
-func NewApiServiceInvocation() *apiServiceInvocation {
-	return &apiServiceInvocation{}
-}
 
 // as we use gogoprotobuf which doesn't has protojson.Message interface
 //var jsonpb = protojson.MarshalOptions{
@@ -27,7 +20,7 @@ func NewApiServiceInvocation() *apiServiceInvocation {
 //var jsonpbMarshaler = jsonpb.Marshaler{EmitDefaults: true}
 
 // Invoke 调用dapr服务
-func (a apiServiceInvocation) Invoke(appId string, moduleVersion int, module, method string, data any, args ...string) ([]byte, error) {
+func (a apiImpl) Invoke(appId string, moduleVersion int, module, method string, data any, args ...string) ([]byte, error) {
 	var value []byte
 	switch t := data.(type) {
 	case string:
@@ -71,6 +64,11 @@ func (a apiServiceInvocation) Invoke(appId string, moduleVersion int, module, me
 	return resp, nil
 }
 
+// GetServiceInvocationName 构造version:module:realMethod的方法名
+func (a apiImpl) GetServiceInvocationName(moduleVersion int, moduleName, handler string) string {
+	return strings.Join([]string{fmt.Sprintf("v%d", moduleVersion), moduleName, handler}, ":")
+}
+
 // GetMetaValues get grpc meta values
 func GetMetaValues(ctx context.Context, key string) []string {
 	md, ok := metadata.FromIncomingContext(ctx)
@@ -91,9 +89,4 @@ func GetMetaValue(ctx context.Context, key string) string {
 		return ""
 	}
 	return values[0]
-}
-
-// GetServiceInvocationName 构造version:module:realMethod的方法名
-func (apiServiceInvocation) GetServiceInvocationName(version int, module, method string) string {
-	return strings.Join([]string{fmt.Sprintf("v%d", version), module, method}, ":")
 }

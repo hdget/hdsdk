@@ -12,8 +12,8 @@ package hddapr
 //type RouteItem struct {
 //	App           string
 //	ModuleVersion int
-//	Module        string
-//	Handler       string
+//	ModuleName        string
+//	HandlerAlias       string
 //	Endpoint      string
 //	Origin        string
 //	IsPublic      bool
@@ -47,8 +47,8 @@ package hddapr
 //			routeItems = append(routeItems, &RouteItem{
 //				App:           m.app,
 //				ModuleVersion: ann.ModuleVersion,
-//				Module:        ann.Module,
-//				Handler:       ann.Handler,
+//				ModuleName:        ann.ModuleName,
+//				HandlerAlias:       ann.HandlerAlias,
 //				Endpoint:      ann.Endpoint,
 //				HttpMethods:   ann.HttpMethods,
 //				Permissions:   ann.Permissions,
@@ -58,7 +58,7 @@ package hddapr
 //				Comments:      ann.Comments,
 //			})
 //
-//			handlerNames = append(handlerNames, ann.Handler)
+//			handlerNames = append(handlerNames, ann.HandlerAlias)
 //		}
 //
 //		fmt.Printf(" - module: %-25s total: %-5d functions: [%s]\n", moduleName, len(routeAnnotations), strings.Join(handlerNames, ", "))

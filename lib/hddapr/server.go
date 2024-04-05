@@ -18,20 +18,19 @@ type Server interface {
 
 type serverImpl struct {
 	common.Service
-	generators []Generator
 }
 
 var (
 	_moduleName2invocationModule = make(map[string]InvocationModule) // service invocation module
 )
 
-func NewGrpcServer(address string, generators ...Generator) (Server, error) {
+func NewGrpcServer(address string) (Server, error) {
 	service, err := grpc.NewService(address)
 	if err != nil {
 		return nil, errors.Wrap(err, "new dapr grpc server")
 	}
 
-	srv := &serverImpl{Service: service, generators: generators}
+	srv := &serverImpl{Service: service}
 	if err = srv.initialize(); err != nil {
 		return nil, err
 	}
@@ -39,21 +38,21 @@ func NewGrpcServer(address string, generators ...Generator) (Server, error) {
 	return srv, nil
 }
 
-func NewHttpServer(address string, generators ...Generator) (Server, error) {
+func NewHttpServer(address string) (Server, error) {
 	service, err := grpc.NewService(address)
 	if err != nil {
 		return nil, errors.Wrap(err, "new dapr http server")
 	}
 
-	srv := &serverImpl{Service: service, generators: generators}
+	srv := &serverImpl{Service: service}
 	if err = srv.initialize(); err != nil {
 		return nil, err
 	}
 	return srv, nil
 }
 
-// GetInvocationModules 获取所有服务调用模块, args为服务模块所在的文件路径
-func GetInvocationModules(invocationModulePath string) map[string]InvocationModule {
+// LoadInvocationModules 获取所有服务调用模块, args为服务模块所在的文件路径
+func LoadInvocationModules(invocationModulePath string) map[string]InvocationModule {
 	_, _ = importer.Default().Import(invocationModulePath)
 	return _moduleName2invocationModule
 }
@@ -91,14 +90,6 @@ func (impl *serverImpl) initialize() error {
 		}
 	}
 
-	//// 注册生成的依赖文件
-	//for _, gen := range impl.generators {
-	//	err := gen.Register()
-	//	if err != nil {
-	//		return err
-	//	}
-	//}
-
 	return nil
 }
 
@@ -125,5 +116,5 @@ func (impl *serverImpl) GetEvents() []Event {
 }
 
 func registerInvocationModule(module InvocationModule) {
-	_moduleName2invocationModule[module.GetName()] = module
+	_moduleName2invocationModule[module.GetInfo().ModuleName] = module
 }

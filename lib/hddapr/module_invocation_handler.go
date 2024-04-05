@@ -16,7 +16,7 @@ type InvocationHandler interface {
 
 type invocationHandlerImpl struct {
 	app        string
-	moduleInfo *moduleInfo
+	moduleInfo *ModuleInfo
 	// handler的别名，
 	// 如果DiscoverHandlers调用, 会将函数名作为入参，matchFunction的返回值当作别名，缺省是去除Handler后缀并小写
 	// 如果RegisterHandlers调用，会直接用map的key值当为别名
@@ -32,7 +32,7 @@ var (
 	maxRequestLength = 120
 )
 
-func newInvocationHandler(app, handlerAlias string, moduleInfo *moduleInfo, fn InvocationFunction) InvocationHandler {
+func newInvocationHandler(app, handlerAlias string, moduleInfo *ModuleInfo, fn InvocationFunction) InvocationHandler {
 	return &invocationHandlerImpl{
 		app:          app,
 		handlerAlias: handlerAlias,
@@ -51,7 +51,7 @@ func (h invocationHandlerImpl) GetName() string {
 }
 
 func (h invocationHandlerImpl) GetInvokeName() string {
-	return NewApiServiceInvocation().GetServiceInvocationName(h.moduleInfo.ModuleVersion, h.moduleInfo.Name, h.handlerAlias)
+	return Api().GetServiceInvocationName(h.moduleInfo.ModuleVersion, h.moduleInfo.Name, h.handlerAlias)
 }
 
 func (h invocationHandlerImpl) GetInvokeFunction() common.ServiceInvocationHandler {

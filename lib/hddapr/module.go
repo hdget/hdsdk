@@ -12,14 +12,14 @@ var (
 	errInvalidModule = errors.New("invalid module, it must be struct")
 )
 
-type moduleInfo struct {
+type ModuleInfo struct {
 	Name          string // 结构名, 格式: "v<模块版本号>_<模块名>"
-	Module        string // 模块名
+	ModuleName    string // 模块名
 	ModuleVersion int    // 模块版本号
 }
 
 // parseModuleInfo 从约定的结构名中解析模块名和版本, 结构名需要为v<number>_<module>
-func parseModuleInfo(moduleObject any) (*moduleInfo, error) {
+func parseModuleInfo(moduleObject any) (*ModuleInfo, error) {
 	structName := hdutils.Reflect().GetStructName(moduleObject)
 	if structName == "" {
 		return nil, errInvalidModule
@@ -28,7 +28,7 @@ func parseModuleInfo(moduleObject any) (*moduleInfo, error) {
 }
 
 // toModuleInfo 将结构名转换为模块信息
-func toModuleInfo(structName string) (*moduleInfo, error) {
+func toModuleInfo(structName string) (*ModuleInfo, error) {
 	tokens := regModuleName.FindStringSubmatch(structName)
 	if len(tokens) != 3 {
 		return nil, errInvalidModuleName
@@ -38,9 +38,9 @@ func toModuleInfo(structName string) (*moduleInfo, error) {
 		return nil, errInvalidModuleName
 	}
 
-	return &moduleInfo{
+	return &ModuleInfo{
 		Name:          structName,
-		Module:        tokens[2],
+		ModuleName:    tokens[2],
 		ModuleVersion: version,
 	}, nil
 }

@@ -9,15 +9,16 @@ import (
 )
 
 type InvocationModule interface {
-	GetName() string
-	GetRouteAnnotations(srcPath string, args ...HandlerNameMatcher) ([]*RouteAnnotation, error)
-	DiscoverHandlers(args ...HandlerNameMatcher) ([]InvocationHandler, error) // 通过反射发现Handlers
-	RegisterHandlers(functions map[string]InvocationFunction) error
-	GetHandlers() []InvocationHandler // 获取手动注册的handlers
+	GetInfo() *ModuleInfo                                                                       // 获取模块基本信息
+	GetApp() string                                                                             // 获取APP
+	DiscoverHandlers(args ...HandlerNameMatcher) ([]InvocationHandler, error)                   // 通过反射发现Handlers
+	RegisterHandlers(functions map[string]InvocationFunction) error                             // 注册Handlers
+	GetHandlers() []InvocationHandler                                                           // 获取手动注册的handlers
+	GetRouteAnnotations(srcPath string, args ...HandlerNameMatcher) ([]*RouteAnnotation, error) // 从源代码获取路由注解
 }
 
 type invocationModuleImpl struct {
-	*moduleInfo
+	*ModuleInfo
 	concrete any // 实际module
 	App      string
 	handlers []InvocationHandler
@@ -38,7 +39,7 @@ func AsInvocationModule(app string, moduleObject any) (InvocationModule, error) 
 	}
 
 	moduleInstance := &invocationModuleImpl{
-		moduleInfo: modInfo,
+		ModuleInfo: modInfo,
 		concrete:   moduleObject,
 		App:        app,
 	}
@@ -46,7 +47,7 @@ func AsInvocationModule(app string, moduleObject any) (InvocationModule, error) 
 	// 初始化module
 	err = hdutils.Reflect().StructSet(moduleObject, (*InvocationModule)(nil), moduleInstance)
 	if err != nil {
-		return nil, errors.Wrapf(err, "install module for: %s ", moduleInstance.GetName())
+		return nil, errors.Wrapf(err, "install module: %+v", moduleInstance.GetInfo())
 	}
 
 	module, ok := moduleObject.(InvocationModule)
@@ -84,7 +85,7 @@ func AnnotateInvocationModule(app string, moduleObject InvocationModule, functio
 func (m *invocationModuleImpl) RegisterHandlers(functions map[string]InvocationFunction) error {
 	m.handlers = make([]InvocationHandler, 0)
 	for handlerAlias, fn := range functions {
-		m.handlers = append(m.handlers, newInvocationHandler(m.App, handlerAlias, m.moduleInfo, fn))
+		m.handlers = append(m.handlers, newInvocationHandler(m.App, handlerAlias, m.ModuleInfo, fn))
 	}
 	return nil
 }
@@ -109,7 +110,7 @@ func (m *invocationModuleImpl) DiscoverHandlers(args ...HandlerNameMatcher) ([]I
 			return nil, err
 		}
 
-		handlers = append(handlers, newInvocationHandler(m.App, handlerName, m.moduleInfo, fn))
+		handlers = append(handlers, newInvocationHandler(m.App, handlerName, m.ModuleInfo, fn))
 	}
 
 	return handlers, nil
@@ -119,8 +120,12 @@ func (m *invocationModuleImpl) GetHandlers() []InvocationHandler {
 	return m.handlers
 }
 
-func (m *invocationModuleImpl) GetName() string {
-	return m.Name
+func (m *invocationModuleImpl) GetInfo() *ModuleInfo {
+	return m.ModuleInfo
+}
+
+func (m *invocationModuleImpl) GetApp() string {
+	return m.App
 }
 
 func (m *invocationModuleImpl) toInvocationFunction(fn any) (InvocationFunction, error) {
