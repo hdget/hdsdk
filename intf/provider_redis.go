@@ -5,7 +5,8 @@ type CacheCommand struct {
 	Args []interface{}
 }
 
-type RedisProvider interface {
+type CacheProvider interface {
+	Provider
 	My() RedisClient
 	By(string) RedisClient
 }

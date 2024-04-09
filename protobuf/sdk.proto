@@ -10,7 +10,6 @@ enum SortDirection {
   Desc = 1;
 }
 
-
 // 按limit分页
 message ListParam {
   int64 page = 1;      // 页码

@@ -1,4 +1,4 @@
-package hdgin
+package ws
 
 import "github.com/gin-gonic/gin"
 

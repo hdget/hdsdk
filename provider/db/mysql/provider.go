@@ -3,10 +3,10 @@ package mysql
 import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/hdget/hdsdk/v1/instance"
 	"github.com/hdget/hdsdk/v1/intf"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"github.com/volatiletech/sqlboiler/v4/boil"
 	"time"
 )
 
@@ -32,79 +32,71 @@ func New(mysqlConfig *mysqlProviderConfig, logger intf.LoggerProvider) (intf.DbP
 		logger.Fatal("init mysql provider", "err", err)
 	}
 
-	instance.Register(provider)
-
 	return provider, nil
 }
 
-func (m *mysqlProvider) Init(args ...any) error {
-	if len(args) == 0 {
-		return errors.New("need mysql provider config")
-	}
-
-	c, ok := args[0].(*mysqlProviderConfig)
-	if !ok {
-		return errors.New("invalid mysql provider config")
-	}
-
+func (p *mysqlProvider) Init(args ...any) error {
 	var err error
-	if c.Default != nil {
-		m.defaultDb, err = newDB(c.Default)
+	if p.config.Default != nil {
+		p.defaultDb, err = newDB(p.config.Default)
 		if err != nil {
 			return errors.Wrap(err, "init mysql default connection")
 		}
-		m.logger.Debug("init mysql default", "host", c.Default.Host)
+
+		// 设置boil的缺省db
+		boil.SetDB(p.defaultDb)
+		p.logger.Debug("init mysql default", "host", p.config.Default.Host)
 	}
 
-	if c.Master != nil {
-		m.masterDb, err = newDB(c.Master)
+	if p.config.Master != nil {
+		p.masterDb, err = newDB(p.config.Master)
 		if err != nil {
 			return errors.Wrap(err, "init mysql master connection")
 		}
-		m.logger.Debug("init mysql master", "host", c.Master.Host)
+		p.logger.Debug("init mysql master", "host", p.config.Master.Host)
 	}
 
-	for i, slaveConf := range c.Slaves {
+	for i, slaveConf := range p.config.Slaves {
 		slaveClient, err := newDB(slaveConf)
 		if err != nil {
 			return errors.Wrapf(err, "init mysql slave connection, index: %d", i)
 		}
 
-		m.slaveDbs[i] = slaveClient
-		m.logger.Debug("init mysql slave", "index", i, "host", slaveConf.Host)
+		p.slaveDbs[i] = slaveClient
+		p.logger.Debug("init mysql slave", "index", i, "host", slaveConf.Host)
 	}
 
-	for _, itemConf := range c.Items {
+	for _, itemConf := range p.config.Items {
 		itemClient, err := newDB(itemConf)
 		if err != nil {
 			return errors.Wrapf(err, "new mysql extra connection, name: %s", itemConf.Name)
 		}
 
-		m.extraDbs[itemConf.Name] = itemClient
-		m.logger.Debug("init mysql extra", "name", itemConf.Name, "host", itemConf.Host)
+		p.extraDbs[itemConf.Name] = itemClient
+		p.logger.Debug("init mysql extra", "name", itemConf.Name, "host", itemConf.Host)
 	}
 
 	return nil
 }
 
-func (m *mysqlProvider) My() intf.DbClient {
-	return newClient(m.defaultDb)
+func (p *mysqlProvider) My() intf.DbClient {
+	return newClient(p.defaultDb)
 }
 
-func (m *mysqlProvider) Master() intf.DbClient {
-	return newClient(m.masterDb)
+func (p *mysqlProvider) Master() intf.DbClient {
+	return newClient(p.masterDb)
 }
 
-func (m *mysqlProvider) Slave(i int) intf.DbClient {
+func (p *mysqlProvider) Slave(i int) intf.DbClient {
 	var db *sqlx.DB
-	if i <= len(m.slaveDbs) {
-		db = m.slaveDbs[i]
+	if i <= len(p.slaveDbs) {
+		db = p.slaveDbs[i]
 	}
 	return newClient(db)
 }
 
-func (m *mysqlProvider) By(name string) intf.DbClient {
-	return newClient(m.extraDbs[name])
+func (p *mysqlProvider) By(name string) intf.DbClient {
+	return newClient(p.extraDbs[name])
 }
 
 func newDB(mysqlConfig *instanceConfig) (*sqlx.DB, error) {

@@ -1,4 +1,4 @@
-package hdgin
+package ws
 
 import (
 	"github.com/hdget/hdsdk/v1/intf"

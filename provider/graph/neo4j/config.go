@@ -6,10 +6,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type providerConfig struct {
-	neo4j *neo4jProviderConfig `mapstructure:"neo4j"` // 日志配置
-}
-
 type neo4jProviderConfig struct {
 	VirtualUri  string             `mapstructure:"virtual_uri"`
 	Username    string             `mapstructure:"username"`
@@ -25,17 +21,22 @@ type neo4jServerConf struct {
 
 const (
 	defaultMaxPoolSize = 500
+	configSection      = "sdk.neo4j"
 )
 
-func NewConfig(configProvider intf.ConfigProvider) (*neo4jProviderConfig, error) {
-	if configProvider == nil {
+func NewConfig(configLoader intf.ConfigLoader) (*neo4jProviderConfig, error) {
+	if configLoader == nil {
 		return nil, errdef.ErrEmptyConfig
 	}
 
-	var c providerConfig
-	err := configProvider.UnmarshalProviderConfig(&c)
+	var c *neo4jProviderConfig
+	err := configLoader.Unmarshal(&c, configSection)
 	if err != nil {
 		return nil, err
+	}
+
+	if c == nil {
+		return nil, errdef.ErrEmptyConfig
 	}
 
 	err = c.validate()
@@ -43,27 +44,23 @@ func NewConfig(configProvider intf.ConfigProvider) (*neo4jProviderConfig, error)
 		return nil, errors.Wrap(err, "validate neo4j config")
 	}
 
-	return c.neo4j, nil
+	return c, nil
 }
 
-func (c *providerConfig) validate() error {
-	if c.neo4j == nil {
-		return errdef.ErrEmptyConfig
-	}
-
-	if c.neo4j.VirtualUri == "" || c.neo4j.Username == "" || c.neo4j.Password == "" {
+func (c *neo4jProviderConfig) validate() error {
+	if c.VirtualUri == "" || c.Username == "" || c.Password == "" {
 		return errdef.ErrInvalidConfig
 	}
 
-	for _, server := range c.neo4j.Servers {
+	for _, server := range c.Servers {
 		if server.Host == "" || server.Port == 0 {
 			return errdef.ErrInvalidConfig
 		}
 	}
 
 	// setup default config items
-	if c.neo4j.MaxPoolSize == 0 {
-		c.neo4j.MaxPoolSize = defaultMaxPoolSize
+	if c.MaxPoolSize == 0 {
+		c.MaxPoolSize = defaultMaxPoolSize
 	}
 
 	return nil

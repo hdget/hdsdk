@@ -2,7 +2,6 @@ package redigo
 
 import (
 	"github.com/hdget/hdsdk/v1/errdef"
-	"github.com/hdget/hdsdk/v1/instance"
 	"github.com/hdget/hdsdk/v1/intf"
 	"github.com/pkg/errors"
 )
@@ -14,7 +13,7 @@ type redigoProvider struct {
 	extraClients  map[string]intf.RedisClient // 额外的redis
 }
 
-func New(c *redisProviderConfig, logger intf.LoggerProvider) (intf.RedisProvider, error) {
+func New(c *redisProviderConfig, logger intf.LoggerProvider) (intf.CacheProvider, error) {
 	if c == nil {
 		return nil, errdef.ErrEmptyConfig
 	}
@@ -33,16 +32,10 @@ func New(c *redisProviderConfig, logger intf.LoggerProvider) (intf.RedisProvider
 		logger.Fatal("init redis provider", "err", err)
 	}
 
-	instance.Register(provider)
-
 	return provider, nil
 }
 
 func (r *redigoProvider) Init(args ...any) error {
-	if len(args) == 0 {
-		return errors.New("need redis provider config")
-	}
-
 	var err error
 	if r.config.Default != nil {
 		r.defaultClient, err = newRedisClient(r.config.Default)

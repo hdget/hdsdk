@@ -1,4 +1,4 @@
-package viper
+package config
 
 import (
 	"github.com/hdget/hdutils"
@@ -32,32 +32,32 @@ var (
 )
 
 // LoadRemote 加载远程配置到变量configVar
-func (vcLoader *viperConfigProvider) LoadRemote(configVar any) error {
+func (p *viperConfigLoader) LoadRemote(configVar any) error {
 	option := defaultRemoteOption
 
 	// 当前环境不在disable列表时才需要加载remote配置
-	if hdutils.Contains(option.disableRemoteEnvs, vcLoader.env) {
+	if hdutils.Contains(option.disableRemoteEnvs, p.env) {
 		return nil
 	}
 
 	// 尝试从远程配置信息
-	err := vcLoader.loadFromRemote()
+	err := p.loadFromRemote()
 	if err != nil {
 		hdutils.LogError("load config from remote", "err", err)
 	}
 
 	// 如果加载remote成功，则尝试监控配置变化
 	if option.watch.enabled {
-		err = vcLoader.watchRemote(configVar, option.watch)
+		err = p.watchRemote(configVar, option.watch)
 		if err != nil {
 			hdutils.LogError("watch remote config change", "err", err)
 		}
 	}
 
-	return vcLoader.remote.Unmarshal(configVar)
+	return p.remote.Unmarshal(configVar)
 }
 
-//func (vcLoader *viperConfigProvider) getRemoteOption() *RemoteOption {
+//func (vcLoader *viperConfigLoader) getRemoteOption() *RemoteOption {
 //	defaultRemoteOption.path = path.Join("/", path.Join(defaultValue.RootParts...), vcLoader.app) // 具体app的具体环境的配置保存在该路径下： /setting/app/<app>
 //
 //	// 尝试从sdk里面去取remoteOption配置
@@ -83,40 +83,40 @@ func (vcLoader *viperConfigProvider) LoadRemote(configVar any) error {
 
 // loadFromRemote 尝试从远程kvstore中获取配置信息
 // windows下测试: e,g: type test.txt | etcdctl.exe put /setting/app/hello/test
-func (vcLoader *viperConfigProvider) loadFromRemote() error {
-	if len(vcLoader.remoteOptions) == 0 {
-		//vcLoader.remoteOptions = append(vcLoader.remoteOptions, vcLoader.getRemoteOption())
-		vcLoader.remoteOptions = append(vcLoader.remoteOptions, defaultRemoteOption)
+func (p *viperConfigLoader) loadFromRemote() error {
+	if len(p.remoteOptions) == 0 {
+		//p.remoteOptions = append(p.remoteOptions, p.getRemoteOption())
+		p.remoteOptions = append(p.remoteOptions, defaultRemoteOption)
 	}
 
-	for _, option := range vcLoader.remoteOptions {
-		err := vcLoader.remote.AddRemoteProvider(option.provider, option.url, option.path)
+	for _, option := range p.remoteOptions {
+		err := p.remote.AddRemoteProvider(option.provider, option.url, option.path)
 		if err != nil {
 			return errors.Wrapf(err, "add remote provider, provider: %s, url: %s, path: %s", option.provider, option.url, option.path)
 		}
 	}
 
 	// 远程的固定为json
-	vcLoader.remote.SetConfigType("json")
-	err := vcLoader.remote.ReadRemoteConfig()
+	p.remote.SetConfigType("json")
+	err := p.remote.ReadRemoteConfig()
 	if err != nil {
 		return errors.Wrapf(err, "read remote configer")
 	}
 
-	for _, option := range vcLoader.remoteOptions {
+	for _, option := range p.remoteOptions {
 		hdutils.LogDebug("load configer from remote", "provider", option.provider, "url", option.url, "path", option.path)
 	}
 	return nil
 }
 
-func (vcLoader *viperConfigProvider) watchRemote(remoteConfigVar any, option *RemoteWatchOption) error {
+func (p *viperConfigLoader) watchRemote(remoteConfigVar any, option *RemoteWatchOption) error {
 	// 如果无任何远程配置设置，忽略
-	if len(vcLoader.remoteOptions) == 0 {
+	if len(p.remoteOptions) == 0 {
 		return nil
 	}
 
 	// currently, only tested with etcd support
-	err := vcLoader.remote.WatchRemoteConfigOnChannel()
+	err := p.remote.WatchRemoteConfigOnChannel()
 	if err != nil {
 		return err
 	}
@@ -126,9 +126,9 @@ func (vcLoader *viperConfigProvider) watchRemote(remoteConfigVar any, option *Re
 			time.Sleep(time.Second * time.Duration(option.effectDelay)) // delay after each request
 
 			// 加写锁保证remoteConfigVar没有同时被写
-			vcLoader.mu.Lock()
-			err = vcLoader.remote.Unmarshal(remoteConfigVar)
-			vcLoader.mu.Unlock()
+			p.mu.Lock()
+			err = p.remote.Unmarshal(remoteConfigVar)
+			p.mu.Unlock()
 			if err != nil {
 				hdutils.LogError("unable to unmarshal remote configer", "err", err)
 			}
@@ -139,7 +139,7 @@ func (vcLoader *viperConfigProvider) watchRemote(remoteConfigVar any, option *Re
 
 //// UpdateRemoteConfig 更新远程配置
 //// nolint: staticcheck
-//func (vcLoader *viperConfigProvider) UpdateRemoteConfig(v any) error {
+//func (vcLoader *viperConfigLoader) UpdateRemoteConfig(v any) error {
 //	if hdsdk.Etcd == nil {
 //		return errors.New("hdsdk not initialized")
 //	}

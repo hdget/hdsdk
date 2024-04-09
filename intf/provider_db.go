@@ -6,6 +6,7 @@ import (
 )
 
 type DbProvider interface {
+	Provider
 	My() DbClient
 	Master() DbClient
 	Slave(i int) DbClient

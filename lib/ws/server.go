@@ -1,4 +1,4 @@
-package hdgin
+package ws
 
 import (
 	"context"
@@ -90,7 +90,7 @@ func (w baseServer) AddRoutes(routes []*Route) error {
 	return nil
 }
 
-// SetMode set hdgin to specific mode
+// SetMode set ws to specific mode
 func (w baseServer) SetMode(mode string) {
 	gin.SetMode(mode)
 }
@@ -99,7 +99,7 @@ func getDefaultGinEngine(logger intf.LoggerProvider) *gin.Engine {
 	// new router
 	engine := gin.New()
 
-	// set hdgin to logout to stdout and file
+	// set ws to logout to stdout and file
 	gin.DefaultWriter = io.MultiWriter(logger.GetStdLogger().Writer())
 
 	// add basic middleware

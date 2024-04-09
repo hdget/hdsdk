@@ -1,22 +1,19 @@
 package hdsdk
 
-import (
-	"github.com/hdget/hdsdk/v1/instance"
-	"github.com/hdget/hdsdk/v1/intf"
-)
+import "github.com/hdget/hdsdk/v1/intf"
 
 func Logger() intf.LoggerProvider {
-	return instance.Logger
+	return _instance.logger
 }
 
-func Mysql() intf.DbProvider {
-	return instance.Mysql
+func Db() intf.DbProvider {
+	return _instance.db
 }
 
-func Redis() intf.RedisProvider {
-	return instance.Redis
+func Cache() intf.CacheProvider {
+	return _instance.cache
 }
 
-func Neo4j() intf.GraphProvider {
-	return instance.Neo4j
+func Graph() intf.GraphProvider {
+	return _instance.graph
 }

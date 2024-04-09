@@ -10,10 +10,6 @@ import (
 	"runtime"
 )
 
-type providerConfig struct {
-	zerolog *zerologProviderConfig `mapstructure:"log"` // 日志配置
-}
-
 type zerologProviderConfig struct {
 	Rotate   *rotateConfig `mapstructure:"rotate"`   // 日志文件截断的设置
 	Dir      string        `mapstructure:"dir"`      // 日志目录
@@ -29,6 +25,7 @@ type rotateConfig struct {
 }
 
 const (
+	configSection      = "sdk.log"
 	linuxDefaultDir    = "/var/log"
 	nonLinuxDefaultDir = "logs"
 )
@@ -45,27 +42,27 @@ var (
 )
 
 // NewConfig 解析Config
-func NewConfig(configProvider intf.ConfigProvider) (*zerologProviderConfig, error) {
-	if configProvider == nil {
+func NewConfig(configLoader intf.ConfigLoader) (*zerologProviderConfig, error) {
+	if configLoader == nil {
 		return getDefaultConfig(), nil
 	}
 
-	var c providerConfig
-	err := configProvider.UnmarshalProviderConfig(&c)
+	var c *zerologProviderConfig
+	err := configLoader.Unmarshal(&c, configSection)
 	if err != nil {
 		return getDefaultConfig(), nil
 	}
 
-	if c.zerolog == nil {
+	if c == nil {
 		return getDefaultConfig(), nil
 	}
 
 	// validate sdkConfig
-	if c.zerolog.Filename == "" || c.zerolog.Rotate == nil {
+	if c.Filename == "" || c.Rotate == nil {
 		return nil, errdef.ErrInvalidConfig
 	}
 
-	return c.zerolog, nil
+	return c, nil
 }
 
 func getDefaultConfig() *zerologProviderConfig {

@@ -6,7 +6,6 @@
 package zerolog
 
 import (
-	"github.com/hdget/hdsdk/v1/instance"
 	"github.com/hdget/hdsdk/v1/intf"
 	"github.com/hdget/hdutils"
 	"github.com/rs/zerolog"
@@ -57,8 +56,6 @@ func New(conf *zerologProviderConfig) (intf.LoggerProvider, error) {
 
 	// 给zerorlogger和stdlogger实例赋值
 	provider := &zerologLoggerProvider{logger: zerolog.New(multi).With().Timestamp().Logger()}
-
-	instance.Register(provider)
 
 	return provider, nil
 }

@@ -1,103 +1,110 @@
 package hdsdk
 
 import (
+	"github.com/hdget/hdsdk/v1/config"
+	"github.com/hdget/hdsdk/v1/errdef"
 	"github.com/hdget/hdsdk/v1/intf"
-	"github.com/hdget/hdsdk/v1/provider/config/viper"
 	"github.com/hdget/hdsdk/v1/provider/logger/zerolog"
+	"github.com/hdget/hdutils"
 	"go.uber.org/fx"
 )
 
-//
-//// LoadConfig 将配置文件中的内容加载到configVar中
-//func LoadConfig(configVar any) error {
-//	if configLoader == nil {
-//		return errors.New("please initialize sdk first")
-//	}
-//	return configLoader.LoadLocal(&configVar)
-//}
-//
-//func LoadRemoteConfig(configVar any) error {
-//	if configLoader == nil {
-//		return errors.New("please initialize sdk first")
-//	}
-//
-//	// 加载SDKConfig
-//	sdkConfiger, err := configLoader.GetSDKConfig()
-//	if err != nil {
-//		return err
-//	}
-//
-//	sdkConfiger.GetEtcdConfig()
-//
-//	return configLoader.LoadRemote(&configVar)
-//}
+type SdkInstance struct {
+	configLoader intf.ConfigLoader
+	fxOptions    []fx.Option
+	logger       intf.LoggerProvider
+	db           intf.DbProvider
+	graph        intf.GraphProvider
+	cache        intf.CacheProvider
+}
 
-// Initialize 初始化SDK
-func Initialize(app, env string, providers ...fx.Option) error {
-	// 所有的provider依赖configProvider和loggerProvider
-	fxOptions := []fx.Option{
-		fx.Provide(func() (intf.ConfigProvider, error) { return viper.New(app, env) }),
-		zerolog.Module,
+var (
+	_instance *SdkInstance
+)
+
+// New 默认包括logger
+func New(app, env string) *SdkInstance {
+	if _instance == nil {
+		_instance = newWithAppEnv(app, env)
+
+		// 所有的provider依赖configProvider和loggerProvider
+		_instance.fxOptions = []fx.Option{
+			fx.NopLogger,
+			fx.Provide(func() intf.ConfigLoader { return _instance.configLoader }), // 提供configProvider
+			zerolog.Capability.Module,      // 提供zerolog capability
+			fx.Populate(&_instance.logger), // 初始化logger
+		}
+	}
+	return _instance
+}
+
+// Empty 不包括logger
+func Empty(app, env string) *SdkInstance {
+	if _instance == nil {
+		_instance = newWithAppEnv(app, env)
+
+		// 所有的provider依赖configProvider和loggerProvider
+		_instance.fxOptions = []fx.Option{
+			fx.NopLogger,
+			fx.Provide(func() intf.ConfigLoader { return _instance.configLoader }), // 提供configProvider
+		}
+	}
+	return _instance
+}
+
+func WithConfigLoader(configLoader intf.ConfigLoader) *SdkInstance {
+	if _instance != nil {
+		_instance.configLoader = configLoader
+		return _instance
 	}
 
-	fxOptions = append(fxOptions, providers...)
+	_instance = newWithConfigLoader(configLoader)
+	return _instance
+}
+
+func (i *SdkInstance) LoadConfig(configVar any) *SdkInstance {
+	if i != nil {
+		_ = i.configLoader.Unmarshal(configVar)
+	}
+	return i
+}
+
+// Initialize 初始化指定的能力
+func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
+	for _, c := range capabilities {
+		switch c.Category {
+		case intf.ProviderCategoryLogger:
+			i.fxOptions = append(i.fxOptions, c.Module, fx.Populate(&_instance.logger))
+		case intf.ProviderCategoryDb:
+			i.fxOptions = append(i.fxOptions, c.Module, fx.Populate(&_instance.db))
+		case intf.ProviderCategoryCache:
+			i.fxOptions = append(i.fxOptions, c.Module, fx.Populate(&_instance.cache))
+		case intf.ProviderCategoryNeo4j:
+			i.fxOptions = append(i.fxOptions, c.Module, fx.Populate(&_instance.graph))
+		default:
+			return errdef.ErrInvalidCapability
+		}
+	}
+
 	_ = fx.New(
-		fxOptions...,
+		i.fxOptions...,
 	)
 
 	return nil
 }
 
-// InitializeWithConfig 初始化SDK
-func InitializeWithConfig(configProvider intf.ConfigProvider, providers ...fx.Option) error {
-	// 所有的provider依赖configProvider和loggerProvider
-	fxOptions := []fx.Option{
-		fx.Provide(configProvider),
-		zerolog.Module,
+func newWithAppEnv(app, env string) *SdkInstance {
+	// 初始化configLoader
+	configLoader, err := config.New(app, env)
+	if configLoader == nil {
+		hdutils.LogFatal("new config loader", "err", err)
 	}
 
-	fxOptions = append(fxOptions, providers...)
-	_ = fx.New(
-		fxOptions...,
-	)
-
-	return nil
+	return newWithConfigLoader(configLoader)
 }
 
-//
-//// Initialize 初始化SDK
-//func Initialize(app, env string, options ...config2.Option) error {
-//	// 初始化configLoader
-//	configLoader = config2.NewConfigLoader(app, env, options...)
-//
-//	// 加载SDKConfig
-//	sdkConfiger, err := configLoader.GetSDKConfig()
-//	if err != nil {
-//		return err
-//	}
-//
-//	// 默认加载LoggerProvider
-//	fxOptions := []fx.Option{
-//		fx.Provide(func() intf.SdkConfiger { return sdkConfiger }),
-//		logger.FxModule,
-//		fx.Populate(&Logger),
-//	}
-//
-//	if len(sdkConfiger.GetMysqlConfig()) > 0 {
-//		fxOptions = append(fxOptions, db.FxModule, fx.Populate(&Mysql))
-//	}
-//
-//	if len(sdkConfiger.GetRedisConfig()) > 0 {
-//		fxOptions = append(fxOptions, cache.FxModule, fx.Populate(&Redis))
-//	}
-//
-//	if len(sdkConfiger.GetNeo4jConfig()) > 0 {
-//		fxOptions = append(fxOptions, graph.FxModule, fx.Populate(&Neo4j))
-//	}
-//
-//	_ = fx.New(
-//		fxOptions...,
-//	)
-//
-//	return nil
-//}
+func newWithConfigLoader(configLoader intf.ConfigLoader) *SdkInstance {
+	return &SdkInstance{
+		configLoader: configLoader,
+	}
+}

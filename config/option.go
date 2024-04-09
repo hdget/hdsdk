@@ -1,4 +1,4 @@
-package viper
+package config
 
 import (
 	"github.com/hdget/hdutils"
@@ -6,7 +6,7 @@ import (
 	"path"
 )
 
-type Option func(loader *viperConfigProvider)
+type Option func(loader *viperConfigLoader)
 
 type fileOption struct {
 	configFile string   // 指定的配置文件
@@ -15,25 +15,25 @@ type fileOption struct {
 }
 
 func WithConfigFile(filepath string) Option {
-	return func(c *viperConfigProvider) {
+	return func(c *viperConfigLoader) {
 		c.fileOption.configFile = filepath
 	}
 }
 
 func WithEnvPrefix(envPrefix string) Option {
-	return func(c *viperConfigProvider) {
+	return func(c *viperConfigLoader) {
 		c.envPrefix = envPrefix
 	}
 }
 
 func WithConfigDir(args ...string) Option {
-	return func(c *viperConfigProvider) {
+	return func(c *viperConfigLoader) {
 		c.fileOption.dirs = append(c.fileOption.dirs, args...)
 	}
 }
 
 func WithConfigFilename(filename string) Option {
-	return func(c *viperConfigProvider) {
+	return func(c *viperConfigLoader) {
 		if path.Ext(filename) != "" {
 			hdutils.LogWarn("filename should not contains suffix", "filename", filename)
 		}
@@ -42,7 +42,7 @@ func WithConfigFilename(filename string) Option {
 }
 
 func WithConfigType(configType string) Option {
-	return func(c *viperConfigProvider) {
+	return func(c *viperConfigLoader) {
 		if !hdutils.Contains(viper.SupportedExts, configType) {
 			hdutils.LogFatal("set configer type", "supported", viper.SupportedExts, "err", viper.UnsupportedConfigError(configType))
 		}
@@ -51,7 +51,7 @@ func WithConfigType(configType string) Option {
 }
 
 func WithRemote(provider, url, path string) Option {
-	return func(c *viperConfigProvider) {
+	return func(c *viperConfigLoader) {
 		if !hdutils.Contains(viper.SupportedRemoteProviders, provider) {
 			hdutils.LogFatal("set remote configer provider", "supported", viper.SupportedRemoteProviders, "err", viper.UnsupportedRemoteProviderError(provider))
 		}
@@ -68,15 +68,14 @@ func WithRemote(provider, url, path string) Option {
 	}
 }
 
-func WithRoot(args ...string) Option {
-	return func(c *viperConfigProvider) {
-		rootParts := make([]string, 0)
-		c.rootParts = append(rootParts, args...)
+func WithBaseDir(baseDir string) Option {
+	return func(c *viperConfigLoader) {
+		c.baseDir = baseDir
 	}
 }
 
 func WithConfigContent(content string) Option {
-	return func(c *viperConfigProvider) {
+	return func(c *viperConfigLoader) {
 		c.content = hdutils.StringToBytes(content)
 	}
 }

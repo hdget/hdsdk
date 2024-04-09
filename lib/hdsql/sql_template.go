@@ -237,7 +237,7 @@ func (b *baseQuery) Get(v any) error {
 		return errors.Wrap(err, "generate hdsql")
 	}
 
-	err = hdsdk.Mysql().My().Get(v, xquery, xargs...)
+	err = hdsdk.Db().My().Get(v, xquery, xargs...)
 	if err != nil {
 		return errors.Wrap(err, "db get")
 	}
@@ -250,7 +250,7 @@ func (b *baseQuery) Select(v any) error {
 		return errors.Wrap(err, "generate hdsql")
 	}
 
-	err = hdsdk.Mysql().My().Select(v, xquery, xargs...)
+	err = hdsdk.Db().My().Select(v, xquery, xargs...)
 	if err != nil {
 		return errors.Wrap(err, "db select")
 	}
@@ -265,7 +265,7 @@ func (b *baseQuery) Count() (int64, error) {
 	}
 
 	var total int64
-	err = hdsdk.Mysql().My().Get(&total, xquery, xargs...)
+	err = hdsdk.Db().My().Get(&total, xquery, xargs...)
 	if err != nil {
 		return 0, errors.Wrap(err, "db count")
 	}
@@ -287,7 +287,7 @@ func (b *baseQuery) process(query string) (string, []any, error) {
 		if err != nil {
 			return "", nil, errors.Wrap(err, "sqlx.In")
 		}
-		newQuery = hdsdk.Mysql().My().Rebind(newQuery)
+		newQuery = hdsdk.Db().My().Rebind(newQuery)
 		return newQuery, newArgs, nil
 	}
 	return query, b.args, nil

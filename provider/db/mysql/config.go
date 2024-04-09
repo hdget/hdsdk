@@ -6,10 +6,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type providerConfig struct {
-	mysql *mysqlProviderConfig `mapstructure:"mysql"` // 日志配置
-}
-
 type mysqlProviderConfig struct {
 	Default *instanceConfig   `mapstructure:"default"`
 	Master  *instanceConfig   `mapstructure:"master"`
@@ -27,15 +23,23 @@ type instanceConfig struct {
 	Timeout  int    `mapstructure:"timeout"`
 }
 
-func NewConfig(configProvider intf.ConfigProvider) (*mysqlProviderConfig, error) {
-	if configProvider == nil {
+const (
+	configSection = "sdk.mysql"
+)
+
+func NewConfig(configLoader intf.ConfigLoader) (*mysqlProviderConfig, error) {
+	if configLoader == nil {
 		return nil, errdef.ErrInvalidConfig
 	}
 
-	var c providerConfig
-	err := configProvider.UnmarshalProviderConfig(&c)
+	var c *mysqlProviderConfig
+	err := configLoader.Unmarshal(&c, configSection)
 	if err != nil {
-		return nil, errdef.ErrInvalidConfig
+		return nil, err
+	}
+
+	if c == nil {
+		return nil, errdef.ErrEmptyConfig
 	}
 
 	err = c.validate()
@@ -43,36 +47,32 @@ func NewConfig(configProvider intf.ConfigProvider) (*mysqlProviderConfig, error)
 		return nil, errors.Wrap(err, "validate mysql provider config")
 	}
 
-	return c.mysql, nil
+	return c, nil
 }
 
-func (c *providerConfig) validate() error {
-	if c.mysql == nil {
-		return errdef.ErrEmptyConfig
-	}
-
-	if c.mysql.Default != nil {
-		err := c.validateInstance(c.mysql.Default)
+func (c *mysqlProviderConfig) validate() error {
+	if c.Default != nil {
+		err := c.validateInstance(c.Default)
 		if err != nil {
 			return err
 		}
 	}
 
-	if c.mysql.Master != nil {
-		err := c.validateInstance(c.mysql.Master)
+	if c.Master != nil {
+		err := c.validateInstance(c.Master)
 		if err != nil {
 			return err
 		}
 	}
 
-	for _, slave := range c.mysql.Slaves {
+	for _, slave := range c.Slaves {
 		err := c.validateInstance(slave)
 		if err != nil {
 			return err
 		}
 	}
 
-	for _, item := range c.mysql.Items {
+	for _, item := range c.Items {
 		err := c.validateExtraInstance(item)
 		if err != nil {
 			return err
@@ -82,7 +82,7 @@ func (c *providerConfig) validate() error {
 	return nil
 }
 
-func (c *providerConfig) validateInstance(ic *instanceConfig) error {
+func (c *mysqlProviderConfig) validateInstance(ic *instanceConfig) error {
 	if ic == nil || ic.Host == "" || ic.User == "" {
 		return errdef.ErrEmptyConfig
 	}
@@ -95,14 +95,14 @@ func (c *providerConfig) validateInstance(ic *instanceConfig) error {
 	return nil
 }
 
-func (c *providerConfig) validateExtraInstance(conf *instanceConfig) error {
-	if conf == nil || conf.Host == "" || conf.Name == "" {
+func (c *mysqlProviderConfig) validateExtraInstance(ic *instanceConfig) error {
+	if ic == nil || ic.Host == "" || ic.Name == "" {
 		return errdef.ErrEmptyConfig
 	}
 
 	// setup default config value
-	if conf.Port == 0 {
-		conf.Port = 3306
+	if ic.Port == 0 {
+		ic.Port = 3306
 	}
 	return nil
 }

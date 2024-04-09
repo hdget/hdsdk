@@ -9,7 +9,6 @@ import (
 	"github.com/fatih/structs"
 	"github.com/hdget/hdsdk/v1/intf"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
-	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 )
 
@@ -35,10 +34,6 @@ func New(config *neo4jProviderConfig, logger intf.LoggerProvider) (intf.GraphPro
 
 // Init	initialize neo4j driver
 func (p *neo4jProvider) Init(args ...any) error {
-	if len(args) == 0 {
-		return errors.New("need neo4j config")
-	}
-
 	var err error
 	p.driver, err = p.newNeo4jDriver()
 	if err != nil {

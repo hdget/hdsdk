@@ -6,10 +6,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-type providerConfig struct {
-	redis *redisProviderConfig `mapstructure:"redis"` // 日志配置
-}
-
 type redisProviderConfig struct {
 	Default *instanceConfig   `mapstructure:"default"`
 	Items   []*instanceConfig `mapstructure:"items"`
@@ -23,15 +19,23 @@ type instanceConfig struct {
 	Password string `mapstructure:"password"`
 }
 
-func NewConfig(configProvider intf.ConfigProvider) (*redisProviderConfig, error) {
-	if configProvider == nil {
+const (
+	configSection = "sdk.redis"
+)
+
+func NewConfig(configLoader intf.ConfigLoader) (*redisProviderConfig, error) {
+	if configLoader == nil {
 		return nil, errdef.ErrInvalidConfig
 	}
 
-	var c providerConfig
-	err := configProvider.UnmarshalProviderConfig(&c)
+	var c *redisProviderConfig
+	err := configLoader.Unmarshal(&c, configSection)
 	if err != nil {
 		return nil, err
+	}
+
+	if c == nil {
+		return nil, errdef.ErrEmptyConfig
 	}
 
 	err = c.validate()
@@ -39,22 +43,18 @@ func NewConfig(configProvider intf.ConfigProvider) (*redisProviderConfig, error)
 		return nil, errors.Wrap(err, "validate redis provider config")
 	}
 
-	return c.redis, nil
+	return c, nil
 }
 
-func (c providerConfig) validate() error {
-	if c.redis == nil {
-		return errdef.ErrEmptyConfig
-	}
-
-	if c.redis.Default != nil {
-		err := c.validateInstanceConfig(c.redis.Default)
+func (c *redisProviderConfig) validate() error {
+	if c.Default != nil {
+		err := c.validateInstanceConfig(c.Default)
 		if err != nil {
 			return err
 		}
 	}
 
-	for _, item := range c.redis.Items {
+	for _, item := range c.Items {
 		err := c.validateExtraInstanceConfig(item)
 		if err != nil {
 			return err
@@ -64,7 +64,7 @@ func (c providerConfig) validate() error {
 	return nil
 }
 
-func (c providerConfig) validateInstanceConfig(conf *instanceConfig) error {
+func (c *redisProviderConfig) validateInstanceConfig(conf *instanceConfig) error {
 	if conf.Host == "" {
 		return errdef.ErrInvalidConfig
 	}
@@ -77,7 +77,7 @@ func (c providerConfig) validateInstanceConfig(conf *instanceConfig) error {
 	return nil
 }
 
-func (c providerConfig) validateExtraInstanceConfig(conf *instanceConfig) error {
+func (c *redisProviderConfig) validateExtraInstanceConfig(conf *instanceConfig) error {
 	if conf.Name == "" || conf.Host == "" {
 		return errdef.ErrInvalidConfig
 	}

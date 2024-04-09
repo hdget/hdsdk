@@ -5,6 +5,7 @@ import (
 )
 
 type LoggerProvider interface {
+	Provider
 	GetStdLogger() *log.Logger
 	Log(keyvals ...interface{}) error
 	Trace(msg string, keyvals ...interface{})

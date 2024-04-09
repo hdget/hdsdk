@@ -5,6 +5,7 @@ import (
 )
 
 type KvProvider interface {
+	Provider
 	Get(key string) ([]byte, error)
 	List(key string) (kv.KVPairs, error)
 	Set(key string, value []byte) error
