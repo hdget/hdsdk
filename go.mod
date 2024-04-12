@@ -5,7 +5,6 @@ go 1.20
 require (
 	github.com/dapr/go-sdk v1.8.0
 	github.com/elliotchance/pie/v2 v2.8.0
-	github.com/fatih/structs v1.1.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gogo/protobuf v1.3.2
@@ -14,10 +13,8 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/kabukky/httpscerts v0.0.0-20150320125433-617593d7dcb3
 	github.com/natefinch/lumberjack v2.0.0+incompatible
-	github.com/neo4j/neo4j-go-driver/v4 v4.4.7
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.32.0
-	github.com/spf13/cast v1.6.0
 	github.com/spf13/viper v1.16.0
 	github.com/volatiletech/sqlboiler/v4 v4.16.2
 	go.uber.org/fx v1.21.0
@@ -76,6 +73,7 @@ require (
 	github.com/sagikazarmark/crypt v0.10.0 // indirect
 	github.com/speps/go-hashids/v2 v2.0.1 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
+	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect

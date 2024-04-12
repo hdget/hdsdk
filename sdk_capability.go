@@ -14,6 +14,6 @@ func Cache() intf.CacheProvider {
 	return _instance.cache
 }
 
-func Graph() intf.GraphProvider {
-	return _instance.graph
-}
+//func Graph() intf.GraphProvider {
+//	return _instance.graph
+//}

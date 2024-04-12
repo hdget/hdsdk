@@ -14,8 +14,8 @@ type SdkInstance struct {
 	fxOptions    []fx.Option
 	logger       intf.LoggerProvider
 	db           intf.DbProvider
-	graph        intf.GraphProvider
-	cache        intf.CacheProvider
+	//graph        intf.GraphProvider
+	cache intf.CacheProvider
 }
 
 var (
@@ -79,8 +79,8 @@ func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
 			i.fxOptions = append(i.fxOptions, c.Module, fx.Populate(&_instance.db))
 		case intf.ProviderCategoryCache:
 			i.fxOptions = append(i.fxOptions, c.Module, fx.Populate(&_instance.cache))
-		case intf.ProviderCategoryNeo4j:
-			i.fxOptions = append(i.fxOptions, c.Module, fx.Populate(&_instance.graph))
+		//case intf.ProviderCategoryNeo4j:
+		//	i.fxOptions = append(i.fxOptions, c.Module, fx.Populate(&_instance.graph))
 		default:
 			return errdef.ErrInvalidCapability
 		}
