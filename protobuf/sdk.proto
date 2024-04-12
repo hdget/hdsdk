@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hdsdk.protobuf;
 
-option go_package = "github.com/hdget/hdsdk/protobuf";
+option go_package = "github.com/hdget/hdsdk/v2/protobuf";
 
 // 排序方向
 enum SortDirection {
@@ -21,4 +21,21 @@ message NextParam {
   int64 lastPk = 1;             // 上一次返回列表最后的主键
   int64 pageSize = 2;           // 每页数量
   SortDirection direction = 3;  // 排序是升序还是降序
+}
+
+// 路由项
+message RouteItem {
+  int64 id = 1;
+  string app = 2;
+  string moduleName = 3;
+  int32 moduleVersion = 4;
+  string handler = 5;
+  string endpoint = 6;
+  string httpMethod = 7;
+  string origin = 8;
+  int32 isPublic = 9;
+  int32 isRawResponse = 10;
+  repeated string permissions = 11;
+  string url = 12;
+  string comment = 13;
 }

@@ -1,8 +1,8 @@
 package hdboil
 
 import (
-	"github.com/hdget/hdsdk/lib/pagination"
-	"github.com/hdget/hdsdk/protobuf"
+	"github.com/hdget/hdsdk/v2/lib/utils"
+	"github.com/hdget/hdsdk/v2/protobuf"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
@@ -29,7 +29,7 @@ func (q *qmBuilder) Concat(modSlices ...[]qm.QueryMod) *qmBuilder {
 }
 
 func (q *qmBuilder) Limit(list *protobuf.ListParam) *qmBuilder {
-	p := pagination.NewWithParam(list)
+	p := utils.NewWithParam(list)
 	q.mods = append(q.mods, qm.Offset(int(p.Offset)), qm.Limit(int(p.PageSize)))
 	return q
 }

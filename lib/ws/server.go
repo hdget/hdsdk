@@ -1,58 +1,139 @@
 package ws
 
 import (
-	"errors"
+	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
-	"time"
+	"github.com/hdget/hdsdk/v2/intf"
+	"github.com/pkg/errors"
+	"io"
+	"net/http"
+	"strings"
 )
 
-type HttpMethod int
-
-const (
-	Get HttpMethod = iota
-	Post
-	Delete
-)
-const waitTime = 3 * time.Second
-
-var (
-	ErrDuplicateRouterGroup = errors.New("duplicate router group")
-	ErrRouterGroupNotFound  = errors.New("router group not found")
-)
-
-// SetReleaseMode set gin to release mode
-func SetReleaseMode() {
-	gin.SetMode(gin.ReleaseMode)
+type WebServer interface {
+	Start() error
+	Stop() error
+	GracefulStop(ctx context.Context) error
+	AddPublicRouterGroup(middlewares []gin.HandlerFunc, routes []*Route) error
+	AddProtectRouterGroup(middlewares []gin.HandlerFunc, routes []*Route) error
+	AddRoutes(routes []*Route) error
+	SetMode(mode string)
 }
 
-// SetDebugMode set gin to debug mode
-func SetDebugMode() {
-	gin.SetMode(gin.DebugMode)
+type baseServer struct {
+	*http.Server
+	engine       *gin.Engine
+	logger       intf.LoggerProvider
+	params       *ServerParam
+	routerGroups map[string]*gin.RouterGroup
 }
 
-// SetTestMode set gin to test mode
-func SetTestMode() {
-	gin.SetMode(gin.TestMode)
-}
-
-func addToRouterGroup(routerGroup *gin.RouterGroup, method HttpMethod, path string, handler gin.HandlerFunc) {
-	switch method {
-	case Get:
-		routerGroup.GET(path, handler)
-	case Post:
-		routerGroup.POST(path, handler)
-	case Delete:
-		routerGroup.DELETE(path, handler)
+func newBaseServer(logger intf.LoggerProvider, address string, options ...ServerOption) *baseServer {
+	s := &baseServer{
+		Server: &http.Server{
+			Addr:    address,
+			Handler: getDefaultGinEngine(logger),
+		},
+		engine:       getDefaultGinEngine(logger),
+		logger:       logger,
+		params:       defaultServerParams,
+		routerGroups: make(map[string]*gin.RouterGroup),
 	}
+
+	for _, option := range options {
+		option(s.params)
+	}
+
+	return s
 }
 
-func addToRouter(router *gin.Engine, method HttpMethod, path string, handler gin.HandlerFunc) {
-	switch method {
-	case Get:
-		router.GET(path, handler)
-	case Post:
-		router.POST(path, handler)
-	case Delete:
-		router.DELETE(path, handler)
+func (w baseServer) AddPublicRouterGroup(middlewares []gin.HandlerFunc, routes []*Route) error {
+	return w.addRouterGroup(w.params.publicRouterGroup.Name, w.params.publicRouterGroup.UrlPrefix, middlewares, routes)
+}
+
+func (w baseServer) AddProtectRouterGroup(middlewares []gin.HandlerFunc, routes []*Route) error {
+	return w.addRouterGroup(w.params.protectRouterGroup.Name, w.params.protectRouterGroup.UrlPrefix, middlewares, routes)
+}
+
+func (w baseServer) Stop() error {
+	if err := w.Server.Close(); err != nil {
+		return err
 	}
+	return nil
+}
+
+func (w baseServer) GracefulStop(ctx context.Context) error {
+	if err := w.Shutdown(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (w baseServer) AddRoutes(routes []*Route) error {
+	routeMap := make(map[string]struct{})
+	for _, route := range routes {
+		// 先检查是否有重复的路由
+		k := fmt.Sprintf("%s_%s", route.Method, route.Path)
+		if _, exist := routeMap[k]; exist {
+			return fmt.Errorf("duplicate route, url: %s, method: %s", route.Path, route.Method)
+		}
+
+		// 添加到router group
+		switch strings.ToUpper(route.Method) {
+		case "GET":
+			w.engine.GET(route.Path, route.Handler)
+		case "POST":
+			w.engine.POST(route.Path, route.Handler)
+		}
+	}
+	return nil
+}
+
+// SetMode set ws to specific mode
+func (w baseServer) SetMode(mode string) {
+	gin.SetMode(mode)
+}
+
+func getDefaultGinEngine(logger intf.LoggerProvider) *gin.Engine {
+	// new router
+	engine := gin.New()
+
+	// set ws to logout to stdout and file
+	gin.DefaultWriter = io.MultiWriter(logger.GetStdLogger().Writer())
+
+	// add basic middleware
+	engine.Use(
+		gin.Recovery(),
+		newLoggerMiddleware(logger), // logger middleware
+	)
+
+	return engine
+}
+
+func (w baseServer) addRouterGroup(name, urlPrefix string, middlewares []gin.HandlerFunc, routes []*Route) error {
+	if _, exists := w.routerGroups[name]; exists {
+		return errors.Wrapf(ErrDuplicateRouterGroup, "name: %s", name)
+	}
+
+	// new router group
+	w.routerGroups[name] = w.engine.Group(urlPrefix, middlewares...)
+
+	routeMap := make(map[string]struct{})
+	for _, route := range routes {
+		// 先检查是否有重复的路由
+		k := fmt.Sprintf("%s_%s", route.Method, route.Path)
+		if _, exist := routeMap[k]; exist {
+			return fmt.Errorf("duplicate route, url: %s, method: %s", route.Path, route.Method)
+		}
+
+		// 添加到router group
+		switch strings.ToUpper(route.Method) {
+		case "GET":
+			w.routerGroups[name].GET(route.Path, route.Handler)
+		case "POST":
+			w.routerGroups[name].POST(route.Path, route.Handler)
+		}
+	}
+	return nil
 }

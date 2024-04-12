@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// GetRealIP 获取真实IP
+// // GetRealIP 获取真实IP
 func GetRealIP(c *gin.Context) string {
 	xForwardInfo := c.GetHeader("X-Forwarded-For")
 	if xForwardInfo != "" {

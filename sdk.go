@@ -1,144 +1,110 @@
-// Package hdsdk
-// 提供各类底层能力的直接访问方式，SDK包在使用前必须要初始化
-//
-// 首先必须创建一个继承自sdk.BaseConfig的配置struct
-// e,g:
-//
-//	   import hdget
-//
-//			type XXXConfig struct {
-//				*sdk.Config `mapstructure:",squash"`
-//	     }
-package hdsdk
+package v1
 
 import (
-	"github.com/hdget/hdsdk/provider/cache/redis"
-	"github.com/hdget/hdsdk/provider/db/mysql"
-	"github.com/hdget/hdsdk/provider/graph/neo4j"
-	"github.com/hdget/hdsdk/provider/kv/etcd"
-	"github.com/hdget/hdsdk/provider/log"
-	"github.com/hdget/hdsdk/provider/mq/kafka"
-	"github.com/hdget/hdsdk/provider/mq/rabbitmq"
-	"github.com/hdget/hdsdk/types"
-	"github.com/pkg/errors"
+	"github.com/hdget/hdsdk/v2/config"
+	"github.com/hdget/hdsdk/v2/errdef"
+	"github.com/hdget/hdsdk/v2/intf"
+	"github.com/hdget/hdsdk/v2/provider/logger/zerolog"
+	"github.com/hdget/hdutils"
+	"go.uber.org/fx"
 )
 
-// SdkProvider 底层能力实例
-type SdkProvider struct {
-	Kind     types.SdkType  // 底层能力类型
-	Name     string         // 底层能力名字
-	Instance types.Provider // 底层能力实现实例
+type SdkInstance struct {
+	configLoader intf.ConfigLoader
+	fxOptions    []fx.Option
+	logger       intf.LoggerProvider
+	db           intf.DbProvider
+	graph        intf.GraphProvider
+	cache        intf.CacheProvider
 }
 
 var (
-	Logger   types.LogProvider   // 日志能力
-	Mysql    types.DbProvider    // mysql数据库能力
-	Redis    types.CacheProvider // redis缓存能力
-	Rabbitmq types.MqProvider    // rabbitmq能力
-	Kafka    types.MqProvider    // kafka能力
-	Neo4j    types.GraphProvider // 图数据库能力
-	Etcd     types.KvProvider    // kv能力
+	_instance *SdkInstance
 )
 
-var (
-	LogProvider = &SdkProvider{
-		Kind:     types.SdkCategoryLog,
-		Name:     "log",
-		Instance: &log.LoggerImpl{},
-	}
+// New 默认包括logger
+func New(app, env string) *SdkInstance {
+	if _instance == nil {
+		_instance = newWithAppEnv(app, env)
 
-	// 除去日志外其他能力能力提供者实例
-	providers = []*SdkProvider{
-		{
-			Kind:     types.SdkTypeDbMysql,
-			Name:     "mysql",
-			Instance: &mysql.MysqlProvider{},
-		},
-		{
-			Kind:     types.SdkTypeCacheRedis,
-			Name:     "redis",
-			Instance: &redis.RedisProvider{},
-		},
-		{
-			Kind:     types.SdkTypeMqRabbitmq,
-			Name:     "rabbitmq",
-			Instance: &rabbitmq.RabbitmqProvider{},
-		},
-		{
-			Kind:     types.SdkTypeMqKafka,
-			Name:     "kafka",
-			Instance: &kafka.KafkaProvider{},
-		},
-		{
-			Kind:     types.SdkTypeGraphNeo4j,
-			Name:     "neo4j",
-			Instance: &neo4j.Neo4jProvider{},
-		},
-		{
-			Kind:     types.SdkTypeKvEtcd,
-			Name:     "etcd",
-			Instance: &etcd.EtcdProvider{},
-		},
-	}
-)
-
-// Initialize 初始化SDK, 指定的配置文件里面有什么配置就配置什么能力
-func Initialize(configer types.Configer) error {
-	var err error
-	Logger, err = newLogger(configer)
-	if err != nil {
-		return err
-	}
-
-	for _, p := range providers {
-		err = p.Instance.Init(configer, Logger)
-		// 如果没有对应能力的配置，忽略该底层能力的后续初始化动作
-		if errors.Is(err, types.ErrEmptyConfig) {
-			continue
+		// 所有的provider依赖configProvider和loggerProvider
+		_instance.fxOptions = []fx.Option{
+			fx.NopLogger,
+			fx.Provide(func() intf.ConfigLoader { return _instance.configLoader }), // 提供configProvider
+			zerolog.Capability.Module,      // 提供zerolog capability
+			fx.Populate(&_instance.logger), // 初始化logger
 		}
-
-		// 打印提示日志
-		if err != nil {
-			Logger.Error("initialize provider", "name", p.Name, "err", err)
-		} else {
-			Logger.Info("initialize provider", "name", p.Name)
-		}
-
-		setGlobalVars(p)
 	}
+	return _instance
+}
+
+// Empty 不包括logger
+func Empty(app, env string) *SdkInstance {
+	if _instance == nil {
+		_instance = newWithAppEnv(app, env)
+
+		// 所有的provider依赖configProvider和loggerProvider
+		_instance.fxOptions = []fx.Option{
+			fx.NopLogger,
+			fx.Provide(func() intf.ConfigLoader { return _instance.configLoader }), // 提供configProvider
+		}
+	}
+	return _instance
+}
+
+func WithConfigLoader(configLoader intf.ConfigLoader) *SdkInstance {
+	if _instance != nil {
+		_instance.configLoader = configLoader
+		return _instance
+	}
+
+	_instance = newWithConfigLoader(configLoader)
+	return _instance
+}
+
+func (i *SdkInstance) LoadConfig(configVar any) *SdkInstance {
+	if i != nil {
+		_ = i.configLoader.Unmarshal(configVar)
+	}
+	return i
+}
+
+// Initialize 初始化指定的能力
+func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
+	for _, c := range capabilities {
+		switch c.Category {
+		case intf.ProviderCategoryLogger:
+			i.fxOptions = append(i.fxOptions, c.Module, fx.Populate(&_instance.logger))
+		case intf.ProviderCategoryDb:
+			i.fxOptions = append(i.fxOptions, c.Module, fx.Populate(&_instance.db))
+		case intf.ProviderCategoryCache:
+			i.fxOptions = append(i.fxOptions, c.Module, fx.Populate(&_instance.cache))
+		case intf.ProviderCategoryNeo4j:
+			i.fxOptions = append(i.fxOptions, c.Module, fx.Populate(&_instance.graph))
+		default:
+			return errdef.ErrInvalidCapability
+		}
+	}
+
+	_ = fx.New(
+		i.fxOptions...,
+	)
 
 	return nil
 }
 
-func setGlobalVars(p *SdkProvider) {
-	// 根据不同的能力类型，将provider Instance转换成具体的provider
-	switch p.Kind {
-	case types.SdkTypeDbMysql:
-		Mysql = p.Instance.(*mysql.MysqlProvider)
-	case types.SdkTypeCacheRedis:
-		Redis = p.Instance.(*redis.RedisProvider)
-	case types.SdkTypeMqRabbitmq:
-		Rabbitmq = p.Instance.(*rabbitmq.RabbitmqProvider)
-	case types.SdkTypeMqKafka:
-		Kafka = p.Instance.(*kafka.KafkaProvider)
-	case types.SdkTypeGraphNeo4j:
-		Neo4j = p.Instance.(*neo4j.Neo4jProvider)
-	case types.SdkTypeKvEtcd:
-		Etcd = p.Instance.(*etcd.EtcdProvider)
+func newWithAppEnv(app, env string) *SdkInstance {
+	// 初始化configLoader
+	configLoader, err := config.New(app, env)
+	if configLoader == nil {
+		hdutils.LogFatal("new config loader", "err", err)
 	}
+
+	return newWithConfigLoader(configLoader)
 }
 
-// 初始化日志服务
-func newLogger(configer types.Configer) (types.LogProvider, error) {
-	err := LogProvider.Instance.Init(configer, nil)
-	if err != nil {
-		return nil, err
+func newWithConfigLoader(configLoader intf.ConfigLoader) *SdkInstance {
+	return &SdkInstance{
+		configLoader: configLoader,
 	}
-
-	logger, ok := LogProvider.Instance.(*log.LoggerImpl)
-	if !ok {
-		return nil, errors.New("error convert to LoggerImpl")
-	}
-
-	return logger, nil
 }

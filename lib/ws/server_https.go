@@ -1,75 +1,37 @@
 package ws
 
 import (
-	"context"
-	"github.com/gin-gonic/gin"
-	"github.com/hdget/hdsdk"
-	"github.com/hdget/hdsdk/types"
-	"github.com/hdget/hdutils/parallel"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/kabukky/httpscerts"
 	"github.com/pkg/errors"
 	"net/http"
-	"syscall"
 )
 
-type HttpsServer struct {
-	*HttpServer
+type httpsServerImpl struct {
+	*baseServer
 	CertPath string
 	KeyPath  string
 }
 
-func NewHttpsServer(logger types.LogProvider, certPath, keyPath, address string) (WebServer, error) {
-	srv := &HttpsServer{
-		HttpServer: createHttpServer(logger, address),
-		CertPath:   certPath,
-		KeyPath:    keyPath,
-	}
-
+func NewHttpsServer(logger intf.LoggerProvider, address, certPath, keyPath string, options ...ServerOption) (WebServer, error) {
 	// Check if the cert files are available.
-	if err := httpscerts.Check(srv.CertPath, srv.KeyPath); err != nil {
+	if err := httpscerts.Check(certPath, keyPath); err != nil {
 		// If they are not available, generate new ones.
-		if err = httpscerts.Generate(srv.CertPath, srv.KeyPath, address); err != nil {
+		if err = httpscerts.Generate(certPath, keyPath, address); err != nil {
 			return nil, errors.Wrap(err, "generate secure credential")
 		}
 	}
 
-	return srv, nil
+	return &httpsServerImpl{
+		baseServer: newBaseServer(logger, address),
+		CertPath:   certPath,
+		KeyPath:    keyPath,
+	}, nil
 }
 
-func (srv *HttpsServer) Run() {
-	listenFunc := func() error {
-		return srv.ListenAndServeTLS(srv.CertPath, srv.KeyPath)
+func (w httpsServerImpl) Start() error {
+	if err := w.ListenAndServeTLS(w.CertPath, w.KeyPath); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
 	}
-
-	var group parallel.Group
-	{
-		group.Add(listenFunc, srv.shutdown)
-	}
-	{
-		group.Add(
-			parallel.SignalActor(
-				context.Background(),
-				syscall.SIGINT,
-				syscall.SIGQUIT,
-				syscall.SIGTERM,
-				syscall.SIGKILL,
-			),
-		)
-	}
-
-	if err := group.Run(); err != nil && errors.Is(err, http.ErrServerClosed) {
-		hdsdk.Logger.Error("https server quit", "error", err)
-	}
-}
-
-func createHttpServer(logger types.LogProvider, address string) *HttpServer {
-	router := NewRouter(logger)
-	return &HttpServer{
-		Server: &http.Server{
-			Addr:    address,
-			Handler: router,
-		},
-		router:       router,
-		routerGroups: make(map[string]*gin.RouterGroup),
-	}
+	return nil
 }

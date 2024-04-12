@@ -1,19 +1,19 @@
 package mysql
 
 import (
-	"github.com/hdget/hdsdk/types"
-	"github.com/mitchellh/mapstructure"
+	"github.com/hdget/hdsdk/v2/errdef"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/pkg/errors"
 )
 
-type ConfigMysql struct {
-	Default *MySqlConf   `mapstructure:"default"`
-	Master  *MySqlConf   `mapstructure:"master"`
-	Slaves  []*MySqlConf `mapstructure:"slaves"`
-	Items   []*MySqlConf `mapstructure:"items"`
+type mysqlProviderConfig struct {
+	Default *instanceConfig   `mapstructure:"default"`
+	Master  *instanceConfig   `mapstructure:"master"`
+	Slaves  []*instanceConfig `mapstructure:"slaves"`
+	Items   []*instanceConfig `mapstructure:"items"`
 }
 
-type MySqlConf struct {
+type instanceConfig struct {
 	Name     string `mapstructure:"name"`
 	User     string `mapstructure:"user"`
 	Password string `mapstructure:"password"`
@@ -23,43 +23,86 @@ type MySqlConf struct {
 	Timeout  int    `mapstructure:"timeout"`
 }
 
-// /////////////////////////////////////////////////////////////////
-func parseConfig(rootConfiger types.Configer) (*ConfigMysql, error) {
-	if rootConfiger == nil {
-		return nil, types.ErrEmptyConfig
+const (
+	configSection = "sdk.mysql"
+)
+
+func NewConfig(configLoader intf.ConfigLoader) (*mysqlProviderConfig, error) {
+	if configLoader == nil {
+		return nil, errdef.ErrInvalidConfig
 	}
 
-	data := rootConfiger.GetMysqlConfig()
-	if data == nil {
-		return nil, types.ErrEmptyConfig
-	}
-
-	values, ok := data.(map[string]interface{})
-	if !ok {
-		return nil, types.ErrInvalidConfig
-	}
-
-	var conf ConfigMysql
-	err := mapstructure.Decode(values, &conf)
+	var c *mysqlProviderConfig
+	err := configLoader.Unmarshal(&c, configSection)
 	if err != nil {
-		return nil, errors.Wrap(err, "decode db content")
+		return nil, err
 	}
 
-	return &conf, nil
+	if c == nil {
+		return nil, errdef.ErrEmptyConfig
+	}
+
+	err = c.validate()
+	if err != nil {
+		return nil, errors.Wrap(err, "validate mysql provider config")
+	}
+
+	return c, nil
 }
 
-func validateConf(providerType string, conf *MySqlConf) error {
-	if conf == nil {
-		return types.ErrEmptyConfig
+func (c *mysqlProviderConfig) validate() error {
+	if c.Default != nil {
+		err := c.validateInstance(c.Default)
+		if err != nil {
+			return err
+		}
 	}
 
-	if conf.Host == "" || conf.Database == "" || conf.User == "" {
-		return types.ErrInvalidConfig
+	if c.Master != nil {
+		err := c.validateInstance(c.Master)
+		if err != nil {
+			return err
+		}
 	}
 
-	if providerType == types.ProviderTypeOther && conf.Name == "" {
-		return types.ErrInvalidConfig
+	for _, slave := range c.Slaves {
+		err := c.validateInstance(slave)
+		if err != nil {
+			return err
+		}
 	}
 
+	for _, item := range c.Items {
+		err := c.validateExtraInstance(item)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (c *mysqlProviderConfig) validateInstance(ic *instanceConfig) error {
+	if ic == nil || ic.Host == "" || ic.User == "" {
+		return errdef.ErrEmptyConfig
+	}
+
+	// setup default config value
+	if ic.Port == 0 {
+		ic.Port = 3306
+	}
+
+	return nil
+}
+
+func (c *mysqlProviderConfig) validateExtraInstance(ic *instanceConfig) error {
+	if ic == nil || ic.Host == "" || ic.Name == "" {
+		return errdef.ErrEmptyConfig
+	}
+
+	// setup default config value
+	if ic.Port == 0 {
+		ic.Port = 3306
+	}
 	return nil
 }

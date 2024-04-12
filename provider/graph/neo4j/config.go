@@ -1,62 +1,66 @@
 package neo4j
 
 import (
-	"github.com/hdget/hdsdk/types"
-	"github.com/mitchellh/mapstructure"
+	"github.com/hdget/hdsdk/v2/errdef"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/pkg/errors"
 )
 
-type ConfigNeo4j struct {
+type neo4jProviderConfig struct {
 	VirtualUri  string             `mapstructure:"virtual_uri"`
 	Username    string             `mapstructure:"username"`
 	Password    string             `mapstructure:"password"`
-	Servers     []*Neo4jServerConf `mapstructure:"servers"`
+	Servers     []*neo4jServerConf `mapstructure:"servers"`
 	MaxPoolSize int                `mapstructure:"max_pool_size"`
 }
 
-type Neo4jServerConf struct {
+type neo4jServerConf struct {
 	Host string `mapstructure:"host"`
 	Port int    `mapstructure:"port"`
 }
 
-// /////////////////////////////////////////////////////////////////
-func parseConfig(rootConfiger types.Configer) (*ConfigNeo4j, error) {
-	if rootConfiger == nil {
-		return nil, types.ErrEmptyConfig
+const (
+	defaultMaxPoolSize = 500
+	configSection      = "sdk.neo4j"
+)
+
+func NewConfig(configLoader intf.ConfigLoader) (*neo4jProviderConfig, error) {
+	if configLoader == nil {
+		return nil, errdef.ErrEmptyConfig
 	}
 
-	data := rootConfiger.GetGraphConfig()
-	if data == nil {
-		return nil, types.ErrEmptyConfig
-	}
-
-	values, ok := data.(map[string]interface{})
-	if !ok {
-		return nil, types.ErrInvalidConfig
-	}
-
-	var conf ConfigNeo4j
-	err := mapstructure.Decode(values, &conf)
+	var c *neo4jProviderConfig
+	err := configLoader.Unmarshal(&c, configSection)
 	if err != nil {
-		return nil, errors.Wrap(err, "decode neo4j config")
+		return nil, err
 	}
 
-	return &conf, nil
+	if c == nil {
+		return nil, errdef.ErrEmptyConfig
+	}
+
+	err = c.validate()
+	if err != nil {
+		return nil, errors.Wrap(err, "validate neo4j config")
+	}
+
+	return c, nil
 }
 
-func validateConf(providerType string, conf *ConfigNeo4j) error {
-	if conf == nil {
-		return types.ErrEmptyConfig
+func (c *neo4jProviderConfig) validate() error {
+	if c.VirtualUri == "" || c.Username == "" || c.Password == "" {
+		return errdef.ErrInvalidConfig
 	}
 
-	if conf.VirtualUri == "" || conf.Username == "" || conf.Password == "" {
-		return types.ErrInvalidConfig
-	}
-
-	for _, server := range conf.Servers {
+	for _, server := range c.Servers {
 		if server.Host == "" || server.Port == 0 {
-			return types.ErrInvalidConfig
+			return errdef.ErrInvalidConfig
 		}
+	}
+
+	// setup default config items
+	if c.MaxPoolSize == 0 {
+		c.MaxPoolSize = defaultMaxPoolSize
 	}
 
 	return nil

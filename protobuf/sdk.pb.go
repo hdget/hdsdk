@@ -162,31 +162,186 @@ func (m *NextParam) GetDirection() SortDirection {
 	return SortDirection_Asc
 }
 
+// 路由项
+type RouteItem struct {
+	Id            int64    `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	App           string   `protobuf:"bytes,2,opt,name=app,proto3" json:"app,omitempty"`
+	ModuleName    string   `protobuf:"bytes,3,opt,name=moduleName,proto3" json:"moduleName,omitempty"`
+	ModuleVersion int32    `protobuf:"varint,4,opt,name=moduleVersion,proto3" json:"moduleVersion,omitempty"`
+	Handler       string   `protobuf:"bytes,5,opt,name=handler,proto3" json:"handler,omitempty"`
+	Endpoint      string   `protobuf:"bytes,6,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	HttpMethod    string   `protobuf:"bytes,7,opt,name=httpMethod,proto3" json:"httpMethod,omitempty"`
+	Origin        string   `protobuf:"bytes,8,opt,name=origin,proto3" json:"origin,omitempty"`
+	IsPublic      int32    `protobuf:"varint,9,opt,name=isPublic,proto3" json:"isPublic,omitempty"`
+	IsRawResponse int32    `protobuf:"varint,10,opt,name=isRawResponse,proto3" json:"isRawResponse,omitempty"`
+	Permissions   []string `protobuf:"bytes,11,rep,name=permissions,proto3" json:"permissions,omitempty"`
+	Url           string   `protobuf:"bytes,12,opt,name=url,proto3" json:"url,omitempty"`
+	Comment       string   `protobuf:"bytes,13,opt,name=comment,proto3" json:"comment,omitempty"`
+}
+
+func (m *RouteItem) Reset()         { *m = RouteItem{} }
+func (m *RouteItem) String() string { return proto.CompactTextString(m) }
+func (*RouteItem) ProtoMessage()    {}
+func (*RouteItem) Descriptor() ([]byte, []int) {
+	return fileDescriptor_70decb0fb6f436df, []int{2}
+}
+func (m *RouteItem) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RouteItem) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RouteItem.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RouteItem) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RouteItem.Merge(m, src)
+}
+func (m *RouteItem) XXX_Size() int {
+	return m.Size()
+}
+func (m *RouteItem) XXX_DiscardUnknown() {
+	xxx_messageInfo_RouteItem.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RouteItem proto.InternalMessageInfo
+
+func (m *RouteItem) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *RouteItem) GetApp() string {
+	if m != nil {
+		return m.App
+	}
+	return ""
+}
+
+func (m *RouteItem) GetModuleName() string {
+	if m != nil {
+		return m.ModuleName
+	}
+	return ""
+}
+
+func (m *RouteItem) GetModuleVersion() int32 {
+	if m != nil {
+		return m.ModuleVersion
+	}
+	return 0
+}
+
+func (m *RouteItem) GetHandler() string {
+	if m != nil {
+		return m.Handler
+	}
+	return ""
+}
+
+func (m *RouteItem) GetEndpoint() string {
+	if m != nil {
+		return m.Endpoint
+	}
+	return ""
+}
+
+func (m *RouteItem) GetHttpMethod() string {
+	if m != nil {
+		return m.HttpMethod
+	}
+	return ""
+}
+
+func (m *RouteItem) GetOrigin() string {
+	if m != nil {
+		return m.Origin
+	}
+	return ""
+}
+
+func (m *RouteItem) GetIsPublic() int32 {
+	if m != nil {
+		return m.IsPublic
+	}
+	return 0
+}
+
+func (m *RouteItem) GetIsRawResponse() int32 {
+	if m != nil {
+		return m.IsRawResponse
+	}
+	return 0
+}
+
+func (m *RouteItem) GetPermissions() []string {
+	if m != nil {
+		return m.Permissions
+	}
+	return nil
+}
+
+func (m *RouteItem) GetUrl() string {
+	if m != nil {
+		return m.Url
+	}
+	return ""
+}
+
+func (m *RouteItem) GetComment() string {
+	if m != nil {
+		return m.Comment
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterEnum("hdsdk.protobuf.SortDirection", SortDirection_name, SortDirection_value)
 	proto.RegisterType((*ListParam)(nil), "hdsdk.protobuf.ListParam")
 	proto.RegisterType((*NextParam)(nil), "hdsdk.protobuf.NextParam")
+	proto.RegisterType((*RouteItem)(nil), "hdsdk.protobuf.RouteItem")
 }
 
 func init() { proto.RegisterFile("sdk.proto", fileDescriptor_70decb0fb6f436df) }
 
 var fileDescriptor_70decb0fb6f436df = []byte{
-	// 230 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x2c, 0x4e, 0xc9, 0xd6,
-	0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0xcb, 0x48, 0x81, 0x73, 0x92, 0x4a, 0xd3, 0x94, 0xac,
-	0xb9, 0x38, 0x7d, 0x32, 0x8b, 0x4b, 0x02, 0x12, 0x8b, 0x12, 0x73, 0x85, 0x84, 0xb8, 0x58, 0x0a,
-	0x12, 0xd3, 0x53, 0x25, 0x18, 0x15, 0x18, 0x35, 0x98, 0x83, 0xc0, 0x6c, 0x21, 0x29, 0x2e, 0x0e,
-	0x10, 0x1d, 0x9c, 0x59, 0x95, 0x2a, 0xc1, 0x04, 0x16, 0x87, 0xf3, 0x95, 0x6a, 0xb8, 0x38, 0xfd,
-	0x52, 0x2b, 0xa0, 0x9a, 0xc5, 0xb8, 0xd8, 0x72, 0x12, 0x8b, 0x4b, 0x02, 0xb2, 0xa1, 0xda, 0xa1,
-	0x3c, 0x7c, 0x06, 0x08, 0x59, 0x73, 0x71, 0xa6, 0x64, 0x16, 0xa5, 0x26, 0x97, 0x64, 0xe6, 0xe7,
-	0x49, 0x30, 0x2b, 0x30, 0x6a, 0xf0, 0x19, 0xc9, 0xea, 0xa1, 0xba, 0x50, 0x2f, 0x38, 0xbf, 0xa8,
-	0xc4, 0x05, 0xa6, 0x28, 0x08, 0xa1, 0x5e, 0x4b, 0x89, 0x8b, 0x17, 0x45, 0x4e, 0x88, 0x9d, 0x8b,
-	0xd9, 0xb1, 0x38, 0x59, 0x80, 0x41, 0x88, 0x83, 0x8b, 0xc5, 0x25, 0xb5, 0x38, 0x59, 0x80, 0xd1,
-	0xc9, 0xf2, 0xc4, 0x23, 0x39, 0xc6, 0x0b, 0x8f, 0xe4, 0x18, 0x1f, 0x3c, 0x92, 0x63, 0x9c, 0xf0,
-	0x58, 0x8e, 0xe1, 0xc2, 0x63, 0x39, 0x86, 0x1b, 0x8f, 0xe5, 0x18, 0xa2, 0xe4, 0xd3, 0x33, 0x4b,
-	0x32, 0x4a, 0x93, 0xf4, 0x92, 0xf3, 0x73, 0xf5, 0x33, 0x52, 0xd2, 0x53, 0x4b, 0xf4, 0xc1, 0xf6,
-	0xea, 0xc3, 0xec, 0x4d, 0x62, 0x03, 0xb3, 0x8c, 0x01, 0x01, 0x00, 0x00, 0xff, 0xff, 0x8f, 0xce,
-	0x71, 0xf4, 0x3d, 0x01, 0x00, 0x00,
+	// 433 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x91, 0xc1, 0x8e, 0xd3, 0x30,
+	0x10, 0x86, 0x9b, 0xa6, 0xdb, 0xd6, 0xb3, 0xb4, 0xaa, 0x7c, 0x40, 0x16, 0x12, 0x51, 0x14, 0x71,
+	0xa8, 0x38, 0xb4, 0x02, 0x8e, 0xcb, 0x05, 0xb4, 0x17, 0x24, 0x58, 0x55, 0x5e, 0x89, 0x03, 0xb7,
+	0x34, 0x1e, 0x1a, 0x6b, 0x93, 0x38, 0xb2, 0x1d, 0x40, 0x88, 0x87, 0xe0, 0xb1, 0x38, 0xee, 0x91,
+	0x23, 0x6a, 0x9f, 0x80, 0x37, 0x40, 0x76, 0xd2, 0x6e, 0x73, 0xe1, 0xe4, 0xf9, 0x7e, 0xdb, 0x33,
+	0xff, 0xcc, 0x00, 0x31, 0xe2, 0x6e, 0x55, 0x6b, 0x65, 0x15, 0x9d, 0xe7, 0xe2, 0x04, 0xdb, 0xe6,
+	0x73, 0x72, 0x05, 0xe4, 0xbd, 0x34, 0x76, 0x93, 0xea, 0xb4, 0xa4, 0x14, 0x46, 0x75, 0xba, 0x43,
+	0x16, 0xc4, 0xc1, 0x32, 0xe4, 0x3e, 0xa6, 0x4f, 0x60, 0xea, 0xce, 0x5b, 0xf9, 0x1d, 0xd9, 0xd0,
+	0xeb, 0x27, 0x4e, 0x7e, 0x00, 0xb9, 0xc1, 0x6f, 0xdd, 0xe7, 0xc7, 0x30, 0x2e, 0x52, 0x63, 0x37,
+	0x77, 0xdd, 0xf7, 0x8e, 0xfe, 0x97, 0x80, 0x5e, 0x01, 0x11, 0x52, 0x63, 0x66, 0xa5, 0xaa, 0x58,
+	0x18, 0x07, 0xcb, 0xf9, 0xcb, 0xa7, 0xab, 0xbe, 0xc3, 0xd5, 0xad, 0xd2, 0xf6, 0xfa, 0xf8, 0x88,
+	0x3f, 0xbc, 0x4f, 0xfe, 0x0e, 0x81, 0x70, 0xd5, 0x58, 0x7c, 0x67, 0xb1, 0xa4, 0x73, 0x18, 0x4a,
+	0xd1, 0x95, 0x1e, 0x4a, 0x41, 0x17, 0x10, 0xa6, 0x75, 0xed, 0x2b, 0x12, 0xee, 0x42, 0x1a, 0x01,
+	0x94, 0x4a, 0x34, 0x05, 0xde, 0xa4, 0x25, 0xfa, 0x6a, 0x84, 0x9f, 0x29, 0xf4, 0x19, 0xcc, 0x5a,
+	0xfa, 0x88, 0xda, 0x38, 0x43, 0xa3, 0x38, 0x58, 0x5e, 0xf0, 0xbe, 0x48, 0x19, 0x4c, 0xf2, 0xb4,
+	0x12, 0x05, 0x6a, 0x76, 0xe1, 0x53, 0x1c, 0xd1, 0x35, 0x8a, 0x95, 0xa8, 0x95, 0xac, 0x2c, 0x1b,
+	0xfb, 0xab, 0x13, 0xbb, 0xda, 0xb9, 0xb5, 0xf5, 0x07, 0xb4, 0xb9, 0x12, 0x6c, 0xd2, 0xd6, 0x7e,
+	0x50, 0xdc, 0xf0, 0x94, 0x96, 0x3b, 0x59, 0xb1, 0xa9, 0xbf, 0xeb, 0xc8, 0xe5, 0x94, 0x66, 0xd3,
+	0x6c, 0x0b, 0x99, 0x31, 0xe2, 0xed, 0x9c, 0xd8, 0xf9, 0x95, 0x86, 0xa7, 0x5f, 0x39, 0x9a, 0x5a,
+	0x55, 0x06, 0x19, 0xb4, 0x7e, 0x7b, 0x22, 0x8d, 0xe1, 0xb2, 0x46, 0x5d, 0x4a, 0xe3, 0xdc, 0x1b,
+	0x76, 0x19, 0x87, 0x4b, 0xc2, 0xcf, 0x25, 0x37, 0xa9, 0x46, 0x17, 0xec, 0x51, 0x3b, 0xa9, 0x46,
+	0x17, 0xae, 0xc7, 0x4c, 0x95, 0x25, 0x56, 0x96, 0xcd, 0xda, 0x1e, 0x3b, 0x7c, 0x9e, 0xc0, 0xac,
+	0xb7, 0x0f, 0x3a, 0x81, 0xf0, 0x8d, 0xc9, 0x16, 0x03, 0x3a, 0x85, 0xd1, 0x35, 0x9a, 0x6c, 0x11,
+	0xbc, 0x7d, 0xfd, 0x6b, 0x1f, 0x05, 0xf7, 0xfb, 0x28, 0xf8, 0xb3, 0x8f, 0x82, 0x9f, 0x87, 0x68,
+	0x70, 0x7f, 0x88, 0x06, 0xbf, 0x0f, 0xd1, 0xe0, 0x53, 0xb2, 0x93, 0x36, 0x6f, 0xb6, 0xab, 0x4c,
+	0x95, 0xeb, 0x5c, 0xec, 0xd0, 0xae, 0xfd, 0xae, 0xd7, 0x5f, 0x5e, 0xac, 0x8f, 0xeb, 0xde, 0x8e,
+	0x7d, 0xf4, 0xea, 0x5f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xe3, 0xb9, 0x24, 0x39, 0xb4, 0x02, 0x00,
+	0x00,
 }
 
 func (m *ListParam) Marshal() (dAtA []byte, err error) {
@@ -260,6 +415,114 @@ func (m *NextParam) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *RouteItem) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RouteItem) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RouteItem) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Comment) > 0 {
+		i -= len(m.Comment)
+		copy(dAtA[i:], m.Comment)
+		i = encodeVarintSdk(dAtA, i, uint64(len(m.Comment)))
+		i--
+		dAtA[i] = 0x6a
+	}
+	if len(m.Url) > 0 {
+		i -= len(m.Url)
+		copy(dAtA[i:], m.Url)
+		i = encodeVarintSdk(dAtA, i, uint64(len(m.Url)))
+		i--
+		dAtA[i] = 0x62
+	}
+	if len(m.Permissions) > 0 {
+		for iNdEx := len(m.Permissions) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Permissions[iNdEx])
+			copy(dAtA[i:], m.Permissions[iNdEx])
+			i = encodeVarintSdk(dAtA, i, uint64(len(m.Permissions[iNdEx])))
+			i--
+			dAtA[i] = 0x5a
+		}
+	}
+	if m.IsRawResponse != 0 {
+		i = encodeVarintSdk(dAtA, i, uint64(m.IsRawResponse))
+		i--
+		dAtA[i] = 0x50
+	}
+	if m.IsPublic != 0 {
+		i = encodeVarintSdk(dAtA, i, uint64(m.IsPublic))
+		i--
+		dAtA[i] = 0x48
+	}
+	if len(m.Origin) > 0 {
+		i -= len(m.Origin)
+		copy(dAtA[i:], m.Origin)
+		i = encodeVarintSdk(dAtA, i, uint64(len(m.Origin)))
+		i--
+		dAtA[i] = 0x42
+	}
+	if len(m.HttpMethod) > 0 {
+		i -= len(m.HttpMethod)
+		copy(dAtA[i:], m.HttpMethod)
+		i = encodeVarintSdk(dAtA, i, uint64(len(m.HttpMethod)))
+		i--
+		dAtA[i] = 0x3a
+	}
+	if len(m.Endpoint) > 0 {
+		i -= len(m.Endpoint)
+		copy(dAtA[i:], m.Endpoint)
+		i = encodeVarintSdk(dAtA, i, uint64(len(m.Endpoint)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.Handler) > 0 {
+		i -= len(m.Handler)
+		copy(dAtA[i:], m.Handler)
+		i = encodeVarintSdk(dAtA, i, uint64(len(m.Handler)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if m.ModuleVersion != 0 {
+		i = encodeVarintSdk(dAtA, i, uint64(m.ModuleVersion))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.ModuleName) > 0 {
+		i -= len(m.ModuleName)
+		copy(dAtA[i:], m.ModuleName)
+		i = encodeVarintSdk(dAtA, i, uint64(len(m.ModuleName)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.App) > 0 {
+		i -= len(m.App)
+		copy(dAtA[i:], m.App)
+		i = encodeVarintSdk(dAtA, i, uint64(len(m.App)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Id != 0 {
+		i = encodeVarintSdk(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintSdk(dAtA []byte, offset int, v uint64) int {
 	offset -= sovSdk(v)
 	base := offset
@@ -300,6 +563,65 @@ func (m *NextParam) Size() (n int) {
 	}
 	if m.Direction != 0 {
 		n += 1 + sovSdk(uint64(m.Direction))
+	}
+	return n
+}
+
+func (m *RouteItem) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Id != 0 {
+		n += 1 + sovSdk(uint64(m.Id))
+	}
+	l = len(m.App)
+	if l > 0 {
+		n += 1 + l + sovSdk(uint64(l))
+	}
+	l = len(m.ModuleName)
+	if l > 0 {
+		n += 1 + l + sovSdk(uint64(l))
+	}
+	if m.ModuleVersion != 0 {
+		n += 1 + sovSdk(uint64(m.ModuleVersion))
+	}
+	l = len(m.Handler)
+	if l > 0 {
+		n += 1 + l + sovSdk(uint64(l))
+	}
+	l = len(m.Endpoint)
+	if l > 0 {
+		n += 1 + l + sovSdk(uint64(l))
+	}
+	l = len(m.HttpMethod)
+	if l > 0 {
+		n += 1 + l + sovSdk(uint64(l))
+	}
+	l = len(m.Origin)
+	if l > 0 {
+		n += 1 + l + sovSdk(uint64(l))
+	}
+	if m.IsPublic != 0 {
+		n += 1 + sovSdk(uint64(m.IsPublic))
+	}
+	if m.IsRawResponse != 0 {
+		n += 1 + sovSdk(uint64(m.IsRawResponse))
+	}
+	if len(m.Permissions) > 0 {
+		for _, s := range m.Permissions {
+			l = len(s)
+			n += 1 + l + sovSdk(uint64(l))
+		}
+	}
+	l = len(m.Url)
+	if l > 0 {
+		n += 1 + l + sovSdk(uint64(l))
+	}
+	l = len(m.Comment)
+	if l > 0 {
+		n += 1 + l + sovSdk(uint64(l))
 	}
 	return n
 }
@@ -484,6 +806,420 @@ func (m *NextParam) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipSdk(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthSdk
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RouteItem) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowSdk
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RouteItem: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RouteItem: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSdk
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field App", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSdk
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSdk
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSdk
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.App = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ModuleName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSdk
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSdk
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSdk
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ModuleName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ModuleVersion", wireType)
+			}
+			m.ModuleVersion = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSdk
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ModuleVersion |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Handler", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSdk
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSdk
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSdk
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Handler = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Endpoint", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSdk
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSdk
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSdk
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Endpoint = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field HttpMethod", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSdk
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSdk
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSdk
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.HttpMethod = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Origin", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSdk
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSdk
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSdk
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Origin = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 9:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IsPublic", wireType)
+			}
+			m.IsPublic = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSdk
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.IsPublic |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field IsRawResponse", wireType)
+			}
+			m.IsRawResponse = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSdk
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.IsRawResponse |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Permissions", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSdk
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSdk
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSdk
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Permissions = append(m.Permissions, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 12:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Url", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSdk
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSdk
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSdk
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Url = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 13:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Comment", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSdk
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSdk
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSdk
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Comment = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipSdk(dAtA[iNdEx:])
