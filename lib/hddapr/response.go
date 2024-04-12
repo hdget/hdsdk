@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/hdget/hdsdk/v1/lib/bizerr"
+	"github.com/hdget/hdsdk/v2/lib/bizerr"
 	"github.com/hdget/hdutils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

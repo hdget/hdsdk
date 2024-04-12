@@ -2,8 +2,8 @@ package zerolog
 
 import (
 	"fmt"
-	"github.com/hdget/hdsdk/v1/errdef"
-	"github.com/hdget/hdsdk/v1/intf"
+	"github.com/hdget/hdsdk/v2/errdef"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdutils"
 	"os"
 	"path/filepath"

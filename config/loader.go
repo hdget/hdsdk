@@ -10,7 +10,7 @@ package config
 import (
 	"bytes"
 	"fmt"
-	"github.com/hdget/hdsdk/v1/intf"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdutils"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"

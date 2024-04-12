@@ -1,7 +1,7 @@
 package zerolog
 
 import (
-	"github.com/hdget/hdsdk/v1/intf"
+	"github.com/hdget/hdsdk/v2/intf"
 	"go.uber.org/fx"
 )
 

@@ -3,7 +3,7 @@ package hddapr
 import (
 	"context"
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/hdget/hdsdk/v1"
+	"github.com/hdget/hdsdk/v2"
 	"github.com/hdget/hdutils"
 )
 
@@ -69,7 +69,7 @@ func (h invocationHandlerImpl) GetInvokeFunction() common.ServiceInvocationHandl
 			if len(req) > maxRequestLength {
 				req = append(req[:maxRequestLength], []rune("...")...)
 			}
-			hdsdk.Logger().Error("handle", "module", h.moduleInfo.Name, "fnName", hdutils.Reflect().GetFuncName(h.fn), "err", err, "req", req)
+			v1.Logger().Error("handle", "module", h.moduleInfo.Name, "fnName", hdutils.Reflect().GetFuncName(h.fn), "err", err, "req", req)
 			return Error(err)
 		}
 

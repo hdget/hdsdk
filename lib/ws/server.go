@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/hdget/hdsdk/v1/intf"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/pkg/errors"
 	"io"
 	"net/http"

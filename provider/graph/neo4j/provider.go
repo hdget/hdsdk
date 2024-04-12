@@ -7,7 +7,7 @@ package neo4j
 
 import (
 	"github.com/fatih/structs"
-	"github.com/hdget/hdsdk/v1/intf"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 	"github.com/spf13/cast"
 )

@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/hdsdk/v1/protobuf"
+	"github.com/hdget/hdsdk/v2/protobuf"
 	"os"
 	"path/filepath"
 	"regexp"

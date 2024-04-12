@@ -1,7 +1,7 @@
 package ws
 
 import (
-	"github.com/hdget/hdsdk/v1/intf"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/pkg/errors"
 	"net/http"
 )

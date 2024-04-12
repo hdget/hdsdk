@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/hdget/hdsdk/v1/protobuf"
+	"github.com/hdget/hdsdk/v2/protobuf"
 	"github.com/hdget/hdutils"
 )
 

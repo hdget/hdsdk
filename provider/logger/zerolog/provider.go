@@ -6,7 +6,7 @@
 package zerolog
 
 import (
-	"github.com/hdget/hdsdk/v1/intf"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdutils"
 	"github.com/rs/zerolog"
 	"log"

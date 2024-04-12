@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hdsdk.protobuf;
 
-option go_package = "github.com/hdget/hdsdk/v1/protobuf";
+option go_package = "github.com/hdget/hdsdk/v2/protobuf";
 
 // 排序方向
 enum SortDirection {

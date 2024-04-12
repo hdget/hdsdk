@@ -3,7 +3,7 @@ package redigo
 import (
 	"fmt"
 	"github.com/gomodule/redigo/redis"
-	"github.com/hdget/hdsdk/v1/intf"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdutils"
 	"strconv"
 	"time"

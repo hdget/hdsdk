@@ -2,7 +2,7 @@ package rabbitmq
 
 //
 //import (
-//	"github.com/hdget/hdsdk/v1/intf"
+//	"github.com/hdget/hdsdk/v2/intf"
 //)
 //
 //type BaseMqProvider struct {

@@ -1,6 +1,6 @@
-package hdsdk
+package v1
 
-import "github.com/hdget/hdsdk/v1/intf"
+import "github.com/hdget/hdsdk/v2/intf"
 
 func Logger() intf.LoggerProvider {
 	return _instance.logger

@@ -1,10 +1,10 @@
-package hdsdk
+package v1
 
 import (
-	"github.com/hdget/hdsdk/v1/config"
-	"github.com/hdget/hdsdk/v1/errdef"
-	"github.com/hdget/hdsdk/v1/intf"
-	"github.com/hdget/hdsdk/v1/provider/logger/zerolog"
+	"github.com/hdget/hdsdk/v2/config"
+	"github.com/hdget/hdsdk/v2/errdef"
+	"github.com/hdget/hdsdk/v2/intf"
+	"github.com/hdget/hdsdk/v2/provider/logger/zerolog"
 	"github.com/hdget/hdutils"
 	"go.uber.org/fx"
 )
