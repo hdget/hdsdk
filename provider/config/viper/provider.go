@@ -203,8 +203,10 @@ func (p *viperConfigLoader) findConfigDir() string {
 			return filepath.Join(currPath, dirName)
 		}
 
-		// If we're already at the root, break the loop
-		if currPath == "/" {
+		// If we're already at the root, stop finding
+		// windows has the driver name, so it need use TrimRight to test
+		abs, _ := filepath.Abs(currPath)
+		if abs == string(filepath.Separator) || len(strings.TrimRight(currPath, string(filepath.Separator))) <= 3 {
 			break
 		}
 
