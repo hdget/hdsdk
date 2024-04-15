@@ -1,12 +1,15 @@
 package neo4j
 
-//
-//var Capability = &intf.Capability{
-//	Category: intf.ProviderCategoryNeo4j,
-//	Name:     intf.ProviderNameNeo4j,
-//	Module: fx.Module(
-//		string(intf.ProviderNameNeo4j),
-//		fx.Provide(NewConfig),
-//		fx.Provide(New),
-//	),
-//}
+import (
+	"github.com/hdget/hdsdk/v2/types"
+	"go.uber.org/fx"
+)
+
+var Capability = &types.Capability{
+	Category: types.ProviderCategoryGraph,
+	Name:     types.ProviderNameNeo4j,
+	Module: fx.Module(
+		string(types.ProviderNameNeo4j),
+		fx.Provide(New),
+	),
+}

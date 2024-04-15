@@ -1,11 +1,11 @@
 package intf
 
-type CacheCommand struct {
+type RedisCommand struct {
 	Name string
 	Args []interface{}
 }
 
-type CacheProvider interface {
+type RedisProvider interface {
 	Provider
 	My() RedisClient
 	By(string) RedisClient
@@ -21,7 +21,7 @@ type RedisClient interface {
 	IncrBy(key string, number int) error
 	DecrBy(key string, number int) error
 	Ttl(key string) (int64, error)
-	Pipeline(commands []*CacheCommand) (reply interface{}, err error)
+	Pipeline(commands []*RedisCommand) (reply interface{}, err error)
 	Ping() error
 
 	// Set operations

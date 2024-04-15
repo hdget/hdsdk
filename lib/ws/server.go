@@ -64,7 +64,7 @@ func (w baseServer) Stop() error {
 }
 
 func (w baseServer) GracefulStop(ctx context.Context) error {
-	if err := w.Shutdown(ctx); err != nil {
+	if err := w.Server.Shutdown(ctx); err != nil {
 		return err
 	}
 	return nil

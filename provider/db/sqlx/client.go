@@ -1,4 +1,4 @@
-package mysql
+package sqlx
 
 import (
 	"fmt"
@@ -16,6 +16,7 @@ func newClient(c *mysqlConfig) (intf.DbClient, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &mysqlClient{DB: instance}, nil
 }
 

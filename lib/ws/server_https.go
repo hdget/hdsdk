@@ -30,7 +30,7 @@ func NewHttpsServer(logger intf.LoggerProvider, address, certPath, keyPath strin
 }
 
 func (w httpsServerImpl) Start() error {
-	if err := w.ListenAndServeTLS(w.CertPath, w.KeyPath); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	if err := w.Server.ListenAndServeTLS(w.CertPath, w.KeyPath); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
 	return nil

@@ -1,15 +1,14 @@
-package mysql
+package sqlx
 
 import (
-	"github.com/hdget/hdsdk/v2/intf"
+	"github.com/hdget/hdsdk/v2/types"
 	"go.uber.org/fx"
 )
 
-var Capability = &intf.Capability{
-	Category: intf.ProviderCategoryDb,
+var Capability = &types.Capability{
+	Category: types.ProviderCategoryDb,
 	Module: fx.Module(
-		string(intf.ProviderNameMysql),
-		fx.Provide(NewConfig),
+		string(types.ProviderNameSqlx),
 		fx.Provide(New),
 	),
 }

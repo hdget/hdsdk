@@ -1,16 +1,15 @@
 package zerolog
 
 import (
-	"github.com/hdget/hdsdk/v2/intf"
+	"github.com/hdget/hdsdk/v2/types"
 	"go.uber.org/fx"
 )
 
-var Capability = &intf.Capability{
-	Category: intf.ProviderCategoryLogger,
-	Name:     intf.ProviderNameZerolog,
+var Capability = &types.Capability{
+	Category: types.ProviderCategoryLogger,
+	Name:     types.ProviderNameZerolog,
 	Module: fx.Module(
-		string(intf.ProviderNameZerolog),
-		fx.Provide(NewConfig),
+		string(types.ProviderNameZerolog),
 		fx.Provide(New),
 	),
 }

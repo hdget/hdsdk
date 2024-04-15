@@ -42,13 +42,13 @@ var (
 )
 
 // NewConfig 解析Config
-func NewConfig(configLoader intf.ConfigLoader) (*zerologProviderConfig, error) {
-	if configLoader == nil {
+func newConfig(configProvider intf.ConfigProvider) (*zerologProviderConfig, error) {
+	if configProvider == nil {
 		return getDefaultConfig(), nil
 	}
 
 	var c *zerologProviderConfig
-	err := configLoader.Unmarshal(&c, configSection)
+	err := configProvider.Unmarshal(&c, configSection)
 	if err != nil {
 		return getDefaultConfig(), nil
 	}

@@ -17,7 +17,7 @@ func NewHttpServer(logger intf.LoggerProvider, address string, options ...Server
 }
 
 func (w httpServerImpl) Start() error {
-	if err := w.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	if err := w.Server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return err
 	}
 	return nil

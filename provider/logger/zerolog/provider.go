@@ -23,9 +23,14 @@ const (
 )
 
 // New initialize zerolog instance
-func New(conf *zerologProviderConfig) (intf.LoggerProvider, error) {
+func New(configProvider intf.ConfigProvider) (intf.LoggerProvider, error) {
+	c, err := newConfig(configProvider)
+	if err != nil {
+		return nil, err
+	}
+
 	// 设置日志级别
-	switch strings.ToLower(conf.Level) {
+	switch strings.ToLower(c.Level) {
 	case "debug":
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	case "info":
@@ -46,7 +51,7 @@ func New(conf *zerologProviderConfig) (intf.LoggerProvider, error) {
 	consoleLogger := newConsoleLogger()
 
 	// 设置多个输出, 输出到rotateLogs和stdout
-	rotateLogger, err := newRotateLogger(conf)
+	rotateLogger, err := newRotateLogger(c)
 	if err != nil {
 		return nil, err
 	}

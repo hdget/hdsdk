@@ -1,4 +1,4 @@
-package mysql
+package sqlx
 
 import (
 	"github.com/hdget/hdsdk/v2/errdef"
@@ -27,13 +27,13 @@ const (
 	configSection = "sdk.mysql"
 )
 
-func NewConfig(configLoader intf.ConfigLoader) (*mysqlProviderConfig, error) {
-	if configLoader == nil {
+func newConfig(configProvider intf.ConfigProvider) (*mysqlProviderConfig, error) {
+	if configProvider == nil {
 		return nil, errdef.ErrInvalidConfig
 	}
 
 	var c *mysqlProviderConfig
-	err := configLoader.Unmarshal(&c, configSection)
+	err := configProvider.Unmarshal(&c, configSection)
 	if err != nil {
 		return nil, err
 	}

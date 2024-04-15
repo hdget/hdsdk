@@ -1,10 +1,9 @@
-package mysql
+package sqlx
 
 import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/pkg/errors"
-	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
 type mysqlProvider struct {
@@ -17,20 +16,25 @@ type mysqlProvider struct {
 }
 
 const (
-	// 这里设置解析时间类型https://github.com/go-hdsql-driver/mysql#timetime-support
+	// 这里设置解析时间类型https://github.com/go-sql-driver/mysql#timetime-support
 	// DSN (Data Type NickName): username:password@protocol(address)/dbname?param=value
 	dsnTemplate = "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local"
 )
 
-func New(mysqlConfig *mysqlProviderConfig, logger intf.LoggerProvider) (intf.DbProvider, error) {
+func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.DbProvider, error) {
+	c, err := newConfig(configProvider)
+	if err != nil {
+		return nil, errors.Wrap(err, "new mysql config")
+	}
+
 	provider := &mysqlProvider{
 		logger:   logger,
-		config:   mysqlConfig,
-		slaveDbs: make([]intf.DbClient, len(mysqlConfig.Slaves)),
+		config:   c,
+		slaveDbs: make([]intf.DbClient, len(c.Slaves)),
 		extraDbs: make(map[string]intf.DbClient),
 	}
 
-	err := provider.Init(logger, mysqlConfig)
+	err = provider.Init(logger, c)
 	if err != nil {
 		logger.Fatal("init mysql provider", "err", err)
 	}
@@ -46,8 +50,6 @@ func (p *mysqlProvider) Init(args ...any) error {
 			return errors.Wrap(err, "init mysql default connection")
 		}
 
-		// 设置boil的缺省db
-		boil.SetDB(p.defaultDb)
 		p.logger.Debug("init mysql default", "host", p.config.Default.Host)
 	}
 
