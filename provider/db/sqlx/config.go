@@ -7,13 +7,13 @@ import (
 )
 
 type mysqlProviderConfig struct {
-	Default *instanceConfig   `mapstructure:"default"`
-	Master  *instanceConfig   `mapstructure:"master"`
-	Slaves  []*instanceConfig `mapstructure:"slaves"`
-	Items   []*instanceConfig `mapstructure:"items"`
+	Default *mysqlConfig   `mapstructure:"default"`
+	Master  *mysqlConfig   `mapstructure:"master"`
+	Slaves  []*mysqlConfig `mapstructure:"slaves"`
+	Items   []*mysqlConfig `mapstructure:"items"`
 }
 
-type instanceConfig struct {
+type mysqlConfig struct {
 	Name     string `mapstructure:"name"`
 	User     string `mapstructure:"user"`
 	Password string `mapstructure:"password"`
@@ -82,7 +82,7 @@ func (c *mysqlProviderConfig) validate() error {
 	return nil
 }
 
-func (c *mysqlProviderConfig) validateInstance(ic *instanceConfig) error {
+func (c *mysqlProviderConfig) validateInstance(ic *mysqlConfig) error {
 	if ic == nil || ic.Host == "" || ic.User == "" {
 		return errdef.ErrEmptyConfig
 	}
@@ -95,7 +95,7 @@ func (c *mysqlProviderConfig) validateInstance(ic *instanceConfig) error {
 	return nil
 }
 
-func (c *mysqlProviderConfig) validateExtraInstance(ic *instanceConfig) error {
+func (c *mysqlProviderConfig) validateExtraInstance(ic *mysqlConfig) error {
 	if ic == nil || ic.Host == "" || ic.Name == "" {
 		return errdef.ErrEmptyConfig
 	}

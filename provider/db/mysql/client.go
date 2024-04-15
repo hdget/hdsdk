@@ -1,84 +1,43 @@
 package mysql
 
 import (
-	"github.com/hdget/hdsdk/v2/errdef"
+	"database/sql"
+	"fmt"
 	"github.com/hdget/hdsdk/v2/intf"
-	"github.com/jmoiron/sqlx"
-	"reflect"
+	"time"
 )
 
-type dbClient struct {
-	*sqlx.DB
-	builder intf.DbBuilder
+type mysqlClient struct {
+	*sql.DB
 }
 
-func newClient(db *sqlx.DB) *dbClient {
-	return &dbClient{DB: db}
-}
-
-func (s *dbClient) UseBuilder(builder intf.DbBuilder) intf.DbClient {
-	s.builder = builder
-	return s
-}
-
-func (s *dbClient) One(v any) error {
-	if s.DB == nil {
-		return errdef.ErrEmptyDb
-	}
-
-	if s.builder == nil {
-		return errdef.ErrEmptyDbBuilder
-	}
-
-	if !reflect.ValueOf(v).CanSet() {
-		return errdef.ErrValueNotSettable
-	}
-
-	sqlQuery, sqlArgs, err := s.builder.ToSql()
+func newClient(c *mysqlConfig) (intf.DbClient, error) {
+	instance, err := newInstance(c)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	return s.DB.Get(v, sqlQuery, sqlArgs)
+	return &mysqlClient{DB: instance}, nil
 }
 
-func (s *dbClient) All(v any) error {
-	if s.DB == nil {
-		return errdef.ErrEmptyDb
-	}
-
-	if s.builder == nil {
-		return errdef.ErrEmptyDbBuilder
-	}
-
-	if !reflect.ValueOf(v).CanSet() {
-		return errdef.ErrValueNotSettable
-	}
-
-	sqlQuery, sqlArgs, err := s.builder.ToSql()
+func newInstance(c *mysqlConfig) (*sql.DB, error) {
+	// 构造连接参数
+	dsn := fmt.Sprintf(dsnTemplate, c.User, c.Password, c.Host, c.Port, c.Database)
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return err
-	}
-	return s.DB.Select(v, sqlQuery, sqlArgs...)
-}
-
-func (s *dbClient) Count() (int64, error) {
-	if s.DB == nil {
-		return 0, errdef.ErrEmptyDb
+		return nil, err
 	}
 
-	if s.builder == nil {
-		return 0, errdef.ErrEmptyDbBuilder
-	}
-
-	sqlQuery, sqlArgs, err := s.builder.ToSql()
+	err = db.Ping()
 	if err != nil {
-		return 0, err
+		_ = db.Close()
+		return nil, err
 	}
-	var total int64
-	err = s.DB.Get(&total, sqlQuery, sqlArgs...)
-	if err != nil {
-		return 0, err
-	}
-	return total, nil
+
+	// https://www.alexedwards.net/blog/configuring-sqldb
+	// https://making.pusher.com/production-ready-connection-pooling-in-go
+	// Avoid issue:
+	// packets.go:123: closing bad idle connection: EOF
+	// connection.go:173: driver: bad connection
+	db.SetConnMaxLifetime(3 * time.Minute)
+	return db, nil
 }
