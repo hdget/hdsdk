@@ -49,13 +49,12 @@ func (rm RouteManagerImpl) GetModulePath() string {
 func (rm RouteManagerImpl) GetRouteItems(handlerNameMatchers ...HandlerNameMatcher) ([]*protobuf.RouteItem, error) {
 	routeItems := make([]*protobuf.RouteItem, 0)
 	absModulePath := filepath.Join(rm.baseDir, rm.relModulePath)
-	for moduleName, moduleInstance := range LoadInvocationModules(rm.relModulePath) {
+	for _, moduleInstance := range LoadInvocationModules(rm.relModulePath) {
 		routeAnnotations, err := moduleInstance.GetRouteAnnotations(absModulePath, handlerNameMatchers...)
 		if err != nil {
 			return nil, err
 		}
 
-		handlerNames := make([]string, 0)
 		for _, ann := range routeAnnotations {
 			for _, httpMethod := range ann.Methods {
 				isPublic := int32(0)
@@ -82,13 +81,8 @@ func (rm RouteManagerImpl) GetRouteItems(handlerNameMatchers ...HandlerNameMatch
 					Comment:       strings.Join(ann.Comments, "\r"),
 				})
 			}
-
-			handlerNames = append(handlerNames, ann.HandlerAlias)
 		}
-
-		fmt.Printf(" - module: %-25s total: %-5d functions: [%s]\n", moduleName, len(routeAnnotations), strings.Join(handlerNames, ", "))
 	}
-
 	return routeItems, nil
 }
 

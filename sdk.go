@@ -64,7 +64,9 @@ func (i *SdkInstance) Initialize(capabilities ...*types.Capability) error {
 	}
 
 	loggerInitialized := false
-	fxOptions := make([]fx.Option, 0)
+	fxOptions := []fx.Option{
+		fx.Provide(func() intf.ConfigProvider { return i.configProvider }),
+	}
 	for _, c := range capabilities {
 		switch c.Category {
 		case types.ProviderCategoryLogger:
