@@ -11,8 +11,8 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/hdget/hdsdk/v2/intf"
-	"github.com/hdget/hdsdk/v2/types"
 	"github.com/hdget/hdutils"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"path/filepath"
 	"strings"
@@ -20,8 +20,9 @@ import (
 
 // viperConfigLoader 命令行配置
 type viperConfigLoader struct {
+	app        string
+	env        string
 	local      *viper.Viper
-	arg        *types.ConfigArgument
 	envPrefix  string      // 环境变量前缀
 	baseDir    string      // 配置文件所在的BaseDir
 	configType string      // 配置内容类型，e,g: toml, json
@@ -58,10 +59,11 @@ const (
 )
 
 // New 初始化config provider
-func New(arg *types.ConfigArgument, options ...Option) (intf.ConfigProvider, error) {
+func New(app, env string, options ...Option) (intf.ConfigProvider, error) {
 	provider := &viperConfigLoader{
 		local:      viper.New(),
-		arg:        arg,
+		app:        app,
+		env:        env,
 		envPrefix:  defaultValue.envPrefix,
 		baseDir:    defaultValue.baseDir,
 		configType: defaultValue.configType,
@@ -74,7 +76,7 @@ func New(arg *types.ConfigArgument, options ...Option) (intf.ConfigProvider, err
 
 	err := provider.loadLocal()
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "load local config")
 	}
 
 	return provider, nil
@@ -85,6 +87,14 @@ func (p *viperConfigLoader) Unmarshal(configVar any, args ...string) error {
 		return p.local.UnmarshalKey(args[0], configVar)
 	}
 	return p.local.Unmarshal(configVar)
+}
+
+func (p *viperConfigLoader) GetApp() string {
+	return p.app
+}
+
+func (p *viperConfigLoader) GetEnv() string {
+	return p.env
 }
 
 // ///////////////////////////////////////////////////////////////
@@ -105,7 +115,7 @@ func (p *viperConfigLoader) loadLocal() error {
 	}
 
 	// 如果环境变量为空，则加载最小基本配置
-	if p.arg.Env == "" {
+	if p.env == "" {
 		return p.loadMinimal()
 	}
 
@@ -126,7 +136,7 @@ func (p *viperConfigLoader) loadFromEnv() {
 }
 
 func (p *viperConfigLoader) loadMinimal() error {
-	minimalConfig := fmt.Sprintf(tplMinimalConfigContent, p.arg.App)
+	minimalConfig := fmt.Sprintf(tplMinimalConfigContent, p.app)
 	return p.local.MergeConfig(bytes.NewReader([]byte(minimalConfig)))
 }
 
@@ -166,7 +176,7 @@ func (p *viperConfigLoader) setupConfigFile() {
 			if foundDir != "" {
 				configDirs = append(configDirs, foundDir)
 			} else {
-				hdutils.LogFatal("no config dir found", "app", p.arg.App, "env", p.arg.Env)
+				hdutils.LogFatal("no config dir found", "app", p.app, "env", p.env)
 			}
 		}
 
@@ -180,13 +190,13 @@ func (p *viperConfigLoader) setupConfigFile() {
 
 // getDefaultConfigFilename 缺省的配置文件名: <app>.<env>
 func (p *viperConfigLoader) getDefaultConfigFilename() string {
-	return strings.Join([]string{p.arg.App, p.arg.Env}, ".")
+	return strings.Join([]string{p.app, p.env}, ".")
 }
 
 // findConfigDirs 缺省的配置文件名: <app>.<env>
 func (p *viperConfigLoader) findConfigDir() string {
 	// parent dir name
-	dirName := filepath.Join(p.baseDir, p.arg.App)
+	dirName := filepath.Join(p.baseDir, p.app)
 
 	// iter to root directory
 	absStartPath, err := filepath.Abs(".")
@@ -194,7 +204,7 @@ func (p *viperConfigLoader) findConfigDir() string {
 		return ""
 	}
 
-	matchFile := fmt.Sprintf("%s.%s.%s", p.arg.App, p.arg.Env, p.configType)
+	matchFile := fmt.Sprintf("%s.%s.%s", p.app, p.env, p.configType)
 	currPath := absStartPath
 	for {
 		s := filepath.Join(currPath, dirName, matchFile)

@@ -6,13 +6,12 @@ import (
 	"github.com/hdget/hdsdk/v2/provider/config/viper"
 	"github.com/hdget/hdsdk/v2/provider/logger/zerolog"
 	"github.com/hdget/hdsdk/v2/types"
+	"github.com/hdget/hdutils"
+	"github.com/pkg/errors"
 	"go.uber.org/fx"
 )
 
 type SdkInstance struct {
-	app            string
-	env            string
-	configVar      any  // external config var, if set then need load config stuff into it
 	debug          bool // debug mode
 	configProvider intf.ConfigProvider
 	logger         intf.LoggerProvider
@@ -26,12 +25,9 @@ var (
 )
 
 // New 默认包括logger
-func New(app, env string, options ...Option) *SdkInstance {
+func New(options ...Option) *SdkInstance {
 	if _instance == nil {
-		_instance = &SdkInstance{
-			app: app,
-			env: env,
-		}
+		_instance = &SdkInstance{}
 	}
 
 	for _, option := range options {
@@ -41,22 +37,36 @@ func New(app, env string, options ...Option) *SdkInstance {
 	return _instance
 }
 
+func (i *SdkInstance) LoadConfig(configVar any) *SdkInstance {
+	if i.configProvider != nil {
+		// if config provider is already provided in New, ignore it
+		err := i.configProvider.Unmarshal(configVar)
+		if err != nil {
+			hdutils.LogError("unmarshal to config var", "err", err)
+		}
+	}
+	return i
+}
+
+func (i *SdkInstance) UseDefaultConfigProvider(app, env string) *SdkInstance {
+	var err error
+	i.configProvider, err = viper.New(app, env)
+	if err != nil {
+		hdutils.LogError("new default config provider", "err", err)
+	}
+	return i
+}
+
 // Initialize all kinds of capability
 func (i *SdkInstance) Initialize(capabilities ...*types.Capability) error {
-	configInitialized := false
-	loggerInitialized := false
+	if i.configProvider == nil {
+		return errdef.ErrConfigProviderNotReady
+	}
 
+	loggerInitialized := false
 	fxOptions := make([]fx.Option, 0)
 	for _, c := range capabilities {
 		switch c.Category {
-		case types.ProviderCategoryConfig:
-			fxOptions = append(fxOptions,
-				fx.Provide(func() *types.ConfigArgument { return &types.ConfigArgument{App: i.app, Env: i.env} }),
-				c.Module,
-				fx.Populate(&_instance.configProvider),
-			)
-			// mark config provider had been initialized
-			configInitialized = true
 		case types.ProviderCategoryLogger:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.logger))
 			// mark logger provider had been initialized
@@ -68,21 +78,8 @@ func (i *SdkInstance) Initialize(capabilities ...*types.Capability) error {
 		case types.ProviderCategoryGraph:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.graph))
 		default:
-			return errdef.ErrInvalidCapability
+			return errors.Wrapf(errdef.ErrInvalidCapability, "capability: %s", c.Name)
 		}
-	}
-
-	// if config provider not initialized
-	if !configInitialized {
-		configProvider, err := viper.New(&types.ConfigArgument{App: i.app, Env: i.env})
-		if err != nil {
-			return err
-		}
-
-		fxOptions = append(fxOptions,
-			fx.Provide(func() intf.ConfigProvider { return configProvider }),
-			fx.Populate(&_instance.configProvider),
-		)
 	}
 
 	// if logger provider is not initialized, use default logger
@@ -98,11 +95,6 @@ func (i *SdkInstance) Initialize(capabilities ...*types.Capability) error {
 	_ = fx.New(
 		fxOptions...,
 	)
-
-	// if configVar set then load config stuff to configVar
-	if i.configVar != nil && _instance.configVar != nil {
-		return _instance.configProvider.Unmarshal(i.configVar)
-	}
 
 	return nil
 }

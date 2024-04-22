@@ -1,11 +1,15 @@
 package hdsdk
 
+import (
+	"github.com/hdget/hdsdk/v2/intf"
+)
+
 type Option func(*SdkInstance)
 
-// WithConfigVar if config var set then load config to config var
-func WithConfigVar(configVar any) Option {
+// WithConfigProvider config provider option
+func WithConfigProvider(configProvider intf.ConfigProvider) Option {
 	return func(i *SdkInstance) {
-		i.configVar = configVar
+		i.configProvider = configProvider
 	}
 }
 
