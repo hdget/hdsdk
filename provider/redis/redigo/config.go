@@ -7,11 +7,11 @@ import (
 )
 
 type redisProviderConfig struct {
-	Default *instanceConfig   `mapstructure:"default"`
-	Items   []*instanceConfig `mapstructure:"items"`
+	Default *redisClientConfig   `mapstructure:"default"`
+	Items   []*redisClientConfig `mapstructure:"items"`
 }
 
-type instanceConfig struct {
+type redisClientConfig struct {
 	Name     string `mapstructure:"name"`
 	Host     string `mapstructure:"host"`
 	Port     int    `mapstructure:"port"`
@@ -64,7 +64,7 @@ func (c *redisProviderConfig) validate() error {
 	return nil
 }
 
-func (c *redisProviderConfig) validateInstanceConfig(conf *instanceConfig) error {
+func (c *redisProviderConfig) validateInstanceConfig(conf *redisClientConfig) error {
 	if conf.Host == "" {
 		return errdef.ErrInvalidConfig
 	}
@@ -77,7 +77,7 @@ func (c *redisProviderConfig) validateInstanceConfig(conf *instanceConfig) error
 	return nil
 }
 
-func (c *redisProviderConfig) validateExtraInstanceConfig(conf *instanceConfig) error {
+func (c *redisProviderConfig) validateExtraInstanceConfig(conf *redisClientConfig) error {
 	if conf.Name == "" || conf.Host == "" {
 		return errdef.ErrInvalidConfig
 	}

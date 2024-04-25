@@ -1,63 +1,44 @@
 package intf
 
-//
-//type MqProvider interface {
-//	Provider
-//	My() Mq
-//	By(string) Mq // 获取某个Mq能力提供者
-//}
-//
-//// MqMsgProcessFunc MQ的消息处理函数
-//// 入参为处理的数据
-//// 第一个返回值是否要ack
-//// 第二个返回值是否要把同一个channel上的上一次ack之前的所有
-//type MqMsgProcessFunc func([]byte) MqMsgAction
-//
-//// MqMsgAction 消息处理后的动作
-//type MqMsgAction int
-//
-//const (
-//	_          MqMsgAction = iota
-//	Ack                    // 消息标志处理成功
-//	Retry                  // 消息重传进行重新处理，当条消息会被重传
-//	Next                   // 取下一条消息
-//	BatchAck               // 批量消息标志处理成功
-//	BatchRetry             // 批量消息进行重传并重新处理，自上次ack到现在的消息都会被重传
-//)
-//
-//// MqOptioner 选项接口
-//type MqOptioner interface {
-//	GetType() MqOptionType // 获取配置项类型，现在有几个配置项: exchange配置项, queue配置项, publish配置项
-//}
-//
-//type Mq interface {
-//	GetDefaultOptions() map[MqOptionType]MqOptioner
-//	CreateProducer(parameters map[string]interface{}, args ...MqOptioner) (MqProducer, error)
-//	CreateConsumer(processFunc MqMsgProcessFunc, parameters map[string]interface{}, args ...MqOptioner) (MqConsumer, error)
-//}
-//
-//// 消息发布者，负责生产并发送消息至Topic
-//type MqProducer interface {
-//	Publish(data []byte, args ...interface{}) error                 // MQ发送消息
-//	PublishDelay(data []byte, ttl int64, args ...interface{}) error // MQ发送延迟消息
-//	GetLastConfirmedId() uint64                                     // 获取上一次确认发送成功的消息Tag
-//	Close()
-//}
-//
-//// 消息订阅者，负责从Topic接收并消费消息。
-//type MqConsumer interface {
-//	Consume() // 消费消息
-//	Close()
-//}
-//
-//// option intf
-//type MqOptionType int
-//
-//const (
-//	_                MqOptionType = iota
-//	MqOptionQueue                 // 队列选项
-//	MqOptionExchange              // exchange选项
-//	MqOptionPublish               // 发送选项
-//	MqOptionConsume               // 消费选项
-//	MqOptionQos                   // Qos选项
-//)
+import (
+	"context"
+	"github.com/hdget/hdsdk/v2/provider/mq"
+)
+
+type MqProvider interface {
+	Provider
+	Publisher() Publisher
+	Subscriber() Subscriber
+}
+
+// Publisher is the emitting part of a Pub/Sub.
+type Publisher interface {
+	// Publish publishes provided messages to given topic.
+	//
+	// Publish can be synchronous or asynchronous - it depends on the implementation.
+	//
+	// Most publishers implementations don't support atomic publishing of messages.
+	// This means that if publishing one of the messages fails, the next messages will not be published.
+	//
+	// Publish must be thread safe.
+	Publish(topic string, messages ...[]byte) error
+	PublishDelay(topic string, delaySecond int64, messages ...[]byte) (err error)
+	// Close should flush unsent messages, if publisher is async.
+	Close() error
+}
+
+// Subscriber is the consuming part of the Pub/Sub.
+type Subscriber interface {
+	// Subscribe returns output channel with messages from provided topic.
+	// Channel is closed, when Close() was called on the subscriber.
+	//
+	// To receive the next message, `Ack()` must be called on the received message.
+	// If message processing failed and message should be redelivered `Nack()` should be called.
+	//
+	// When provided ctx is cancelled, subscriber will close subscribe and close output channel.
+	// Provided ctx is set to all produced messages.
+	// When Nack or Ack is called on the message, context of the message is canceled.
+	Subscribe(ctx context.Context, topic string) (<-chan *mq.Message, error)
+	// Close closes all subscriptions with their output channels and flush offsets etc. when needed.
+	Close() error
+}

@@ -13,7 +13,7 @@ type redisClient struct {
 	pool *redis.Pool
 }
 
-func newRedisClient(conf *instanceConfig) (intf.RedisClient, error) {
+func newRedisClient(conf *redisClientConfig) (intf.RedisClient, error) {
 	// 建立连接池
 	p := &redis.Pool{
 		// 最大空闲连接数，有这么多个连接提前等待着，但过了超时时间也会关闭
