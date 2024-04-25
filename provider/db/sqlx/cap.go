@@ -1,14 +1,14 @@
 package sqlx
 
 import (
-	"github.com/hdget/hdsdk/v2/types"
+	"github.com/hdget/hdsdk/v2/intf"
 	"go.uber.org/fx"
 )
 
-var Capability = &types.Capability{
-	Category: types.ProviderCategoryDb,
+var Capability = &intf.Capability{
+	Category: intf.ProviderCategoryDb,
 	Module: fx.Module(
-		string(types.ProviderNameSqlx),
+		string(intf.ProviderNameSqlx),
 		fx.Provide(New),
 	),
 }

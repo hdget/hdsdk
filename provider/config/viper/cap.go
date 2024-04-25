@@ -1,14 +1,14 @@
 package viper
 
 import (
-	"github.com/hdget/hdsdk/v2/types"
+	"github.com/hdget/hdsdk/v2/intf"
 	"go.uber.org/fx"
 )
 
-var Capability = &types.Capability{
-	Category: types.ProviderCategoryConfig,
+var Capability = &intf.Capability{
+	Category: intf.ProviderCategoryConfig,
 	Module: fx.Module(
-		string(types.ProviderNameViper),
+		string(intf.ProviderNameViper),
 		fx.Provide(New),
 	),
 }

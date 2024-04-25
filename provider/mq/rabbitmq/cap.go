@@ -1,4 +1,4 @@
-package zerolog
+package rabbitmq
 
 import (
 	"github.com/hdget/hdsdk/v2/intf"
@@ -6,10 +6,10 @@ import (
 )
 
 var Capability = &intf.Capability{
-	Category: intf.ProviderCategoryLogger,
-	Name:     intf.ProviderNameZerolog,
+	Category: intf.ProviderCategoryMq,
+	Name:     intf.ProviderNameRabbitMq,
 	Module: fx.Module(
-		string(intf.ProviderNameZerolog),
+		string(intf.ProviderNameRabbitMq),
 		fx.Provide(New),
 	),
 }

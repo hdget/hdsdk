@@ -5,7 +5,6 @@ import (
 	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdsdk/v2/provider/config/viper"
 	"github.com/hdget/hdsdk/v2/provider/logger/zerolog"
-	"github.com/hdget/hdsdk/v2/types"
 	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
 	"go.uber.org/fx"
@@ -18,6 +17,7 @@ type SdkInstance struct {
 	db             intf.DbProvider
 	graph          intf.GraphProvider
 	redis          intf.RedisProvider
+	mq             intf.MqProvider
 }
 
 var (
@@ -58,7 +58,7 @@ func (i *SdkInstance) UseDefaultConfigProvider(app, env string) *SdkInstance {
 }
 
 // Initialize all kinds of capability
-func (i *SdkInstance) Initialize(capabilities ...*types.Capability) error {
+func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
 	if i.configProvider == nil {
 		return errdef.ErrConfigProviderNotReady
 	}
@@ -69,16 +69,18 @@ func (i *SdkInstance) Initialize(capabilities ...*types.Capability) error {
 	}
 	for _, c := range capabilities {
 		switch c.Category {
-		case types.ProviderCategoryLogger:
+		case intf.ProviderCategoryLogger:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.logger))
 			// mark logger provider had been initialized
 			loggerInitialized = true
-		case types.ProviderCategoryDb:
+		case intf.ProviderCategoryDb:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.db))
-		case types.ProviderCategoryRedis:
+		case intf.ProviderCategoryRedis:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.redis))
-		case types.ProviderCategoryGraph:
+		case intf.ProviderCategoryGraph:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.graph))
+		case intf.ProviderCategoryMq:
+			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.mq))
 		default:
 			return errors.Wrapf(errdef.ErrInvalidCapability, "capability: %s", c.Name)
 		}

@@ -7,8 +7,8 @@ import (
 
 type MqProvider interface {
 	Provider
-	Publisher() Publisher
-	Subscriber() Subscriber
+	NewPublisher() (Publisher, error)
+	NewSubscriber() (Subscriber, error)
 }
 
 // Publisher is the emitting part of a Pub/Sub.

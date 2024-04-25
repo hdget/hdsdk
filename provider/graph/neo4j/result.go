@@ -2,7 +2,7 @@ package neo4j
 
 import (
 	"github.com/hdget/hdsdk/v2/intf"
-	"github.com/hdget/hdsdk/v2/types"
+	"github.com/hdget/hdsdk/v2/provider/graph"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
 )
 
@@ -16,9 +16,9 @@ func newResult(result neo4j.Result) intf.GraphResult {
 	}
 }
 
-func (n neo4jResult) Record() *types.GraphRecord {
+func (n neo4jResult) Record() *graph.Record {
 	r := n.Result.Record()
-	return &types.GraphRecord{
+	return &graph.Record{
 		Values: r.Values,
 		Keys:   r.Keys,
 	}

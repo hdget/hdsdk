@@ -1,6 +1,6 @@
-package types
+package graph
 
-type GraphRecord struct {
+type Record struct {
 	// Values contains all the values in the record.
 	Values []interface{}
 	// Keys contains names of the values in the record.

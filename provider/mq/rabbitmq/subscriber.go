@@ -20,12 +20,7 @@ type rmpSubscriberImpl struct {
 	subscriberWaitGroup *sync.WaitGroup
 }
 
-func NewSubscriber(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.Subscriber, error) {
-	config, err := newConfig(configProvider)
-	if err != nil {
-		return nil, err
-	}
-
+func newSubscriber(config *RabbitMqConfig, logger intf.LoggerProvider) (intf.Subscriber, error) {
 	conn, err := newConnection(logger, config.Connection)
 	if err != nil {
 		return nil, fmt.Errorf("subscriber create new connection: %w", err)

@@ -18,12 +18,7 @@ type rmqPublisherImpl struct {
 	channelManager          channelManager
 }
 
-func NewPublisher(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.Publisher, error) {
-	config, err := newConfig(configProvider)
-	if err != nil {
-		return nil, err
-	}
-
+func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (intf.Publisher, error) {
 	conn, err := newConnection(logger, config.Connection)
 	if err != nil {
 		return nil, fmt.Errorf("publisher create new connection: %w", err)

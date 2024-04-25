@@ -1,6 +1,8 @@
 package intf
 
-import "github.com/hdget/hdsdk/v2/types"
+import (
+	"github.com/hdget/hdsdk/v2/provider/graph"
+)
 
 // GraphProvider 图数据库能力提供
 type GraphProvider interface {
@@ -21,5 +23,5 @@ type GraphResult interface {
 	// Next returns true only if there is a record to be processed.
 	Next() bool
 	// Record returns the current record.
-	Record() *types.GraphRecord
+	Record() *graph.Record
 }

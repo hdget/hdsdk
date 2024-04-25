@@ -1,15 +1,15 @@
 package redigo
 
 import (
-	"github.com/hdget/hdsdk/v2/types"
+	"github.com/hdget/hdsdk/v2/intf"
 	"go.uber.org/fx"
 )
 
-var Capability = &types.Capability{
-	Category: types.ProviderCategoryRedis,
-	Name:     types.ProviderNameRedigo,
+var Capability = &intf.Capability{
+	Category: intf.ProviderCategoryRedis,
+	Name:     intf.ProviderNameRedigo,
 	Module: fx.Module(
-		string(types.ProviderNameRedigo),
+		string(intf.ProviderNameRedigo),
 		fx.Provide(New),
 	),
 }
