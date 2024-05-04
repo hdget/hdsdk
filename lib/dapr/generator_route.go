@@ -66,7 +66,7 @@ package dapr
 //
 //	// 获取当前函数所在的包
 //	pc, _, _, _ := runtime.Caller(0)
-//	splitFuncName := strings.Split(runtime.FuncForPC(pc).Name(), ".")
+//	splitFuncName := strings.Split(runtime.FuncForPC(pc).ExchangeName(), ".")
 //	packagePath := strings.Join(splitFuncName[0:len(splitFuncName)-2], ".")
 //
 //	varName := "routes"

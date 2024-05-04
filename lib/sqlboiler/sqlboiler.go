@@ -3,7 +3,7 @@ package sqlboiler
 import (
 	"fmt"
 	"github.com/hdget/hdsdk/v2"
-	"github.com/hdget/hdsdk/v2/helper/pagination"
+	"github.com/hdget/hdsdk/v2/lib/pagination"
 	"github.com/hdget/hdsdk/v2/protobuf"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"

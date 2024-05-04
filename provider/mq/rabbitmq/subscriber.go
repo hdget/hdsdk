@@ -68,12 +68,10 @@ func (s *rmpSubscriberImpl) Subscribe(ctx context.Context, topic string) (<-chan
 		return nil, errors.New("not connected to AMQP")
 	}
 
-	exchangeKind := ExchangeKindDefault
-	if s.config.UseExplicitExchange {
-		exchangeKind = ExchangeKindExplicit
+	topology, err := newTopology(topic)
+	if err != nil {
+		return nil, errors.Wrap(err, "new topology")
 	}
-
-	topology := newTopology(topic, exchangeKind, s.config.ExchangeType)
 
 	out := make(chan *mq.Message)
 	if err := s.prepareConsume(topology); err != nil {
@@ -152,7 +150,7 @@ func (s *rmpSubscriberImpl) prepareConsumeBindings(amqpChannel *amqp.Channel, to
 		return errors.Wrap(err, "declare queue when prepare consume bindings")
 	}
 
-	if topology.exchangeName == "" {
+	if topology.exchangeName != "" {
 		err = topology.declareExchange(amqpChannel)
 		if err != nil {
 			return errors.Wrap(err, "declare exchange when prepare consume bindings")

@@ -1,7 +1,7 @@
 package sqlboiler
 
 import (
-	"github.com/hdget/hdsdk/v2/helper/pagination"
+	"github.com/hdget/hdsdk/v2/lib/pagination"
 	"github.com/hdget/hdsdk/v2/protobuf"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )

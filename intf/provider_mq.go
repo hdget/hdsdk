@@ -21,8 +21,7 @@ type Publisher interface {
 	// This means that if publishing one of the messages fails, the next messages will not be published.
 	//
 	// Publish must be thread safe.
-	Publish(topic string, messages ...[]byte) error
-	PublishDelay(topic string, delaySecond int64, messages ...[]byte) (err error)
+	Publish(topic string, messages [][]byte, args ...int64) error
 	// Close should flush unsent messages, if publisher is async.
 	Close() error
 }

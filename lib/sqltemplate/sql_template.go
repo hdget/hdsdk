@@ -3,7 +3,7 @@ package sqltemplate
 import (
 	"fmt"
 	"github.com/hdget/hdsdk/v2"
-	"github.com/hdget/hdsdk/v2/helper/pagination"
+	"github.com/hdget/hdsdk/v2/lib/pagination"
 	"github.com/hdget/hdsdk/v2/protobuf"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"

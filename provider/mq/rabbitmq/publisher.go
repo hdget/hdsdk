@@ -51,25 +51,7 @@ func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (intf.Publ
 // Publish publishes messages to AMQP broker.
 // Publish is blocking until the broker has received and saved the message.
 // Publish is always thread safe.
-func (p *rmqPublisherImpl) Publish(topic string, messages ...[]byte) (err error) {
-	exchangeKind := ExchangeKindDefault
-	if p.config.UseExplicitExchange {
-		exchangeKind = ExchangeKindExplicit
-	}
-	return p.publishByExchangeKind(exchangeKind, topic, 0, messages...)
-}
-
-// PublishDelay publishes delay messages to AMQP broker.
-// Publish is blocking until the broker has received and saved the message.
-// Publish is always thread safe.
-func (p *rmqPublisherImpl) PublishDelay(topic string, delaySecond int64, messages ...[]byte) (err error) {
-	return p.publishByExchangeKind(ExchangeKindDelay, topic, delaySecond, messages...)
-}
-
-// PublishDelay publishes delay messages to AMQP broker.
-// Publish is blocking until the broker has received and saved the message.
-// Publish is always thread safe.
-func (p *rmqPublisherImpl) publishByExchangeKind(exchangeKind ExchangeKind, topic string, delaySecond int64, messages ...[]byte) error {
+func (p *rmqPublisherImpl) Publish(topic string, messages [][]byte, args ...int64) (err error) {
 	if p.connection.IsClosed() {
 		return errors.New("connection is closed while publish message")
 	}
@@ -93,15 +75,18 @@ func (p *rmqPublisherImpl) publishByExchangeKind(exchangeKind ExchangeKind, topi
 	}()
 
 	// get topology information
-	topology := newTopology(topic, exchangeKind, p.config.ExchangeType)
+	topology, err := newTopology(topic)
+	if err != nil {
+		return errors.Wrap(err, "new topology")
+	}
 
 	err = p.preparePublishBindings(topic, theChannel.AMQPChannel(), topology)
 	if err != nil {
 		return err
 	}
 
-	for _, msgPayload := range messages {
-		if err = p.publishMessage(theChannel, topology, msgPayload, delaySecond); err != nil {
+	for _, msg := range messages {
+		if err = p.publishMessage(theChannel, topology, msg, args...); err != nil {
 			return err
 		}
 	}
@@ -133,14 +118,14 @@ func (p *rmqPublisherImpl) preparePublishBindings(topic string, amqpChannel *amq
 	return nil
 }
 
-func (p *rmqPublisherImpl) publishMessage(channel channel, topology *Topology, msgPayload []byte, delaySecond int64) error {
+func (p *rmqPublisherImpl) publishMessage(channel channel, topology *Topology, msgPayload []byte, args ...int64) error {
 	var headers amqp.Table
 	if topology.exchangeKind == ExchangeKindDelay {
-		if delaySecond <= 0 {
-			return errors.New("delay must be greater than 0")
+		if len(args) == 0 {
+			return errors.New("no delay seconds specified")
 		}
 		headers = map[string]interface{}{
-			"x-delay": delaySecond * 1000, // message expire time in delay exchange, unit is mill seconds， provided by delay-message plugin
+			"x-delay": args[0] * 1000, // message expire time in delay exchange, unit is mill seconds， provided by delay-message plugin
 		}
 	}
 
