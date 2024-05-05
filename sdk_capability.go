@@ -14,10 +14,10 @@ func Redis() intf.RedisProvider {
 	return _instance.redis
 }
 
-//func Graph() intf.GraphProvider {
-//	return _instance.graph
-//}
+func Graph() intf.GraphProvider {
+	return _instance.graph
+}
 
-func GetName() string {
-	return ""
+func Mq() intf.MqProvider {
+	return _instance.mq
 }

@@ -19,12 +19,12 @@ type rmqPublisherImpl struct {
 }
 
 func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (intf.Publisher, error) {
-	conn, err := newConnection(logger, config.Connection)
+	conn, err := newConnection(logger, config)
 	if err != nil {
 		return nil, fmt.Errorf("publisher create new connection: %w", err)
 	}
 
-	chanManager, err := newChannelManager(logger, conn, config.Connection.ChannelPoolSize)
+	chanManager, err := newChannelManager(logger, conn, config.ChannelPoolSize)
 	if err != nil {
 		return nil, fmt.Errorf("create new channel pool: %w", err)
 	}

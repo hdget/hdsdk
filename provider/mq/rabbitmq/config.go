@@ -7,10 +7,14 @@ import (
 )
 
 type RabbitMqConfig struct {
-	Connection *ConnectionConfig
+	Host     string `mapstructure:"host"`
+	Port     int    `mapstructure:"port"`
+	Username string `mapstructure:"username"`
+	Password string `mapstructure:"password"`
+	Vhost    string `mapstructure:"vhost"`
 
 	// Consumer: Whether or not to requeue when sending a negative acknowledgement in case of a failure.
-	RequeueInFailure bool
+	RequeueInFailure bool `mapstructure:"requeue_in_failure"`
 	// With a prefetch count greater than zero, the server will deliver that many
 	// messages to consumers before acknowledgments are received.  The server ignores
 	// this option when consumers are started with noAck because no acknowledgments
@@ -21,17 +25,15 @@ type RabbitMqConfig struct {
 	// Or, in other words, don't dispatch a new message to a worker until it has
 	// processed and acknowledged the previous one.
 	// Instead, it will dispatch it to the next worker that is not still busy.
-	PrefetchCount int
+	PrefetchCount int `mapstructure:"prefetch_count"`
 
-	// Exchange: Each exchange belongs to one of a set of exchange kinds/types implemented by
-	// the server. The exchange types define the functionality of the exchange - i.e.
-	// how messages are routed through it. Once an exchange is declared, its type
-	// cannot be changed.  The common types are "direct", "fanout", "topic" and
-	// "headers".
-	ExchangeType ExchangeType
-
-	// Exchange: whether to use explicit exchange other than default exchange
-	UseExplicitExchange bool
+	// Connection: ChannelPoolSize specifies the size of a channel pool. All channels in the pool are opened when the publisher is
+	// created. When a Publish operation is performed then a channel is taken from the pool to perform the operation and
+	// then returned to the pool once the operation has finished. If all channels are in use then the Publish operation
+	// waits until a channel is returned to the pool.
+	// If this value is set to 0 (default) then channels are not pooled and a new channel is opened/closed for every
+	// Publish operation.
+	ChannelPoolSize int `mapstructure:"channel_pool_size"`
 }
 
 type ConnectionConfig struct {
@@ -41,13 +43,6 @@ type ConnectionConfig struct {
 	Password string // required, RabbitMQ password
 	Vhost    string // required,
 
-	// Connection: ChannelPoolSize specifies the size of a channel pool. All channels in the pool are opened when the publisher is
-	// created. When a Publish operation is performed then a channel is taken from the pool to perform the operation and
-	// then returned to the pool once the operation has finished. If all channels are in use then the Publish operation
-	// waits until a channel is returned to the pool.
-	// If this value is set to 0 (default) then channels are not pooled and a new channel is opened/closed for every
-	// Publish operation.
-	ChannelPoolSize int
 }
 
 const (
@@ -56,16 +51,13 @@ const (
 
 var (
 	defaultConfig = &RabbitMqConfig{
-		Connection: &ConnectionConfig{
-			Port:            5672,
-			Username:        "guest",
-			Password:        "guest",
-			Vhost:           "/",
-			ChannelPoolSize: 10,
-		},
+		Port:             5672,
+		Username:         "guest",
+		Password:         "guest",
+		Vhost:            "/",
+		ChannelPoolSize:  10,
 		RequeueInFailure: true,
 		PrefetchCount:    2,
-		ExchangeType:     "fanout",
 	}
 )
 
@@ -93,24 +85,24 @@ func newConfig(configProvider intf.ConfigProvider) (*RabbitMqConfig, error) {
 }
 
 func (c *RabbitMqConfig) validate() error {
-	if c.Connection == nil || c.Connection.Host == "" {
+	if c.Host == "" {
 		return errdef.ErrInvalidConfig
 	}
 
-	if c.Connection.Port == 0 {
-		c.Connection.Port = defaultConfig.Connection.Port
+	if c.Port == 0 {
+		c.Port = defaultConfig.Port
 	}
 
-	if c.Connection.Username == "" {
-		c.Connection.Username = defaultConfig.Connection.Username
+	if c.Username == "" {
+		c.Username = defaultConfig.Username
 	}
 
-	if c.Connection.Password == "" {
-		c.Connection.Password = defaultConfig.Connection.Password
+	if c.Password == "" {
+		c.Password = defaultConfig.Password
 	}
 
-	if c.Connection.Vhost == "" {
-		c.Connection.Vhost = defaultConfig.Connection.Vhost
+	if c.Vhost == "" {
+		c.Vhost = defaultConfig.Vhost
 	}
 
 	return nil

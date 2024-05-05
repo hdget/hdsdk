@@ -21,7 +21,7 @@ type rmpSubscriberImpl struct {
 }
 
 func newSubscriber(config *RabbitMqConfig, logger intf.LoggerProvider) (intf.Subscriber, error) {
-	conn, err := newConnection(logger, config.Connection)
+	conn, err := newConnection(logger, config)
 	if err != nil {
 		return nil, fmt.Errorf("subscriber create new connection: %w", err)
 	}

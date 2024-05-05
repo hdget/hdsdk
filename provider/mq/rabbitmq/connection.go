@@ -12,7 +12,7 @@ import (
 
 // connection manages an AMQP connection.
 type connection struct {
-	config             *ConnectionConfig
+	config             *RabbitMqConfig
 	logger             intf.LoggerProvider
 	amqpConnection     *amqp.Connection
 	amqpConnectionLock sync.Mutex
@@ -33,9 +33,9 @@ var (
 )
 
 // newConnection returns a new connection manager.
-func newConnection(logger intf.LoggerProvider, connectionConfig *ConnectionConfig) (*connection, error) {
+func newConnection(logger intf.LoggerProvider, config *RabbitMqConfig) (*connection, error) {
 	cm := &connection{
-		config:    connectionConfig,
+		config:    config,
 		logger:    logger,
 		closing:   make(chan struct{}),
 		connected: make(chan struct{}),
