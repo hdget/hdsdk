@@ -15,11 +15,11 @@ import (
 // RoutingKey: publisher send message to which exchange depends on RoutingKey
 // BindingKey: exchange bind to which queue depends on BindingKey
 
-type ExchangeKind string
+type ExchangeKind int
 
 const (
-	ExchangeKindDefault ExchangeKind = ""                  // use default exchange
-	ExchangeKindDelay   ExchangeKind = "x-delayed-message" // delay exchange
+	ExchangeKindDefault ExchangeKind = iota // default exchange
+	ExchangeKindDelay                       // delay exchange
 )
 
 type ExchangeType string
@@ -76,20 +76,33 @@ func newTopology(topic string) (*Topology, error) {
 }
 
 func (t *Topology) declareExchange(amqpChannel *amqp.Channel) error {
-	var exchangeArgs amqp.Table
+	var err error
 	if t.exchangeKind == ExchangeKindDelay {
-		exchangeArgs = amqp.Table{"x-delayed-type": string(t.exchangeType)}
+		err = amqpChannel.ExchangeDeclare(
+			t.exchangeName,
+			"x-delayed-message",
+			true,
+			false,
+			false,
+			false,
+			amqp.Table{"x-delayed-type": string(t.exchangeType)},
+		)
+	} else {
+		err = amqpChannel.ExchangeDeclare(
+			t.exchangeName,
+			string(t.exchangeType),
+			true,
+			false,
+			false,
+			false,
+			nil,
+		)
+	}
+	if err != nil {
+		return err
 	}
 
-	return amqpChannel.ExchangeDeclare(
-		t.exchangeName,
-		string(t.exchangeKind),
-		true,
-		false,
-		false,
-		false,
-		exchangeArgs,
-	)
+	return nil
 }
 
 func (t *Topology) declareQueue(amqpChannel *amqp.Channel) error {
