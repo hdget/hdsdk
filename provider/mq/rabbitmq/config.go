@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"github.com/hdget/hdsdk/v2/errdef"
 	"github.com/hdget/hdsdk/v2/intf"
+	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
 )
 
@@ -50,7 +51,7 @@ const (
 )
 
 var (
-	defaultConfig = &RabbitMqConfig{
+	defaultConfig = RabbitMqConfig{
 		Port:             5672,
 		Username:         "guest",
 		Password:         "guest",
@@ -67,6 +68,7 @@ func newConfig(configProvider intf.ConfigProvider) (*RabbitMqConfig, error) {
 	}
 
 	var c *RabbitMqConfig
+	_ = copier.Copy(c, defaultConfig) // copy default config
 	err := configProvider.Unmarshal(&c, configSection)
 	if err != nil {
 		return nil, err
