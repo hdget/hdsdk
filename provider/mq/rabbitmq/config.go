@@ -67,15 +67,14 @@ func newConfig(configProvider intf.ConfigProvider) (*RabbitMqConfig, error) {
 		return nil, errdef.ErrInvalidConfig
 	}
 
-	var c *RabbitMqConfig
-	_ = copier.Copy(c, defaultConfig) // copy default config
+	// copy default config
+	var c RabbitMqConfig
+	_ = copier.Copy(&c, &defaultConfig)
+
+	// unmarshal config
 	err := configProvider.Unmarshal(&c, configSection)
 	if err != nil {
 		return nil, err
-	}
-
-	if c == nil {
-		return nil, errdef.ErrEmptyConfig
 	}
 
 	err = c.validate()
@@ -83,7 +82,7 @@ func newConfig(configProvider intf.ConfigProvider) (*RabbitMqConfig, error) {
 		return nil, errors.Wrap(err, "validate rabbitmq provider config")
 	}
 
-	return c, nil
+	return &c, nil
 }
 
 func (c *RabbitMqConfig) validate() error {
