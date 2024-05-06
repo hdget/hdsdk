@@ -54,10 +54,17 @@ func newTopology(topic string) (*Topology, error) {
 		exchangeType: ExchangeTypeFanout,
 	}
 
-	remains := topic[:index]
+	remains := topic
+	if index > -1 {
+		remains = topic[:index]
+	}
+
 	tokens := strings.Split(remains, ":")
 	switch len(tokens) {
 	case 1: // use default exchange
+		if exchangeKind == ExchangeKindDelay {
+			return nil, errors.New("default exchange doesn't support delay feature")
+		}
 		result.exchangeType = ExchangeTypeDirect
 		result.queueName = tokens[0]
 		result.routingKey = tokens[0]
