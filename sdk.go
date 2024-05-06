@@ -24,14 +24,19 @@ var (
 	_instance *SdkInstance
 )
 
-// New 默认包括logger
-func New(options ...Option) *SdkInstance {
+func New(app, env string, options ...Option) *SdkInstance {
 	if _instance == nil {
 		_instance = &SdkInstance{}
 	}
 
 	for _, option := range options {
 		option(_instance)
+	}
+
+	var err error
+	_instance.configProvider, err = viper.New(app, env)
+	if err != nil {
+		hdutils.LogFatal("new default config provider", "err", err)
 	}
 
 	return _instance
@@ -44,15 +49,6 @@ func (i *SdkInstance) LoadConfig(configVar any) *SdkInstance {
 		if err != nil {
 			hdutils.LogError("unmarshal to config var", "err", err)
 		}
-	}
-	return i
-}
-
-func (i *SdkInstance) UseDefaultConfigProvider(app, env string) *SdkInstance {
-	var err error
-	i.configProvider, err = viper.New(app, env)
-	if err != nil {
-		hdutils.LogError("new default config provider", "err", err)
 	}
 	return i
 }

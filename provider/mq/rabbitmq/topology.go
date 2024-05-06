@@ -18,8 +18,8 @@ import (
 type ExchangeKind string
 
 const (
-	ExchangeKindDefault ExchangeKind = ""               // use default exchange
-	ExchangeKindDelay   ExchangeKind = "x-delayed-type" // delay exchange
+	ExchangeKindDefault ExchangeKind = ""                  // use default exchange
+	ExchangeKindDelay   ExchangeKind = "x-delayed-message" // delay exchange
 )
 
 type ExchangeType string
@@ -78,12 +78,12 @@ func newTopology(topic string) (*Topology, error) {
 func (t *Topology) declareExchange(amqpChannel *amqp.Channel) error {
 	var exchangeArgs amqp.Table
 	if t.exchangeKind == ExchangeKindDelay {
-		exchangeArgs = amqp.Table{string(t.exchangeKind): string(t.exchangeType)}
+		exchangeArgs = amqp.Table{"x-delayed-type": string(t.exchangeType)}
 	}
 
 	return amqpChannel.ExchangeDeclare(
 		t.exchangeName,
-		string(t.exchangeType),
+		string(t.exchangeKind),
 		true,
 		false,
 		false,
