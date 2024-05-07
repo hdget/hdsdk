@@ -2,6 +2,8 @@ package rabbitmq
 
 import "github.com/hdget/hdsdk/v2/intf"
 
+// rabbitmqProvider
+// Note: most codes comes from https://github.com/ThreeDotsLabs/watermill-amqp
 type rabbitmqProvider struct {
 	config *RabbitMqConfig
 	logger intf.LoggerProvider
