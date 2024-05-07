@@ -49,28 +49,37 @@ func newTopology(topic string) (*Topology, error) {
 		exchangeKind = ExchangeKindDelay
 	}
 
-	result := &Topology{
-		exchangeKind: exchangeKind,
-		exchangeType: ExchangeTypeFanout,
-	}
-
 	remains := topic
 	if index > -1 {
 		remains = topic[:index]
 	}
 
+	var result *Topology
 	tokens := strings.Split(remains, ":")
 	switch len(tokens) {
-	case 1: // use default exchange
-		if exchangeKind == ExchangeKindDelay {
-			return nil, errors.New("default exchange doesn't support delay feature")
+	case 1:
+		switch exchangeKind {
+		case ExchangeKindDefault: // use default exchange
+			result = &Topology{
+				exchangeKind: ExchangeKindDefault,
+				exchangeType: ExchangeTypeDirect,
+				queueName:    fmt.Sprintf("%s_%s", tokens[0], tokens[0]),
+			}
+		case ExchangeKindDelay: // tokens[0] as the exchange name
+			result = &Topology{
+				exchangeKind: ExchangeKindDelay,
+				exchangeType: ExchangeTypeFanout,
+				exchangeName: tokens[0],
+				queueName:    fmt.Sprintf("%s_%s", tokens[0], tokens[0]),
+			}
 		}
-		result.exchangeType = ExchangeTypeDirect
-		result.queueName = tokens[0]
-		result.routingKey = tokens[0]
 	case 2: // use explicit exchange
-		result.exchangeName = tokens[0]
-		result.queueName = fmt.Sprintf("%s_%s", tokens[0], tokens[1])
+		result = &Topology{
+			exchangeKind: exchangeKind,
+			exchangeType: ExchangeTypeFanout,
+			exchangeName: tokens[0],
+			queueName:    fmt.Sprintf("%s_%s", tokens[0], tokens[1]),
+		}
 	}
 	return result, nil
 }
