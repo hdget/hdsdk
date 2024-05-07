@@ -63,7 +63,8 @@ func newTopology(topic string) (*Topology, error) {
 			result = &Topology{
 				exchangeKind: ExchangeKindDefault,
 				exchangeType: ExchangeTypeDirect,
-				queueName:    fmt.Sprintf("%s_%s", tokens[0], tokens[0]),
+				queueName:    tokens[0],
+				routingKey:   tokens[0],
 			}
 		case ExchangeKindDelay: // tokens[0] as the exchange name
 			result = &Topology{

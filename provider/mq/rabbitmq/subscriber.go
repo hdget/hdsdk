@@ -155,12 +155,13 @@ func (s *rmpSubscriberImpl) prepareConsumeBindings(amqpChannel *amqp.Channel, to
 		if err != nil {
 			return errors.Wrap(err, "declare exchange when prepare consume bindings")
 		}
+
+		err = topology.bindQueue(amqpChannel)
+		if err != nil {
+			return errors.Wrap(err, "bind queue when prepare consume bindings")
+		}
 	}
 
-	err = topology.bindQueue(amqpChannel)
-	if err != nil {
-		return errors.Wrap(err, "bind queue when prepare consume bindings")
-	}
 	return nil
 }
 
