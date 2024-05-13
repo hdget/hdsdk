@@ -489,12 +489,12 @@ func (r *redisClient) ZRangeByScore(key string, min, max interface{}) ([]string,
 }
 
 // ZRange get members
-func (r *redisClient) ZRange(key string, min, max int64) (map[string]string, error) {
+func (r *redisClient) ZRange(key string, min, max int64) ([]string, error) {
 	conn := r.pool.Get()
 	defer func(conn redis.Conn) {
 		_ = conn.Close()
 	}(conn)
-	return redis.StringMap(conn.Do("ZRANGE", key, min, max))
+	return redis.Strings(conn.Do("ZRANGE", key, min, max))
 }
 
 // ZAdd add a member

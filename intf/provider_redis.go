@@ -61,7 +61,7 @@ type RedisClient interface {
 	// zset
 	ZAdd(key string, score int64, member interface{}) error
 	ZCard(key string) (int, error)
-	ZRange(key string, min, max int64) (map[string]string, error)
+	ZRange(key string, min, max int64) ([]string, error)
 	ZRemRangeByScore(key string, min, max interface{}) error
 	ZRangeByScore(key string, min, max interface{}) ([]string, error)
 	ZScore(key string, member interface{}) (int64, error)
