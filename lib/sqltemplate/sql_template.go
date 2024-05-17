@@ -285,7 +285,7 @@ func (b *baseQuery) process(query string) (string, []any, error) {
 	if strings.Contains(strings.ToUpper(query), " IN ") {
 		newQuery, newArgs, err := sqlx.In(query, b.args...)
 		if err != nil {
-			return "", nil, errors.Wrap(err, "sqlx.In")
+			return "", nil, errors.Wrap(err, "sqlboiler-sqlite3-sqlx.In")
 		}
 		newQuery = hdsdk.Db().My().Rebind(newQuery)
 		return newQuery, newArgs, nil

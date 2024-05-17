@@ -1,4 +1,4 @@
-package sqlboiler
+package sqlx_mysql
 
 import (
 	"github.com/hdget/hdsdk/v2/errdef"

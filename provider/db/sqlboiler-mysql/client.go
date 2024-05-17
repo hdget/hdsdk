@@ -1,8 +1,9 @@
-package sqlboiler
+package sqlboiler_mysql
 
 import (
 	"database/sql"
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/hdget/hdsdk/v2/intf"
 	"time"
 )
@@ -11,20 +12,11 @@ type mysqlClient struct {
 	*sql.DB
 }
 
-func (m mysqlClient) Get(dest interface{}, query string, args ...interface{}) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (m mysqlClient) Select(dest interface{}, query string, args ...interface{}) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (m mysqlClient) Rebind(query string) string {
-	//TODO implement me
-	panic("implement me")
-}
+const (
+	// 这里设置解析时间类型https://github.com/go-sql-driver/mysql#timetime-support
+	// DSN (Data Type NickName): username:password@protocol(address)/dbname?param=value
+	dsnTemplate = "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local"
+)
 
 func newClient(c *mysqlConfig) (intf.DbClient, error) {
 	instance, err := newInstance(c)
@@ -55,4 +47,18 @@ func newInstance(c *mysqlConfig) (*sql.DB, error) {
 	// connection.go:173: driver: bad connection
 	db.SetConnMaxLifetime(3 * time.Minute)
 	return db, nil
+}
+
+func (m mysqlClient) Get(dest interface{}, query string, args ...interface{}) error {
+	return nil
+}
+
+func (m mysqlClient) Select(dest interface{}, query string, args ...interface{}) error {
+	//TODO implement me
+	return nil
+}
+
+func (m mysqlClient) Rebind(query string) string {
+	//TODO implement me
+	return ""
 }

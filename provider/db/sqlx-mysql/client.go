@@ -1,7 +1,8 @@
-package sqlx
+package sqlx_mysql
 
 import (
 	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/jmoiron/sqlx"
 	"time"
@@ -10,6 +11,12 @@ import (
 type mysqlClient struct {
 	*sqlx.DB
 }
+
+const (
+	// 这里设置解析时间类型https://github.com/go-sql-driver/mysql#timetime-support
+	// DSN (Data Type NickName): username:password@protocol(address)/dbname?param=value
+	dsnTemplate = "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local"
+)
 
 func newClient(c *mysqlConfig) (intf.DbClient, error) {
 	instance, err := newInstance(c)

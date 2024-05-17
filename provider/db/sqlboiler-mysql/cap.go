@@ -1,4 +1,4 @@
-package sqlx
+package sqlboiler_mysql
 
 import (
 	"github.com/hdget/hdsdk/v2/intf"
@@ -8,7 +8,7 @@ import (
 var Capability = &intf.Capability{
 	Category: intf.ProviderCategoryDb,
 	Module: fx.Module(
-		string(intf.ProviderNameSqlx),
+		string(intf.ProviderNameSqlBoilerMysql),
 		fx.Provide(New),
 	),
 }

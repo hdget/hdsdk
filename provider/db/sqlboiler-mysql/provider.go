@@ -1,7 +1,6 @@
-package sqlboiler
+package sqlboiler_mysql
 
 import (
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/pkg/errors"
 	"github.com/volatiletech/sqlboiler/v4/boil"
@@ -15,12 +14,6 @@ type mysqlProvider struct {
 	slaveDbs  []intf.DbClient
 	extraDbs  map[string]intf.DbClient
 }
-
-const (
-	// 这里设置解析时间类型https://github.com/go-sql-driver/mysql#timetime-support
-	// DSN (Data Type NickName): username:password@protocol(address)/dbname?param=value
-	dsnTemplate = "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local"
-)
 
 func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.DbProvider, error) {
 	c, err := newConfig(configProvider)
