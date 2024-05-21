@@ -24,7 +24,7 @@ type viperConfigLoader struct {
 	env        string
 	local      *viper.Viper
 	envPrefix  string      // 环境变量前缀
-	baseDir    string      // 配置文件所在的BaseDir
+	rootDirs   []string    // 配置文件所在的RootDirs
 	configType string      // 配置内容类型，e,g: toml, json
 	fileOption *fileOption // 文件配置选项
 	content    []byte      // 如果用WithConfigContent指定了配置内容，则这里不为空
@@ -34,13 +34,17 @@ type viperConfigLoader struct {
 var (
 	defaultValue = struct {
 		envPrefix  string
-		baseDir    string
+		rootDirs   []string
 		configType string
 		fileOption *fileOption
 	}{
-		envPrefix:  "HD",
-		baseDir:    filepath.Join("setting", "app"), // 其他环境的BaseDir
-		configType: "toml",                          // 缺省的配置文件类型
+		envPrefix: "HD",
+		rootDirs: []string{
+			filepath.Join("setting", "app"),          // todo: old config root dir
+			filepath.Join("config", "app"),           // new config root dir
+			filepath.Join("common", "config", "app"), // match git directory
+		}, // 其他环境的BaseDir
+		configType: "toml",
 		fileOption: &fileOption{
 			dirs: make([]string, 0),
 		},
@@ -65,7 +69,7 @@ func New(app, env string, options ...Option) (intf.ConfigProvider, error) {
 		app:        app,
 		env:        env,
 		envPrefix:  defaultValue.envPrefix,
-		baseDir:    defaultValue.baseDir,
+		rootDirs:   defaultValue.rootDirs,
 		configType: defaultValue.configType,
 		fileOption: defaultValue.fileOption,
 	}
@@ -195,22 +199,26 @@ func (p *viperConfigLoader) getDefaultConfigFilename() string {
 
 // findConfigDirs 缺省的配置文件名: <app>.<env>
 func (p *viperConfigLoader) findConfigDir() string {
-	// parent dir name
-	dirName := filepath.Join(p.baseDir, p.app)
-
 	// iter to root directory
 	absStartPath, err := filepath.Abs(".")
 	if err != nil {
 		return ""
 	}
 
+	var found string
 	matchFile := fmt.Sprintf("%s.%s.%s", p.app, p.env, p.configType)
 	currPath := absStartPath
+LOOP:
 	for {
-		s := filepath.Join(currPath, dirName, matchFile)
-		matches, err := filepath.Glob(s)
-		if err == nil && len(matches) > 0 {
-			return filepath.Join(currPath, dirName)
+		for _, rootDir := range p.rootDirs {
+			// possible parent dir name
+			dirName := filepath.Join(rootDir, p.app)
+			checkDir := filepath.Join(currPath, dirName, matchFile)
+			matches, err := filepath.Glob(checkDir)
+			if err == nil && len(matches) > 0 {
+				found = filepath.Join(currPath, dirName)
+				break LOOP
+			}
 		}
 
 		// If we're already at the root, stop finding
@@ -223,5 +231,6 @@ func (p *viperConfigLoader) findConfigDir() string {
 		// else, get parent dir
 		currPath = filepath.Dir(currPath)
 	}
-	return ""
+
+	return found
 }

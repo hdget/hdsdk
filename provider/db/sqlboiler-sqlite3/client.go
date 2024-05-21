@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/hdget/hdsdk/v2/intf"
 	_ "modernc.org/sqlite"
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -34,10 +36,13 @@ func newInstance(c *sqliteProviderConfig) (*sql.DB, error) {
 		return nil, err
 	}
 
-	err = db.Ping()
+	var userVersion int
+	err = db.QueryRow("PRAGMA user_version").Scan(&userVersion)
 	if err != nil {
 		_ = db.Close()
-		return nil, err
+
+		dir, _ := os.Getwd()
+		return nil, fmt.Errorf("fail connect db: %s", filepath.Join(dir, c.DbName))
 	}
 
 	// https://www.alexedwards.net/blog/configuring-sqldb

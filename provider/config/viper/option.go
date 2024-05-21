@@ -51,9 +51,9 @@ func WithConfigType(configType string) Option {
 	}
 }
 
-func WithBaseDir(baseDir string) Option {
+func WithRootDir(rootDir string) Option {
 	return func(c *viperConfigLoader) {
-		c.baseDir = baseDir
+		c.rootDirs = []string{rootDir}
 	}
 }
 
