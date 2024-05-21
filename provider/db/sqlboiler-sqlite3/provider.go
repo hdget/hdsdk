@@ -37,7 +37,7 @@ func (p *sqliteProvider) Init(args ...any) error {
 
 	p.defaultDb, err = newClient(p.config)
 	if err != nil {
-		return errors.Wrap(err, "init sqlite3 default connection")
+		return errors.Wrap(err, "new sqlite3 default connection")
 	}
 
 	// 设置boil的缺省db
@@ -45,6 +45,18 @@ func (p *sqliteProvider) Init(args ...any) error {
 	p.logger.Debug("init sqlite3 default", "db", p.config.DbName)
 
 	return nil
+}
+
+// Connect 从指定的文件创建创建数据库连接
+func Connect(dbFile string) (intf.DbClient, error) {
+	client, err := newClient(nil, dbFile)
+	if err != nil {
+		return nil, errors.Wrapf(err, "connect sqlite3: %s", dbFile)
+	}
+
+	// 设置boil的缺省db
+	boil.SetDB(client)
+	return client, nil
 }
 
 func (p *sqliteProvider) My() intf.DbClient {

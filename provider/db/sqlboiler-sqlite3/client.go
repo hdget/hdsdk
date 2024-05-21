@@ -20,17 +20,17 @@ const (
 	dsnTemplate = "file:%s?_loc=Local"
 )
 
-func newClient(c *sqliteProviderConfig) (intf.DbClient, error) {
-	instance, err := newInstance(c)
-	if err != nil {
-		return nil, err
+func newClient(c *sqliteProviderConfig, args ...string) (intf.DbClient, error) {
+	var absDbFile string
+	if len(args) > 0 {
+		absDbFile = args[0]
+	} else {
+		workDir, _ := os.Getwd()
+		absDbFile = filepath.Join(workDir, c.DbName)
 	}
-	return &sqliteClient{DB: instance}, nil
-}
 
-func newInstance(c *sqliteProviderConfig) (*sql.DB, error) {
 	// 构造连接参数
-	dsn := fmt.Sprintf(dsnTemplate, c.DbName)
+	dsn := fmt.Sprintf(dsnTemplate, absDbFile)
 	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, err
@@ -40,9 +40,7 @@ func newInstance(c *sqliteProviderConfig) (*sql.DB, error) {
 	err = db.QueryRow("PRAGMA user_version").Scan(&userVersion)
 	if err != nil {
 		_ = db.Close()
-
-		dir, _ := os.Getwd()
-		return nil, fmt.Errorf("fail connect db: %s", filepath.Join(dir, c.DbName))
+		return nil, fmt.Errorf("fail connect db: %s", absDbFile)
 	}
 
 	// https://www.alexedwards.net/blog/configuring-sqldb
@@ -51,7 +49,12 @@ func newInstance(c *sqliteProviderConfig) (*sql.DB, error) {
 	// packets.go:123: closing bad idle connection: EOF
 	// connection.go:173: driver: bad connection
 	db.SetConnMaxLifetime(3 * time.Minute)
-	return db, nil
+
+	return &sqliteClient{DB: db}, nil
+}
+
+func (m sqliteClient) Close() error {
+	return m.DB.Close()
 }
 
 func (m sqliteClient) Get(dest interface{}, query string, args ...interface{}) error {

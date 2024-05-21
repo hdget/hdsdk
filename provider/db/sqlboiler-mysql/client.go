@@ -19,14 +19,6 @@ const (
 )
 
 func newClient(c *mysqlConfig) (intf.DbClient, error) {
-	instance, err := newInstance(c)
-	if err != nil {
-		return nil, err
-	}
-	return &mysqlClient{DB: instance}, nil
-}
-
-func newInstance(c *mysqlConfig) (*sql.DB, error) {
 	// 构造连接参数
 	dsn := fmt.Sprintf(dsnTemplate, c.User, c.Password, c.Host, c.Port, c.Database)
 	db, err := sql.Open("mysql", dsn)
@@ -46,7 +38,12 @@ func newInstance(c *mysqlConfig) (*sql.DB, error) {
 	// packets.go:123: closing bad idle connection: EOF
 	// connection.go:173: driver: bad connection
 	db.SetConnMaxLifetime(3 * time.Minute)
-	return db, nil
+
+	return &mysqlClient{DB: db}, nil
+}
+
+func (m mysqlClient) Close() error {
+	return m.DB.Close()
 }
 
 func (m mysqlClient) Get(dest interface{}, query string, args ...interface{}) error {
