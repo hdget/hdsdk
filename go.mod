@@ -2,6 +2,8 @@ module github.com/hdget/hdsdk/v2
 
 go 1.20
 
+replace modernc.org/sqlite v1.29.10 => modernc.org/sqlite v1.29.6
+
 require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/dapr/go-sdk v1.10.1
@@ -24,7 +26,7 @@ require (
 	github.com/volatiletech/sqlboiler/v4 v4.16.2
 	go.uber.org/fx v1.21.1
 	google.golang.org/grpc v1.64.0
-	modernc.org/sqlite v1.29.10
+	modernc.org/sqlite v1.29.6
 )
 
 require (
@@ -88,7 +90,7 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/gc/v3 v3.0.0-20240107210532-573471604cb6 // indirect
-	modernc.org/libc v1.49.3 // indirect
+	modernc.org/libc v1.41.0 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.8.0 // indirect
 	modernc.org/strutil v1.2.0 // indirect
