@@ -24,7 +24,7 @@ require (
 	github.com/volatiletech/sqlboiler/v4 v4.16.2
 	go.uber.org/fx v1.21.0
 	google.golang.org/grpc v1.55.0
-	modernc.org/sqlite v1.29.9
+	modernc.org/sqlite v1.29.10
 )
 
 require (
