@@ -7,7 +7,7 @@ import (
 )
 
 type sqliteProviderConfig struct {
-	DbName string `mapstructure:"db_name"`
+	DbName string `mapstructure:"dbname"`
 }
 
 const (
