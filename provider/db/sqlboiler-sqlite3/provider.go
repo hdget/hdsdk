@@ -37,12 +37,12 @@ func (p *sqliteProvider) Init(args ...any) error {
 
 	p.defaultDb, err = newClient(p.config)
 	if err != nil {
-		return errors.Wrap(err, "new sqlite3 default connection")
+		return errors.Wrap(err, "new sqlite3 client")
 	}
 
 	// 设置boil的缺省db
 	boil.SetDB(p.defaultDb)
-	p.logger.Debug("init sqlite3 default", "db", p.config.DbName)
+	p.logger.Debug("init sqlite3 provider", "db", p.config.DbName)
 
 	return nil
 }

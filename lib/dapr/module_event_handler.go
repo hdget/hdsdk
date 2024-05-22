@@ -3,6 +3,7 @@ package dapr
 import (
 	"context"
 	"github.com/dapr/go-sdk/service/common"
+	"github.com/hdget/hdsdk/v2"
 	"github.com/hdget/hdutils"
 )
 
@@ -30,7 +31,7 @@ func (h eventHandlerImpl) GetPubSub() string {
 }
 
 func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
-	return func(ctx context.Context, event *common.TopicEvent) (retry bool, err error) {
+	return func(ctx context.Context, event *common.TopicEvent) (bool, error) {
 		// 挂载defer函数
 		defer func() {
 			if r := recover(); r != nil {
@@ -38,6 +39,15 @@ func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
 			}
 		}()
 
-		return false, nil
+		retry, err := h.fn(ctx, event)
+		if err != nil {
+			req := []rune(hdutils.BytesToString(event.RawData))
+			if len(req) > maxRequestLength {
+				req = append(req[:maxRequestLength], []rune("...")...)
+			}
+			hdsdk.Logger().Error("event invoke", "module", h.module.GetMeta().StructName, "topic", h.GetTopic(), "handler", hdutils.Reflect().GetFuncName(h.fn), "req", req, "err", err)
+		}
+
+		return retry, err
 	}
 }

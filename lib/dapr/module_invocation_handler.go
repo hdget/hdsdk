@@ -58,7 +58,7 @@ func (h invocationHandlerImpl) GetInvokeFunction() common.ServiceInvocationHandl
 			if len(req) > maxRequestLength {
 				req = append(req[:maxRequestLength], []rune("...")...)
 			}
-			hdsdk.Logger().Error("handle", "module", h.module.GetMeta().StructName, "fnName", hdutils.Reflect().GetFuncName(h.fn), "err", err, "req", req)
+			hdsdk.Logger().Error("service invoke", "module", h.module.GetMeta().StructName, "handler", hdutils.Reflect().GetFuncName(h.fn), "err", err, "req", req)
 			return Error(err)
 		}
 
