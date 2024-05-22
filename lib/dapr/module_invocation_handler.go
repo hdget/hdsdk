@@ -15,8 +15,7 @@ type InvocationHandler interface {
 }
 
 type invocationHandlerImpl struct {
-	app        string
-	moduleInfo *ModuleInfo
+	module Moduler
 	// handler的别名，
 	// 如果DiscoverHandlers调用, 会将函数名作为入参，matchFunction的返回值当作别名，缺省是去除Handler后缀并小写
 	// 如果RegisterHandlers调用，会直接用map的key值当为别名
@@ -32,16 +31,6 @@ var (
 	maxRequestLength = 120
 )
 
-func newInvocationHandler(app, handlerAlias string, moduleInfo *ModuleInfo, fn InvocationFunction) InvocationHandler {
-	return &invocationHandlerImpl{
-		app:          app,
-		handlerAlias: handlerAlias,
-		handlerName:  hdutils.Reflect().GetFuncName(fn),
-		moduleInfo:   moduleInfo,
-		fn:           fn,
-	}
-}
-
 func (h invocationHandlerImpl) GetAlias() string {
 	return h.handlerAlias
 }
@@ -51,7 +40,7 @@ func (h invocationHandlerImpl) GetName() string {
 }
 
 func (h invocationHandlerImpl) GetInvokeName() string {
-	return Api().GetServiceInvocationName(h.moduleInfo.ModuleVersion, h.moduleInfo.Name, h.handlerAlias)
+	return Api().GetServiceInvocationName(h.module.GetMeta().ModuleVersion, h.module.GetMeta().ModuleName, h.handlerAlias)
 }
 
 func (h invocationHandlerImpl) GetInvokeFunction() common.ServiceInvocationHandler {
@@ -59,7 +48,7 @@ func (h invocationHandlerImpl) GetInvokeFunction() common.ServiceInvocationHandl
 		// 挂载defer函数
 		defer func() {
 			if r := recover(); r != nil {
-				hdutils.RecordErrorStack(h.app)
+				hdutils.RecordErrorStack(h.module.GetApp())
 			}
 		}()
 
@@ -69,7 +58,7 @@ func (h invocationHandlerImpl) GetInvokeFunction() common.ServiceInvocationHandl
 			if len(req) > maxRequestLength {
 				req = append(req[:maxRequestLength], []rune("...")...)
 			}
-			hdsdk.Logger().Error("handle", "module", h.moduleInfo.Name, "fnName", hdutils.Reflect().GetFuncName(h.fn), "err", err, "req", req)
+			hdsdk.Logger().Error("handle", "module", h.module.GetMeta().StructName, "fnName", hdutils.Reflect().GetFuncName(h.fn), "err", err, "req", req)
 			return Error(err)
 		}
 

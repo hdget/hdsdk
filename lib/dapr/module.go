@@ -7,40 +7,70 @@ import (
 	"strconv"
 )
 
+type Moduler interface {
+	GetApp() string
+	GetMeta() *ModuleMeta
+}
+
 var (
-	regModuleName    = regexp.MustCompile(`^[vV]([0-9]+)_([a-zA-Z0-9]+)`)
-	errInvalidModule = errors.New("invalid module, it must be struct")
+	regModuleName        = regexp.MustCompile(`^[vV]([0-9]+)_([a-zA-Z0-9]+)`)
+	errInvalidModule     = errors.New("invalid module, it must be struct")
+	errInvalidModuleName = errors.New("invalid module name, it should be: v<number>_name, e,g: v1_abc")
+	handlerNameSuffix    = "handler"
 )
 
-type ModuleInfo struct {
-	Name          string // 结构名, 格式: "v<模块版本号>_<模块名>"
+type baseModule struct {
+	App  string      // 应用名称
+	Meta *ModuleMeta // 模块的元数据信息
+}
+
+type ModuleMeta struct {
+	StructName    string // 模块结构体的全名, 格式: "v<模块版本号>_<模块名>"
 	ModuleName    string // 模块名
 	ModuleVersion int    // 模块版本号
 }
 
-// parseModuleInfo 从约定的结构名中解析模块名和版本, 结构名需要为v<number>_<module>
-func parseModuleInfo(moduleObject any) (*ModuleInfo, error) {
+// newModule 从约定的结构名中解析模块名和版本, 结构名需要为v<number>_<module>
+func newModule(app string, moduleObject any) (Moduler, error) {
 	structName := hdutils.Reflect().GetStructName(moduleObject)
 	if structName == "" {
 		return nil, errInvalidModule
 	}
-	return toModuleInfo(structName)
+
+	meta, err := parseModuleMeta(structName)
+	if err != nil {
+		return nil, err
+	}
+
+	return &baseModule{
+		App:  app,
+		Meta: meta,
+	}, nil
 }
 
-// toModuleInfo 将结构名转换为模块信息
-func toModuleInfo(structName string) (*ModuleInfo, error) {
+func (m *baseModule) GetApp() string {
+	return m.App
+}
+
+// GetMeta 获取模块元数据信息
+func (m *baseModule) GetMeta() *ModuleMeta {
+	return m.Meta
+}
+
+func parseModuleMeta(structName string) (*ModuleMeta, error) {
 	tokens := regModuleName.FindStringSubmatch(structName)
 	if len(tokens) != 3 {
 		return nil, errInvalidModuleName
 	}
-	version, err := strconv.Atoi(tokens[1])
+
+	moduleVersion, err := strconv.Atoi(tokens[1])
 	if err != nil {
 		return nil, errInvalidModuleName
 	}
 
-	return &ModuleInfo{
-		Name:          structName,
+	return &ModuleMeta{
+		StructName:    structName,
 		ModuleName:    tokens[2],
-		ModuleVersion: version,
+		ModuleVersion: moduleVersion,
 	}, nil
 }

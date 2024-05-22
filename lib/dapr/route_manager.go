@@ -69,8 +69,8 @@ func (rm RouteManagerImpl) GetRouteItems(handlerNameMatchers ...HandlerNameMatch
 
 				routeItems = append(routeItems, &protobuf.RouteItem{
 					App:           moduleInstance.GetApp(),
-					ModuleVersion: int32(moduleInstance.GetInfo().ModuleVersion),
-					ModuleName:    moduleInstance.GetInfo().ModuleName,
+					ModuleVersion: int32(moduleInstance.GetMeta().ModuleVersion),
+					ModuleName:    moduleInstance.GetMeta().ModuleName,
 					Handler:       ann.HandlerAlias,
 					Endpoint:      ann.Endpoint,
 					HttpMethod:    httpMethod,

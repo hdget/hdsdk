@@ -22,6 +22,7 @@ type serverImpl struct {
 
 var (
 	_moduleName2invocationModule = make(map[string]InvocationModule) // service invocation module
+	_moduleName2eventModule      = make(map[string]EventModule)      // topic event module
 )
 
 func NewGrpcServer(address string) (Server, error) {
@@ -105,16 +106,26 @@ func (impl *serverImpl) GetInvocationHandlers() map[string]common.ServiceInvocat
 	return handlers
 }
 
+func (impl *serverImpl) GetEvents() []Event {
+	// 获取handlers
+	events := make([]Event, 0)
+	for _, m := range _moduleName2eventModule {
+		for _, h := range m.GetHandlers() {
+			events = append(events, GetEvent(h.GetPubSub(), h.GetTopic(), h.GetEventFunction()))
+		}
+	}
+	return events
+}
+
 // GetBindingHandlers todo:需要通过反射获取bindingHandlers
 func (impl *serverImpl) GetBindingHandlers() map[string]common.BindingInvocationHandler {
 	return nil
 }
 
-// GetEvents todo:需要通过反射获取events
-func (impl *serverImpl) GetEvents() []Event {
-	return nil
+func registerInvocationModule(module InvocationModule) {
+	_moduleName2invocationModule[module.GetMeta().ModuleName] = module
 }
 
-func registerInvocationModule(module InvocationModule) {
-	_moduleName2invocationModule[module.GetInfo().ModuleName] = module
+func registerEventModule(module EventModule) {
+	_moduleName2eventModule[module.GetMeta().ModuleName] = module
 }

@@ -9,60 +9,29 @@ import (
 )
 
 type InvocationModule interface {
-	GetInfo() *ModuleInfo                                                                       // 获取模块基本信息
-	GetApp() string                                                                             // 获取APP
+	Moduler
 	DiscoverHandlers(args ...HandlerNameMatcher) ([]InvocationHandler, error)                   // 通过反射发现Handlers
 	RegisterHandlers(functions map[string]InvocationFunction) error                             // 注册Handlers
-	GetHandlers() []InvocationHandler                                                           // 获取手动注册的handlers
+	GetHandlers() []InvocationHandler                                                           // 获取handlers
 	GetRouteAnnotations(srcPath string, args ...HandlerNameMatcher) ([]*RouteAnnotation, error) // 从源代码获取路由注解
 }
 
 type invocationModuleImpl struct {
-	*ModuleInfo
-	concrete any // 实际module
-	App      string
+	Moduler
+	self     any // 实际module实例
 	handlers []InvocationHandler
 }
 
 var (
-	handlerNameSuffix    = "handler"
-	errInvalidModuleName = errors.New("invalid module name, it should be: v<number>_name, e,g: v1_abc")
-	errInvalidFunction   = errors.New("invalid invocation function signature, it should be: func(context.Context, *common.InvocationEvent) (any, error)")
-
-	_ InvocationModule = (*invocationModuleImpl)(nil)
+	errInvalidInvocationFunction                  = errors.New("invalid invocation function signature, it should be: func(context.Context, *common.InvocationEvent) (any, error)")
+	_                            InvocationModule = (*invocationModuleImpl)(nil)
 )
 
-func AsInvocationModule(app string, moduleObject any) (InvocationModule, error) {
-	modInfo, err := parseModuleInfo(moduleObject)
-	if err != nil {
-		return nil, err
-	}
-
-	moduleInstance := &invocationModuleImpl{
-		ModuleInfo: modInfo,
-		concrete:   moduleObject,
-		App:        app,
-	}
-
-	// 初始化module
-	err = hdutils.Reflect().StructSet(moduleObject, (*InvocationModule)(nil), moduleInstance)
-	if err != nil {
-		return nil, errors.Wrapf(err, "install module: %+v", moduleInstance.GetInfo())
-	}
-
-	module, ok := moduleObject.(InvocationModule)
-	if !ok {
-		return nil, errors.New("invalid invocation module")
-	}
-
-	return module, nil
-}
-
-// AnnotateInvocationModule 注解模块会执行下列操作:
+// NewInvocationModule 新建服务调用模块会执行下列操作:
 // 1. 实例化invocation module
 // 2. 注册invocation functions
 // 3. 注册module
-func AnnotateInvocationModule(app string, moduleObject InvocationModule, functions map[string]InvocationFunction) error {
+func NewInvocationModule(app string, moduleObject InvocationModule, functions map[string]InvocationFunction) error {
 	// 首先实例化module
 	module, err := AsInvocationModule(app, moduleObject)
 	if err != nil {
@@ -81,11 +50,50 @@ func AnnotateInvocationModule(app string, moduleObject InvocationModule, functio
 	return nil
 }
 
+// AsInvocationModule 将一个any类型的结构体转换成InvocationModule
+//
+// e,g:
+//
+//		type v1_test struct {
+//		  InvocationModule
+//		}
+//
+//		 v := &v1_test{}
+//		 im, err := AsInvocationModule("app",v)
+//	     if err != nil {
+//	      ...
+//	     }
+//	     im.DiscoverHandlers()
+func AsInvocationModule(app string, moduleObject any) (InvocationModule, error) {
+	m, err := newModule(app, moduleObject)
+	if err != nil {
+		return nil, err
+	}
+
+	moduleInstance := &invocationModuleImpl{
+		Moduler: m,
+		self:    moduleObject,
+	}
+
+	// 初始化module
+	err = hdutils.Reflect().StructSet(moduleObject, (*InvocationModule)(nil), moduleInstance)
+	if err != nil {
+		return nil, errors.Wrapf(err, "install module: %+v", m)
+	}
+
+	module, ok := moduleObject.(InvocationModule)
+	if !ok {
+		return nil, errors.New("invalid invocation module")
+	}
+
+	return module, nil
+}
+
 // RegisterHandlers 参数handlers为alias=>receiver.fnName, 保存为handler.id=>*invocationHandler
 func (m *invocationModuleImpl) RegisterHandlers(functions map[string]InvocationFunction) error {
 	m.handlers = make([]InvocationHandler, 0)
 	for handlerAlias, fn := range functions {
-		m.handlers = append(m.handlers, newInvocationHandler(m.App, handlerAlias, m.ModuleInfo, fn))
+		m.handlers = append(m.handlers, m.newInvocationHandler(m.Moduler, handlerAlias, fn))
 	}
 	return nil
 }
@@ -99,7 +107,7 @@ func (m *invocationModuleImpl) DiscoverHandlers(args ...HandlerNameMatcher) ([]I
 
 	handlers := make([]InvocationHandler, 0)
 	// 这里需要传入当前实际正在使用的服务模块，即带有common.ServiceInvocationHandler的struct实例
-	for methodName, method := range hdutils.Reflect().MatchReceiverMethods(m.concrete, InvocationFunction(nil)) {
+	for methodName, method := range hdutils.Reflect().MatchReceiverMethods(m.self, InvocationFunction(nil)) {
 		handlerName, matched := matchFn(methodName)
 		if !matched {
 			continue
@@ -110,7 +118,7 @@ func (m *invocationModuleImpl) DiscoverHandlers(args ...HandlerNameMatcher) ([]I
 			return nil, err
 		}
 
-		handlers = append(handlers, newInvocationHandler(m.App, handlerName, m.ModuleInfo, fn))
+		handlers = append(handlers, m.newInvocationHandler(m.Moduler, handlerName, fn))
 	}
 
 	return handlers, nil
@@ -120,12 +128,13 @@ func (m *invocationModuleImpl) GetHandlers() []InvocationHandler {
 	return m.handlers
 }
 
-func (m *invocationModuleImpl) GetInfo() *ModuleInfo {
-	return m.ModuleInfo
-}
-
-func (m *invocationModuleImpl) GetApp() string {
-	return m.App
+func (m *invocationModuleImpl) newInvocationHandler(module Moduler, handlerAlias string, fn InvocationFunction) InvocationHandler {
+	return &invocationHandlerImpl{
+		handlerAlias: handlerAlias,
+		handlerName:  hdutils.Reflect().GetFuncName(fn),
+		module:       module,
+		fn:           fn,
+	}
 }
 
 func (m *invocationModuleImpl) toInvocationFunction(fn any) (InvocationFunction, error) {
@@ -134,7 +143,7 @@ func (m *invocationModuleImpl) toInvocationFunction(fn any) (InvocationFunction,
 	if !ok {
 		realFunction, ok = fn.(func(context.Context, *common.InvocationEvent) (any, error))
 		if !ok {
-			return nil, errInvalidFunction
+			return nil, errInvalidInvocationFunction
 		}
 	}
 	return realFunction, nil
