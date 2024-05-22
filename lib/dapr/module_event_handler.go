@@ -5,6 +5,7 @@ import (
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/v2"
 	"github.com/hdget/hdutils"
+	"sync"
 )
 
 type EventHandler interface {
@@ -20,6 +21,11 @@ type eventHandlerImpl struct {
 
 type EventFunction func(ctx context.Context, event *common.TopicEvent) (retry bool, err error)
 
+var (
+	// 记录正在处理的消息
+	processingMessages = sync.Map{}
+)
+
 func (h eventHandlerImpl) GetTopic() string {
 	return h.topic
 }
@@ -33,20 +39,29 @@ func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
 			}
 		}()
 
-		// 强制设置超时时间
-		ctx, cancel := context.WithTimeout(ctx, h.module.GetConsumerTimeout())
-		defer cancel()
+		// 冥等处理，如果消息正正在处理中，直接ACK
+		if _, exists := processingMessages.Load(event.ID); exists {
+			hdsdk.Logger().Warn("same message received or message is processingMessages", "module", h.module.GetMeta().StructName, "topic", h.GetTopic(), "handler", hdutils.Reflect().GetFuncName(h.fn), "message", trimData(event.RawData))
+			return false, nil
+		} else {
+			processingMessages.Store(event.ID, struct{}{})
+		}
+		defer processingMessages.Delete(event.ID)
 
 		// 执行具体的函数
 		retry, err := h.fn(ctx, event)
 		if err != nil {
-			req := []rune(hdutils.BytesToString(event.RawData))
-			if len(req) > maxRequestLength {
-				req = append(req[:maxRequestLength], []rune("...")...)
-			}
-			hdsdk.Logger().Error("event invoke", "module", h.module.GetMeta().StructName, "topic", h.GetTopic(), "handler", hdutils.Reflect().GetFuncName(h.fn), "req", req, "err", err)
+			hdsdk.Logger().Error("event processingMessages", "module", h.module.GetMeta().StructName, "topic", h.GetTopic(), "handler", hdutils.Reflect().GetFuncName(h.fn), "message", trimData(event.RawData), "err", err)
 		}
 
 		return retry, err
 	}
+}
+
+func trimData(data []byte) []rune {
+	trimmed := []rune(hdutils.BytesToString(data))
+	if len(trimmed) > maxRequestLength {
+		trimmed = append(trimmed[:maxRequestLength], []rune("...")...)
+	}
+	return trimmed
 }

@@ -3,22 +3,19 @@ package dapr
 import (
 	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
-	"time"
 )
 
 type EventModule interface {
 	Moduler
 	RegisterHandlers(functions map[string]EventFunction) error // 注册Handlers
 	GetHandlers() []EventHandler                               // 获取handlers
-	GetConsumerTimeout() time.Duration
 	GetPubSub() string
 }
 
 type eventModuleImpl struct {
 	Moduler
-	pubsub          string // 消息中间件名称定义在dapr配置中
-	handlers        []EventHandler
-	consumerTimeout time.Duration
+	pubsub   string // 消息中间件名称定义在dapr配置中
+	handlers []EventHandler
 }
 
 var (
@@ -66,9 +63,8 @@ func AsEventModule(app, pubsub string, moduleObject any, options ...EventModuleO
 	}
 
 	moduleInstance := &eventModuleImpl{
-		Moduler:         m,
-		pubsub:          pubsub,
-		consumerTimeout: 29 * time.Minute,
+		Moduler: m,
+		pubsub:  pubsub,
 	}
 
 	for _, option := range options {
@@ -100,10 +96,6 @@ func (m *eventModuleImpl) RegisterHandlers(functions map[string]EventFunction) e
 
 func (m *eventModuleImpl) GetHandlers() []EventHandler {
 	return m.handlers
-}
-
-func (m *eventModuleImpl) GetConsumerTimeout() time.Duration {
-	return m.consumerTimeout
 }
 
 func (m *eventModuleImpl) GetPubSub() string {
