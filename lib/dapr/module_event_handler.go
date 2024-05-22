@@ -37,7 +37,7 @@ func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
 		ctx, cancel := context.WithTimeout(ctx, h.module.GetConsumerTimeout())
 		defer cancel()
 
-		//开始时间
+		// 执行具体的函数
 		retry, err := h.fn(ctx, event)
 		if err != nil {
 			req := []rune(hdutils.BytesToString(event.RawData))
