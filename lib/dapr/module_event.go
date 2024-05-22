@@ -22,7 +22,7 @@ var (
 )
 
 // NewEventModule 新建事件模块会执行下列操作:
-func NewEventModule(app, pubsub string, moduleObject InvocationModule, functions map[string]EventFunction) error {
+func NewEventModule(app, pubsub string, moduleObject EventModule, functions map[string]EventFunction) error {
 	// 首先实例化module
 	module, err := AsEventModule(app, pubsub, moduleObject)
 	if err != nil {
