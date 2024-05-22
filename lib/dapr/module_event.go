@@ -67,7 +67,7 @@ func AsEventModule(app, pubsub string, moduleObject any) (EventModule, error) {
 	}
 
 	// 初始化module
-	err = hdutils.Reflect().StructSet(moduleObject, (*InvocationModule)(nil), moduleInstance)
+	err = hdutils.Reflect().StructSet(moduleObject, (*EventModule)(nil), moduleInstance)
 	if err != nil {
 		return nil, errors.Wrapf(err, "install module: %+v", m)
 	}
