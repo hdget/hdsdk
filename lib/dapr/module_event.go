@@ -3,18 +3,22 @@ package dapr
 import (
 	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
+	"time"
 )
 
 type EventModule interface {
 	Moduler
 	RegisterHandlers(functions map[string]EventFunction) error // 注册Handlers
 	GetHandlers() []EventHandler                               // 获取handlers
+	GetConsumerTimeout() time.Duration
+	GetPubSub() string
 }
 
 type eventModuleImpl struct {
 	Moduler
-	pubsub   string // 消息中间件名称定义在dapr配置中
-	handlers []EventHandler
+	pubsub          string // 消息中间件名称定义在dapr配置中
+	handlers        []EventHandler
+	consumerTimeout time.Duration
 }
 
 var (
@@ -22,9 +26,9 @@ var (
 )
 
 // NewEventModule 新建事件模块会执行下列操作:
-func NewEventModule(app, pubsub string, moduleObject EventModule, functions map[string]EventFunction) error {
+func NewEventModule(app, pubsub string, moduleObject EventModule, functions map[string]EventFunction, options ...EventModuleOption) error {
 	// 首先实例化module
-	module, err := AsEventModule(app, pubsub, moduleObject)
+	module, err := AsEventModule(app, pubsub, moduleObject, options...)
 	if err != nil {
 		return err
 	}
@@ -55,15 +59,20 @@ func NewEventModule(app, pubsub string, moduleObject EventModule, functions map[
 //	      ...
 //	     }
 //	     im.DiscoverHandlers()
-func AsEventModule(app, pubsub string, moduleObject any) (EventModule, error) {
+func AsEventModule(app, pubsub string, moduleObject any, options ...EventModuleOption) (EventModule, error) {
 	m, err := newModule(app, moduleObject)
 	if err != nil {
 		return nil, err
 	}
 
 	moduleInstance := &eventModuleImpl{
-		Moduler: m,
-		pubsub:  pubsub,
+		Moduler:         m,
+		pubsub:          pubsub,
+		consumerTimeout: 29 * time.Minute,
+	}
+
+	for _, option := range options {
+		option(moduleInstance)
 	}
 
 	// 初始化module
@@ -84,7 +93,7 @@ func AsEventModule(app, pubsub string, moduleObject any) (EventModule, error) {
 func (m *eventModuleImpl) RegisterHandlers(functions map[string]EventFunction) error {
 	m.handlers = make([]EventHandler, 0)
 	for topic, fn := range functions {
-		m.handlers = append(m.handlers, m.newEventHandler(m.Moduler, m.pubsub, topic, fn))
+		m.handlers = append(m.handlers, m.newEventHandler(m, topic, fn))
 	}
 	return nil
 }
@@ -93,10 +102,17 @@ func (m *eventModuleImpl) GetHandlers() []EventHandler {
 	return m.handlers
 }
 
-func (m *eventModuleImpl) newEventHandler(module Moduler, pubsub, topic string, fn EventFunction) EventHandler {
+func (m *eventModuleImpl) GetConsumerTimeout() time.Duration {
+	return m.consumerTimeout
+}
+
+func (m *eventModuleImpl) GetPubSub() string {
+	return m.pubsub
+}
+
+func (m *eventModuleImpl) newEventHandler(module EventModule, topic string, fn EventFunction) EventHandler {
 	return &eventHandlerImpl{
 		module: module,
-		pubsub: pubsub,
 		topic:  topic,
 		fn:     fn,
 	}

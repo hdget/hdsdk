@@ -111,7 +111,7 @@ func (impl *serverImpl) GetEvents() []Event {
 	events := make([]Event, 0)
 	for _, m := range _moduleName2eventModule {
 		for _, h := range m.GetHandlers() {
-			events = append(events, GetEvent(h.GetPubSub(), h.GetTopic(), h.GetEventFunction()))
+			events = append(events, GetEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction()))
 		}
 	}
 	return events

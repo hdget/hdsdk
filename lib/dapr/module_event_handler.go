@@ -9,13 +9,11 @@ import (
 
 type EventHandler interface {
 	GetTopic() string
-	GetPubSub() string
 	GetEventFunction() common.TopicEventHandler
 }
 
 type eventHandlerImpl struct {
-	module Moduler
-	pubsub string        // 消息中间件名称定义在dapr配置中
+	module EventModule
 	topic  string        // 订阅主题
 	fn     EventFunction // 调用函数
 }
@@ -24,10 +22,6 @@ type EventFunction func(ctx context.Context, event *common.TopicEvent) (retry bo
 
 func (h eventHandlerImpl) GetTopic() string {
 	return h.topic
-}
-
-func (h eventHandlerImpl) GetPubSub() string {
-	return h.pubsub
 }
 
 func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
@@ -39,6 +33,11 @@ func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
 			}
 		}()
 
+		// 强制设置超时时间
+		ctx, cancel := context.WithTimeout(ctx, h.module.GetConsumerTimeout())
+		defer cancel()
+
+		//开始时间
 		retry, err := h.fn(ctx, event)
 		if err != nil {
 			req := []rune(hdutils.BytesToString(event.RawData))
