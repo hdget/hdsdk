@@ -5,7 +5,7 @@ import (
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/v2"
 	"github.com/hdget/hdutils"
-	"sync"
+	"time"
 )
 
 type eventHandler interface {
@@ -19,12 +19,12 @@ type eventHandlerImpl struct {
 	fn     EventFunction // 调用函数
 }
 
-type EventFunction func(ctx context.Context, event *common.TopicEvent) (retry bool, err error)
+type handleResult struct {
+	retry bool
+	err   error
+}
 
-var (
-	// 记录正在处理的消息
-	processingMessages = sync.Map{}
-)
+type EventFunction func(ctx context.Context, event *common.TopicEvent) (retry bool, err error)
 
 func (h eventHandlerImpl) GetTopic() string {
 	return h.topic
@@ -32,29 +32,36 @@ func (h eventHandlerImpl) GetTopic() string {
 
 func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
 	return func(ctx context.Context, event *common.TopicEvent) (bool, error) {
-		// 挂载defer函数
-		defer func() {
-			if r := recover(); r != nil {
-				hdutils.RecordErrorStack(h.module.GetApp())
+		// 在go routine中执行具体的函数
+		quit := make(chan *handleResult, 1)
+		go func(quit chan *handleResult) {
+			var retry bool
+			var err error
+			// 挂载defer函数
+			defer func() {
+				if r := recover(); r != nil {
+					hdutils.RecordErrorStack(h.module.GetApp())
+				}
+				quit <- &handleResult{
+					retry: retry,
+					err:   err,
+				}
+			}()
+
+			// 执行具体的函数
+			retry, err = h.fn(ctx, event)
+		}(quit)
+
+		select {
+		case <-time.After(h.module.GetAckTimeout() - 1*time.Minute):
+			hdsdk.Logger().Error("event processing timeout", "module", h.module.GetMeta().StructName, "topic", h.GetTopic(), "handler", hdutils.Reflect().GetFuncName(h.fn), "message", trimData(event.RawData))
+			return false, nil // 丢弃消息不重试
+		case ret := <-quit:
+			if ret.err != nil {
+				hdsdk.Logger().Error("event processing done", "module", h.module.GetMeta().StructName, "topic", h.GetTopic(), "handler", hdutils.Reflect().GetFuncName(h.fn), "message", trimData(event.RawData), "err", ret.err)
 			}
-		}()
-
-		// 冥等处理，如果消息正正在处理中，直接ACK
-		if _, exists := processingMessages.Load(event.ID); exists {
-			hdsdk.Logger().Warn("same message received or message is processingMessages", "module", h.module.GetMeta().StructName, "topic", h.GetTopic(), "handler", hdutils.Reflect().GetFuncName(h.fn), "message", trimData(event.RawData))
-			return false, nil
-		} else {
-			processingMessages.Store(event.ID, struct{}{})
+			return ret.retry, ret.err
 		}
-		defer processingMessages.Delete(event.ID)
-
-		// 执行具体的函数
-		retry, err := h.fn(ctx, event)
-		if err != nil {
-			hdsdk.Logger().Error("event processingMessages", "module", h.module.GetMeta().StructName, "topic", h.GetTopic(), "handler", hdutils.Reflect().GetFuncName(h.fn), "message", trimData(event.RawData), "err", err)
-		}
-
-		return retry, err
 	}
 }
 

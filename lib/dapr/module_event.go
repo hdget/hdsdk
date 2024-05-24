@@ -3,6 +3,7 @@ package dapr
 import (
 	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
+	"time"
 )
 
 type EventModule interface {
@@ -10,16 +11,19 @@ type EventModule interface {
 	RegisterHandlers(functions map[string]EventFunction) error // 注册Handlers
 	GetHandlers() []eventHandler                               // 获取handlers
 	GetPubSub() string
+	GetAckTimeout() time.Duration
 }
 
 type eventModuleImpl struct {
 	moduler
-	pubsub   string // 消息中间件名称定义在dapr配置中
-	handlers []eventHandler
+	pubsub     string // 消息中间件名称定义在dapr配置中
+	handlers   []eventHandler
+	ackTimeout time.Duration
 }
 
 var (
-	_ EventModule = (*eventModuleImpl)(nil)
+	_                 EventModule = (*eventModuleImpl)(nil)
+	defaultAckTimeout             = 30 * time.Minute
 )
 
 // NewEventModule 新建事件模块会执行下列操作:
@@ -63,8 +67,9 @@ func AsEventModule(app, pubsub string, moduleObject any, options ...EventModuleO
 	}
 
 	moduleInstance := &eventModuleImpl{
-		moduler: m,
-		pubsub:  pubsub,
+		moduler:    m,
+		pubsub:     pubsub,
+		ackTimeout: defaultAckTimeout,
 	}
 
 	for _, option := range options {
@@ -100,6 +105,10 @@ func (m *eventModuleImpl) GetHandlers() []eventHandler {
 
 func (m *eventModuleImpl) GetPubSub() string {
 	return m.pubsub
+}
+
+func (m *eventModuleImpl) GetAckTimeout() time.Duration {
+	return m.ackTimeout
 }
 
 func (m *eventModuleImpl) newEventHandler(module EventModule, topic string, fn EventFunction) eventHandler {
