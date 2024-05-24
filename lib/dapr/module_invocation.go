@@ -9,17 +9,17 @@ import (
 )
 
 type InvocationModule interface {
-	Moduler
-	DiscoverHandlers(args ...HandlerNameMatcher) ([]InvocationHandler, error)                   // 通过反射发现Handlers
+	moduler
+	DiscoverHandlers(args ...HandlerNameMatcher) ([]invocationHandler, error)                   // 通过反射发现Handlers
 	RegisterHandlers(functions map[string]InvocationFunction) error                             // 注册Handlers
-	GetHandlers() []InvocationHandler                                                           // 获取handlers
+	GetHandlers() []invocationHandler                                                           // 获取handlers
 	GetRouteAnnotations(srcPath string, args ...HandlerNameMatcher) ([]*RouteAnnotation, error) // 从源代码获取路由注解
 }
 
 type invocationModuleImpl struct {
-	Moduler
+	moduler
 	self     any // 实际module实例
-	handlers []InvocationHandler
+	handlers []invocationHandler
 }
 
 var (
@@ -71,7 +71,7 @@ func AsInvocationModule(app string, moduleObject any) (InvocationModule, error) 
 	}
 
 	moduleInstance := &invocationModuleImpl{
-		Moduler: m,
+		moduler: m,
 		self:    moduleObject,
 	}
 
@@ -91,21 +91,21 @@ func AsInvocationModule(app string, moduleObject any) (InvocationModule, error) 
 
 // RegisterHandlers 参数handlers为alias=>receiver.fnName, 保存为handler.id=>*invocationHandler
 func (m *invocationModuleImpl) RegisterHandlers(functions map[string]InvocationFunction) error {
-	m.handlers = make([]InvocationHandler, 0)
+	m.handlers = make([]invocationHandler, 0)
 	for handlerAlias, fn := range functions {
-		m.handlers = append(m.handlers, m.newInvocationHandler(m.Moduler, handlerAlias, fn))
+		m.handlers = append(m.handlers, m.newInvocationHandler(m.moduler, handlerAlias, fn))
 	}
 	return nil
 }
 
 // DiscoverHandlers 获取Module作为receiver的所有MethodMatchFunction匹配的方法, MethodMatchFunction生成新的方法名和判断是否匹配
-func (m *invocationModuleImpl) DiscoverHandlers(args ...HandlerNameMatcher) ([]InvocationHandler, error) {
+func (m *invocationModuleImpl) DiscoverHandlers(args ...HandlerNameMatcher) ([]invocationHandler, error) {
 	matchFn := m.defaultHandlerNameMatcher
 	if len(args) > 0 {
 		matchFn = args[0]
 	}
 
-	handlers := make([]InvocationHandler, 0)
+	handlers := make([]invocationHandler, 0)
 	// 这里需要传入当前实际正在使用的服务模块，即带有common.ServiceInvocationHandler的struct实例
 	for methodName, method := range hdutils.Reflect().MatchReceiverMethods(m.self, InvocationFunction(nil)) {
 		handlerName, matched := matchFn(methodName)
@@ -118,17 +118,17 @@ func (m *invocationModuleImpl) DiscoverHandlers(args ...HandlerNameMatcher) ([]I
 			return nil, err
 		}
 
-		handlers = append(handlers, m.newInvocationHandler(m.Moduler, handlerName, fn))
+		handlers = append(handlers, m.newInvocationHandler(m.moduler, handlerName, fn))
 	}
 
 	return handlers, nil
 }
 
-func (m *invocationModuleImpl) GetHandlers() []InvocationHandler {
+func (m *invocationModuleImpl) GetHandlers() []invocationHandler {
 	return m.handlers
 }
 
-func (m *invocationModuleImpl) newInvocationHandler(module Moduler, handlerAlias string, fn InvocationFunction) InvocationHandler {
+func (m *invocationModuleImpl) newInvocationHandler(module moduler, handlerAlias string, fn InvocationFunction) invocationHandler {
 	return &invocationHandlerImpl{
 		handlerAlias: handlerAlias,
 		handlerName:  hdutils.Reflect().GetFuncName(fn),

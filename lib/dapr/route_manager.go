@@ -12,8 +12,8 @@ import (
 )
 
 type RouteManager interface {
-	GetRouteItems(args ...HandlerNameMatcher) ([]*protobuf.RouteItem, error) // 获取路由项
-	GetModulePath() string                                                   // 获取模块路径
+	DiscoverRouteItems(args ...HandlerNameMatcher) ([]*protobuf.RouteItem, error) // 获取路由项
+	GetModulePath() string                                                        // 获取invocation module的路径
 }
 
 type RouteManagerImpl struct {
@@ -27,18 +27,18 @@ const (
 
 // NewRouteManager 获取RouteManager
 func NewRouteManager(baseDir string, skipDirs ...string) (RouteManager, error) {
-	relModulePath, err := findModulePath(baseDir, skipDirs...)
+	foundRelModulePath, err := findModulePath(baseDir, skipDirs...)
 	if err != nil {
 		return nil, err
 	}
 
-	if relModulePath == "" {
+	if foundRelModulePath == "" {
 		return nil, fmt.Errorf("no invocation module found in: %s", baseDir)
 	}
 
 	return &RouteManagerImpl{
 		baseDir:       baseDir,
-		relModulePath: relModulePath,
+		relModulePath: foundRelModulePath,
 	}, nil
 }
 
@@ -46,7 +46,7 @@ func (rm RouteManagerImpl) GetModulePath() string {
 	return rm.relModulePath
 }
 
-func (rm RouteManagerImpl) GetRouteItems(handlerNameMatchers ...HandlerNameMatcher) ([]*protobuf.RouteItem, error) {
+func (rm RouteManagerImpl) DiscoverRouteItems(handlerNameMatchers ...HandlerNameMatcher) ([]*protobuf.RouteItem, error) {
 	routeItems := make([]*protobuf.RouteItem, 0)
 	absModulePath := filepath.Join(rm.baseDir, rm.relModulePath)
 	for _, moduleInstance := range LoadInvocationModules(rm.relModulePath) {

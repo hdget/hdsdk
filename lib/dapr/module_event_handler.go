@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-type EventHandler interface {
+type eventHandler interface {
 	GetTopic() string
 	GetEventFunction() common.TopicEventHandler
 }

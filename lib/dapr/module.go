@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-type Moduler interface {
+type moduler interface {
 	GetApp() string
 	GetMeta() *ModuleMeta
 }
@@ -31,7 +31,7 @@ type ModuleMeta struct {
 }
 
 // newModule 从约定的结构名中解析模块名和版本, 结构名需要为v<number>_<module>
-func newModule(app string, moduleObject any) (Moduler, error) {
+func newModule(app string, moduleObject any) (moduler, error) {
 	structName := hdutils.Reflect().GetStructName(moduleObject)
 	if structName == "" {
 		return nil, errInvalidModule

@@ -7,7 +7,7 @@ import (
 	"github.com/hdget/hdutils"
 )
 
-type InvocationHandler interface {
+type invocationHandler interface {
 	GetAlias() string
 	GetName() string
 	GetInvokeName() string                              // 调用名字
@@ -15,7 +15,7 @@ type InvocationHandler interface {
 }
 
 type invocationHandlerImpl struct {
-	module Moduler
+	module moduler
 	// handler的别名，
 	// 如果DiscoverHandlers调用, 会将函数名作为入参，matchFunction的返回值当作别名，缺省是去除Handler后缀并小写
 	// 如果RegisterHandlers调用，会直接用map的key值当为别名

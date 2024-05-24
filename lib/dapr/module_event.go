@@ -6,16 +6,16 @@ import (
 )
 
 type EventModule interface {
-	Moduler
+	moduler
 	RegisterHandlers(functions map[string]EventFunction) error // 注册Handlers
-	GetHandlers() []EventHandler                               // 获取handlers
+	GetHandlers() []eventHandler                               // 获取handlers
 	GetPubSub() string
 }
 
 type eventModuleImpl struct {
-	Moduler
+	moduler
 	pubsub   string // 消息中间件名称定义在dapr配置中
-	handlers []EventHandler
+	handlers []eventHandler
 }
 
 var (
@@ -63,7 +63,7 @@ func AsEventModule(app, pubsub string, moduleObject any, options ...EventModuleO
 	}
 
 	moduleInstance := &eventModuleImpl{
-		Moduler: m,
+		moduler: m,
 		pubsub:  pubsub,
 	}
 
@@ -87,14 +87,14 @@ func AsEventModule(app, pubsub string, moduleObject any, options ...EventModuleO
 
 // RegisterHandlers 参数handlers为alias=>receiver.fnName, 保存为handler.id=>*invocationHandler
 func (m *eventModuleImpl) RegisterHandlers(functions map[string]EventFunction) error {
-	m.handlers = make([]EventHandler, 0)
+	m.handlers = make([]eventHandler, 0)
 	for topic, fn := range functions {
 		m.handlers = append(m.handlers, m.newEventHandler(m, topic, fn))
 	}
 	return nil
 }
 
-func (m *eventModuleImpl) GetHandlers() []EventHandler {
+func (m *eventModuleImpl) GetHandlers() []eventHandler {
 	return m.handlers
 }
 
@@ -102,7 +102,7 @@ func (m *eventModuleImpl) GetPubSub() string {
 	return m.pubsub
 }
 
-func (m *eventModuleImpl) newEventHandler(module EventModule, topic string, fn EventFunction) EventHandler {
+func (m *eventModuleImpl) newEventHandler(module EventModule, topic string, fn EventFunction) eventHandler {
 	return &eventHandlerImpl{
 		module: module,
 		topic:  topic,

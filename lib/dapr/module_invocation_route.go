@@ -52,7 +52,7 @@ func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...Handl
 		}
 
 		// 忽略掉不是本模块的备注
-		if moduleMeta.StructName != m.Moduler.GetMeta().StructName {
+		if moduleMeta.StructName != m.moduler.GetMeta().StructName {
 			continue
 		}
 
@@ -68,7 +68,7 @@ func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...Handl
 			continue
 		}
 
-		foundIndex := pie.FindFirstUsing(m.handlers, func(h InvocationHandler) bool {
+		foundIndex := pie.FindFirstUsing(m.handlers, func(h invocationHandler) bool {
 			return h.GetName() == fnInfo.Function
 		})
 		if foundIndex == -1 {
