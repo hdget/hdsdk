@@ -2,10 +2,10 @@ package dapr
 
 import (
 	"context"
+	"fmt"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/v2"
 	"github.com/hdget/hdutils"
-	"time"
 )
 
 type eventHandler interface {
@@ -26,25 +26,32 @@ func (h eventHandlerImpl) GetTopic() string {
 }
 
 func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
-	return func(ctx context.Context, event *common.TopicEvent) (bool, error) {
+	return func(ctx context.Context, event *common.TopicEvent) (retry bool, err error) {
 		defer func() {
 			if r := recover(); r != nil {
 				hdutils.RecordErrorStack(h.module.GetApp())
 			}
+			retry = false
+			err = fmt.Errorf("%s panic", h.module.GetApp())
 		}()
 
-		select {
-		case <-time.After(h.module.GetAckTimeout()):
-			hdsdk.Logger().Error("event processing timeout, discard message", "message", trimData(event.RawData))
-			return false, nil
-		default:
-			// 执行具体的函数
-			retry, err := h.fn(ctx, event)
-			if err != nil {
-				hdsdk.Logger().Error("event processing", "message", trimData(event.RawData), "err", err)
-			}
-			return retry, err
+		ctx, cancel := context.WithTimeout(ctx, h.module.GetAckTimeout())
+		defer cancel()
+
+		go func() {
+			hdsdk.Logger().Debug("xxxxxx", "timeout", h.module.GetAckTimeout())
+			ret := <-ctx.Done()
+			hdsdk.Logger().Error("event processing timeout, discard message", "message", trimData(event.RawData), "ret", ret)
+			retry = false
+			err = nil
+		}()
+
+		// 执行具体的函数
+		retry, err = h.fn(ctx, event)
+		if err != nil {
+			hdsdk.Logger().Error("event processing", "message", trimData(event.RawData), "err", err)
 		}
+		return
 	}
 }
 
