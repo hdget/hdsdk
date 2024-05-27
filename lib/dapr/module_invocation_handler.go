@@ -3,7 +3,7 @@ package dapr
 import (
 	"context"
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/hdget/hdsdk/v2"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdutils"
 )
 
@@ -15,6 +15,7 @@ type invocationHandler interface {
 }
 
 type invocationHandlerImpl struct {
+	logger intf.LoggerProvider
 	module moduler
 	// handler的别名，
 	// 如果DiscoverHandlers调用, 会将函数名作为入参，matchFunction的返回值当作别名，缺省是去除Handler后缀并小写
@@ -58,7 +59,7 @@ func (h invocationHandlerImpl) GetInvokeFunction() common.ServiceInvocationHandl
 			if len(req) > maxRequestLength {
 				req = append(req[:maxRequestLength], []rune("...")...)
 			}
-			hdsdk.Logger().Error("service invoke", "module", h.module.GetMeta().StructName, "handler", hdutils.Reflect().GetFuncName(h.fn), "err", err, "req", req)
+			h.logger.Error("service invoke", "module", h.module.GetMeta().StructName, "handler", hdutils.Reflect().GetFuncName(h.fn), "err", err, "req", req)
 			return Error(err)
 		}
 

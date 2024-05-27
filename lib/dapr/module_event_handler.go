@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/hdget/hdsdk/v2"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdutils"
 	"time"
 )
@@ -16,6 +16,7 @@ type eventHandler interface {
 
 type eventHandlerImpl struct {
 	module EventModule
+	logger intf.LoggerProvider
 	topic  string        // 订阅主题
 	fn     EventFunction // 调用函数
 }
@@ -41,7 +42,7 @@ func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
 		go func() {
 			select {
 			case <-time.After(h.module.GetAckTimeout()):
-				hdsdk.Logger().Error("event processing timeout, discard message", "message", trimData(event.RawData))
+				h.logger.Error("event processing timeout, discard message", "message", trimData(event.RawData))
 				retry = false
 				err = ctx.Err()
 			case <-quit:
@@ -52,7 +53,7 @@ func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
 		// 执行具体的函数
 		retry, err = h.fn(ctx, event)
 		if err != nil {
-			hdsdk.Logger().Error("event processing", "message", trimData(event.RawData), "err", err)
+			h.logger.Error("event processing", "message", trimData(event.RawData), "err", err)
 		}
 		return
 	}
