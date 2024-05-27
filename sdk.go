@@ -11,13 +11,8 @@ import (
 )
 
 type SdkInstance struct {
-	debug          bool // debug mode
-	configProvider intf.ConfigProvider
-	logger         intf.LoggerProvider
-	db             intf.DbProvider
-	graph          intf.GraphProvider
-	redis          intf.RedisProvider
-	mq             intf.MqProvider
+	debug bool // debug mode
+
 }
 
 var (
@@ -34,7 +29,7 @@ func New(app, env string, options ...Option) *SdkInstance {
 	}
 
 	var err error
-	_instance.configProvider, err = viper.New(app, env)
+	_configProvider, err = viper.New(app, env)
 	if err != nil {
 		hdutils.LogFatal("new default config provider", "err", err)
 	}
@@ -43,9 +38,9 @@ func New(app, env string, options ...Option) *SdkInstance {
 }
 
 func (i *SdkInstance) LoadConfig(configVar any) *SdkInstance {
-	if i.configProvider != nil {
+	if _configProvider != nil {
 		// if config provider is already provided in New, ignore it
-		err := i.configProvider.Unmarshal(configVar)
+		err := _configProvider.Unmarshal(configVar)
 		if err != nil {
 			hdutils.LogError("unmarshal to config var", "err", err)
 		}
@@ -55,28 +50,28 @@ func (i *SdkInstance) LoadConfig(configVar any) *SdkInstance {
 
 // Initialize all kinds of capability
 func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
-	if i.configProvider == nil {
+	if _configProvider == nil {
 		return errdef.ErrConfigProviderNotReady
 	}
 
 	loggerInitialized := false
 	fxOptions := []fx.Option{
-		fx.Provide(func() intf.ConfigProvider { return i.configProvider }),
+		fx.Provide(func() intf.ConfigProvider { return _configProvider }),
 	}
 	for _, c := range capabilities {
 		switch c.Category {
 		case intf.ProviderCategoryLogger:
-			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.logger))
+			fxOptions = append(fxOptions, c.Module, fx.Populate(&_logger))
 			// mark logger provider had been initialized
 			loggerInitialized = true
 		case intf.ProviderCategoryDb:
-			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.db))
+			fxOptions = append(fxOptions, c.Module, fx.Populate(&_db))
 		case intf.ProviderCategoryRedis:
-			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.redis))
+			fxOptions = append(fxOptions, c.Module, fx.Populate(&_redis))
 		case intf.ProviderCategoryGraph:
-			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.graph))
+			fxOptions = append(fxOptions, c.Module, fx.Populate(&_graph))
 		case intf.ProviderCategoryMq:
-			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.mq))
+			fxOptions = append(fxOptions, c.Module, fx.Populate(&_mq))
 		default:
 			return errors.Wrapf(errdef.ErrInvalidCapability, "capability: %s", c.Name)
 		}
@@ -84,7 +79,7 @@ func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
 
 	// if logger provider is not initialized, use default logger
 	if !loggerInitialized {
-		fxOptions = append(fxOptions, zerolog.Capability.Module, fx.Populate(&_instance.logger))
+		fxOptions = append(fxOptions, zerolog.Capability.Module, fx.Populate(&_logger))
 	}
 
 	// in product mode disable fx internal logger
