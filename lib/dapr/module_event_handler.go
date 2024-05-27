@@ -41,10 +41,10 @@ func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
 		retry, err := h.fn(ctx, event)
 		if err != nil {
 			if errors.Is(err, context.DeadlineExceeded) {
-				hdsdk.Logger().Error("event processing timeout", "module", h.module.GetMeta().StructName, "topic", h.GetTopic(), "handler", hdutils.Reflect().GetFuncName(h.fn), "message", trimData(event.RawData))
+				hdsdk.Logger().Error("event processing timeout, discard message", "message", trimData(event.RawData))
 				return false, nil
 			}
-			hdsdk.Logger().Error("event processing", "module", h.module.GetMeta().StructName, "topic", h.GetTopic(), "handler", hdutils.Reflect().GetFuncName(h.fn), "message", trimData(event.RawData))
+			hdsdk.Logger().Error("event processing", "message", trimData(event.RawData), "err", err)
 		}
 		return retry, err
 	}
