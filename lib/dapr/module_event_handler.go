@@ -39,16 +39,18 @@ func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
 
 		go func() {
 			hdutils.LogDebug("xxxxxx", "timeout", h.module.GetAckTimeout())
-			ret := <-ctx.Done()
-			hdutils.LogError("event processing timeout, discard message", "message", trimData(event.RawData), "ret", ret)
-			retry = false
-			err = nil
+			select {
+			case <-ctx.Done():
+				hdutils.LogError("event processing timeout, discard message", "message", event.RawData)
+				retry = false
+				err = ctx.Err()
+			}
 		}()
 
 		// 执行具体的函数
 		retry, err = h.fn(ctx, event)
 		if err != nil {
-			hdutils.LogError("event processing", "message", trimData(event.RawData), "err", err)
+			hdutils.LogError("event processing", "message", event.RawData, "err", err)
 		}
 		return
 
