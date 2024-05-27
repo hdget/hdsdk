@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/dapr/go-sdk/service/common"
+	"github.com/hdget/hdsdk/v2"
 	"github.com/hdget/hdutils"
 )
 
@@ -38,7 +39,8 @@ func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
 		defer cancel()
 
 		go func() {
-			hdutils.LogDebug("xxxxxx", "timeout", h.module.GetAckTimeout())
+			hdutils.LogDebug("xxxxxx1", "instance", hdsdk.Logger())
+			hdutils.LogDebug("xxxxxx2", "timeout", h.module.GetAckTimeout())
 			select {
 			case <-ctx.Done():
 				hdutils.LogError("event processing timeout, discard message", "message", event.RawData)
