@@ -5,7 +5,6 @@ import (
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/v2"
 	"github.com/hdget/hdutils"
-	"github.com/pkg/errors"
 	"time"
 )
 
@@ -34,19 +33,18 @@ func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
 			}
 		}()
 
-		ctx, cancel := context.WithTimeout(ctx, h.module.GetAckTimeout()-1*time.Minute)
-		defer cancel()
-
-		// 执行具体的函数
-		retry, err := h.fn(ctx, event)
-		if err != nil {
-			if errors.Is(err, context.DeadlineExceeded) {
-				hdsdk.Logger().Error("event processing timeout, discard message", "message", trimData(event.RawData))
-				return false, nil
+		select {
+		case <-time.After(h.module.GetAckTimeout()):
+			hdsdk.Logger().Error("event processing timeout, discard message", "message", trimData(event.RawData))
+			return false, nil
+		default:
+			// 执行具体的函数
+			retry, err := h.fn(ctx, event)
+			if err != nil {
+				hdsdk.Logger().Error("event processing", "message", trimData(event.RawData), "err", err)
 			}
-			hdsdk.Logger().Error("event processing", "message", trimData(event.RawData), "err", err)
+			return retry, err
 		}
-		return retry, err
 	}
 }
 

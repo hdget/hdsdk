@@ -23,7 +23,7 @@ type eventModuleImpl struct {
 
 var (
 	_                 EventModule = (*eventModuleImpl)(nil)
-	defaultAckTimeout             = 30 * time.Minute
+	defaultAckTimeout             = 29 * time.Minute // rabbitmq的默认超时时间为30分钟这里设置为29分钟保持
 )
 
 // NewEventModule 新建事件模块会执行下列操作:
