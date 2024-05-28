@@ -11,12 +11,11 @@ import (
 
 type eventHandler interface {
 	GetTopic() string
-	GetEventFunction() common.TopicEventHandler
+	GetEventFunction(logger intf.LoggerProvider) common.TopicEventHandler
 }
 
 type eventHandlerImpl struct {
 	module EventModule
-	logger intf.LoggerProvider
 	topic  string        // 订阅主题
 	fn     EventFunction // 调用函数
 }
@@ -27,7 +26,7 @@ func (h eventHandlerImpl) GetTopic() string {
 	return h.topic
 }
 
-func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
+func (h eventHandlerImpl) GetEventFunction(logger intf.LoggerProvider) common.TopicEventHandler {
 	return func(ctx context.Context, event *common.TopicEvent) (retry bool, err error) {
 		quit := make(chan bool, 1)
 		defer func() {
@@ -42,7 +41,7 @@ func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
 		go func() {
 			select {
 			case <-time.After(h.module.GetAckTimeout()):
-				h.logger.Error("event processing timeout, discard message", "message", trimData(event.RawData))
+				logger.Error("event processing timeout, discard message", "message", trimData(event.RawData))
 				retry = false
 				err = ctx.Err()
 			case <-quit:
@@ -53,7 +52,7 @@ func (h eventHandlerImpl) GetEventFunction() common.TopicEventHandler {
 		// 执行具体的函数
 		retry, err = h.fn(ctx, event)
 		if err != nil {
-			h.logger.Error("event processing", "message", trimData(event.RawData), "err", err)
+			logger.Error("event processing", "message", trimData(event.RawData), "err", err)
 		}
 		return
 	}

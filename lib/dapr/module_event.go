@@ -1,7 +1,6 @@
 package dapr
 
 import (
-	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
 	"time"
@@ -17,7 +16,6 @@ type EventModule interface {
 
 type eventModuleImpl struct {
 	moduler
-	logger     intf.LoggerProvider
 	pubsub     string // 消息中间件名称定义在dapr配置中
 	handlers   []eventHandler
 	ackTimeout time.Duration
@@ -29,9 +27,9 @@ var (
 )
 
 // NewEventModule 新建事件模块会执行下列操作:
-func NewEventModule(logger intf.LoggerProvider, app, pubsub string, moduleObject EventModule, functions map[string]EventFunction, options ...EventModuleOption) error {
+func NewEventModule(app, pubsub string, moduleObject EventModule, functions map[string]EventFunction, options ...EventModuleOption) error {
 	// 首先实例化module
-	module, err := AsEventModule(logger, app, pubsub, moduleObject, options...)
+	module, err := AsEventModule(app, pubsub, moduleObject, options...)
 	if err != nil {
 		return err
 	}
@@ -62,7 +60,7 @@ func NewEventModule(logger intf.LoggerProvider, app, pubsub string, moduleObject
 //	      ...
 //	     }
 //	     im.DiscoverHandlers()
-func AsEventModule(logger intf.LoggerProvider, app, pubsub string, moduleObject any, options ...EventModuleOption) (EventModule, error) {
+func AsEventModule(app, pubsub string, moduleObject any, options ...EventModuleOption) (EventModule, error) {
 	m, err := newModule(app, moduleObject)
 	if err != nil {
 		return nil, err
@@ -70,7 +68,6 @@ func AsEventModule(logger intf.LoggerProvider, app, pubsub string, moduleObject 
 
 	moduleInstance := &eventModuleImpl{
 		moduler:    m,
-		logger:     logger,
 		pubsub:     pubsub,
 		ackTimeout: defaultAckTimeout,
 	}
@@ -116,7 +113,6 @@ func (m *eventModuleImpl) GetAckTimeout() time.Duration {
 
 func (m *eventModuleImpl) newEventHandler(module EventModule, topic string, fn EventFunction) eventHandler {
 	return &eventHandlerImpl{
-		logger: m.logger,
 		module: module,
 		topic:  topic,
 		fn:     fn,

@@ -7,6 +7,14 @@ import (
 	"strconv"
 )
 
+type ModuleKind int
+
+const (
+	ModuleKindUnknown ModuleKind = iota
+	ModuleKindInvocation
+	ModuleKindEvent
+)
+
 type moduler interface {
 	GetApp() string
 	GetMeta() *ModuleMeta

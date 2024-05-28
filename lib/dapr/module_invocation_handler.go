@@ -10,12 +10,11 @@ import (
 type invocationHandler interface {
 	GetAlias() string
 	GetName() string
-	GetInvokeName() string                              // 调用名字
-	GetInvokeFunction() common.ServiceInvocationHandler // 具体的调用函数
+	GetInvokeName() string                                                        // 调用名字
+	GetInvokeFunction(logger intf.LoggerProvider) common.ServiceInvocationHandler // 具体的调用函数
 }
 
 type invocationHandlerImpl struct {
-	logger intf.LoggerProvider
 	module moduler
 	// handler的别名，
 	// 如果DiscoverHandlers调用, 会将函数名作为入参，matchFunction的返回值当作别名，缺省是去除Handler后缀并小写
@@ -44,7 +43,7 @@ func (h invocationHandlerImpl) GetInvokeName() string {
 	return Api().GetServiceInvocationName(h.module.GetMeta().ModuleVersion, h.module.GetMeta().ModuleName, h.handlerAlias)
 }
 
-func (h invocationHandlerImpl) GetInvokeFunction() common.ServiceInvocationHandler {
+func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) common.ServiceInvocationHandler {
 	return func(ctx context.Context, event *common.InvocationEvent) (*common.Content, error) {
 		// 挂载defer函数
 		defer func() {
@@ -59,7 +58,7 @@ func (h invocationHandlerImpl) GetInvokeFunction() common.ServiceInvocationHandl
 			if len(req) > maxRequestLength {
 				req = append(req[:maxRequestLength], []rune("...")...)
 			}
-			h.logger.Error("service invoke", "module", h.module.GetMeta().StructName, "handler", hdutils.Reflect().GetFuncName(h.fn), "err", err, "req", req)
+			logger.Error("service invoke", "module", h.module.GetMeta().StructName, "handler", hdutils.Reflect().GetFuncName(h.fn), "err", err, "req", req)
 			return Error(err)
 		}
 

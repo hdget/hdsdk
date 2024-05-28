@@ -3,7 +3,6 @@ package dapr
 import (
 	"context"
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdutils"
 	"github.com/pkg/errors"
 	"strings"
@@ -19,7 +18,6 @@ type InvocationModule interface {
 
 type invocationModuleImpl struct {
 	moduler
-	logger   intf.LoggerProvider
 	self     any // 实际module实例
 	handlers []invocationHandler
 }
@@ -33,9 +31,9 @@ var (
 // 1. 实例化invocation module
 // 2. 注册invocation functions
 // 3. 注册module
-func NewInvocationModule(logger intf.LoggerProvider, app string, moduleObject InvocationModule, functions map[string]InvocationFunction) error {
+func NewInvocationModule(app string, moduleObject InvocationModule, functions map[string]InvocationFunction) error {
 	// 首先实例化module
-	module, err := AsInvocationModule(logger, app, moduleObject)
+	module, err := AsInvocationModule(app, moduleObject)
 	if err != nil {
 		return err
 	}
@@ -66,14 +64,13 @@ func NewInvocationModule(logger intf.LoggerProvider, app string, moduleObject In
 //	      ...
 //	     }
 //	     im.DiscoverHandlers()
-func AsInvocationModule(logger intf.LoggerProvider, app string, moduleObject any) (InvocationModule, error) {
+func AsInvocationModule(app string, moduleObject any) (InvocationModule, error) {
 	m, err := newModule(app, moduleObject)
 	if err != nil {
 		return nil, err
 	}
 
 	moduleInstance := &invocationModuleImpl{
-		logger:  logger,
 		moduler: m,
 		self:    moduleObject,
 	}
@@ -133,7 +130,6 @@ func (m *invocationModuleImpl) GetHandlers() []invocationHandler {
 
 func (m *invocationModuleImpl) newInvocationHandler(module moduler, handlerAlias string, fn InvocationFunction) invocationHandler {
 	return &invocationHandlerImpl{
-		logger:       m.logger,
 		handlerAlias: handlerAlias,
 		handlerName:  hdutils.Reflect().GetFuncName(fn),
 		module:       module,

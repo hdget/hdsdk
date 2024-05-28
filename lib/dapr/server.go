@@ -3,6 +3,7 @@ package dapr
 import (
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/dapr/go-sdk/service/grpc"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/pkg/errors"
 	"go/importer"
 )
@@ -18,6 +19,7 @@ type Server interface {
 
 type serverImpl struct {
 	common.Service
+	logger intf.LoggerProvider
 }
 
 var (
@@ -25,28 +27,28 @@ var (
 	_moduleName2eventModule      = make(map[string]EventModule)      // topic event module
 )
 
-func NewGrpcServer(address string) (Server, error) {
+func NewGrpcServer(logger intf.LoggerProvider, address string, modulePaths ...string) (Server, error) {
 	service, err := grpc.NewService(address)
 	if err != nil {
 		return nil, errors.Wrap(err, "new dapr grpc server")
 	}
 
-	srv := &serverImpl{Service: service}
-	if err = srv.initialize(); err != nil {
+	srv := &serverImpl{Service: service, logger: logger}
+	if err = srv.initialize(modulePaths...); err != nil {
 		return nil, err
 	}
 
 	return srv, nil
 }
 
-func NewHttpServer(address string) (Server, error) {
+func NewHttpServer(logger intf.LoggerProvider, address string, modulePaths ...string) (Server, error) {
 	service, err := grpc.NewService(address)
 	if err != nil {
 		return nil, errors.Wrap(err, "new dapr http server")
 	}
 
-	srv := &serverImpl{Service: service}
-	if err = srv.initialize(); err != nil {
+	srv := &serverImpl{Service: service, logger: logger}
+	if err = srv.initialize(modulePaths...); err != nil {
 		return nil, err
 	}
 	return srv, nil
@@ -71,7 +73,8 @@ func (impl *serverImpl) GracefulStop() error {
 }
 
 // Initialize 初始化server
-func (impl *serverImpl) initialize() error {
+func (impl *serverImpl) initialize(modulePaths ...string) error {
+
 	// 注册各种类型的handlers
 	for method, handler := range impl.GetInvocationHandlers() {
 		if err := impl.AddServiceInvocationHandler(method, handler); err != nil {
@@ -99,7 +102,7 @@ func (impl *serverImpl) GetInvocationHandlers() map[string]common.ServiceInvocat
 	handlers := make(map[string]common.ServiceInvocationHandler)
 	for _, invocationModule := range _moduleName2invocationModule {
 		for _, h := range invocationModule.GetHandlers() {
-			handlers[h.GetInvokeName()] = h.GetInvokeFunction()
+			handlers[h.GetInvokeName()] = h.GetInvokeFunction(impl.logger)
 		}
 	}
 
@@ -111,7 +114,7 @@ func (impl *serverImpl) GetEvents() []Event {
 	events := make([]Event, 0)
 	for _, m := range _moduleName2eventModule {
 		for _, h := range m.GetHandlers() {
-			events = append(events, GetEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction()))
+			events = append(events, GetEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction(impl.logger)))
 		}
 	}
 	return events
