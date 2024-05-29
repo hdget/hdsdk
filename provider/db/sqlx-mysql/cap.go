@@ -6,7 +6,7 @@ import (
 )
 
 var Capability = &intf.Capability{
-	Category: intf.ProviderCategoryDb,
+	Category: intf.ProviderCategoryDbSqlx,
 	Module: fx.Module(
 		string(intf.ProviderNameSqlxMysql),
 		fx.Provide(New),

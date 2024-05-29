@@ -51,11 +51,9 @@ func (m mysqlClient) Get(dest interface{}, query string, args ...interface{}) er
 }
 
 func (m mysqlClient) Select(dest interface{}, query string, args ...interface{}) error {
-	//TODO implement me
 	return nil
 }
 
 func (m mysqlClient) Rebind(query string) string {
-	//TODO implement me
 	return ""
 }

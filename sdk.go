@@ -15,6 +15,7 @@ type SdkInstance struct {
 	configProvider intf.ConfigProvider
 	logger         intf.LoggerProvider
 	db             intf.DbProvider
+	sqlxDb         intf.SqlxDbProvider
 	graph          intf.GraphProvider
 	redis          intf.RedisProvider
 	mq             intf.MqProvider
@@ -75,6 +76,8 @@ func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
 			loggerInitialized = true
 		case intf.ProviderCategoryDb:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.db))
+		case intf.ProviderCategoryDbSqlx: // will removed in the future
+			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.sqlxDb))
 		case intf.ProviderCategoryRedis:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.redis))
 		case intf.ProviderCategoryGraph:

@@ -2,6 +2,7 @@ package intf
 
 import (
 	"database/sql"
+	"github.com/jmoiron/sqlx"
 )
 
 type DbProvider interface {
@@ -12,6 +13,14 @@ type DbProvider interface {
 	By(name string) DbClient
 }
 
+type SqlxDbProvider interface {
+	Provider
+	My() SqlxDbClient
+	Master() SqlxDbClient
+	Slave(i int) SqlxDbClient
+	By(name string) SqlxDbClient
+}
+
 type DbClient interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	Query(query string, args ...interface{}) (*sql.Rows, error)
@@ -20,4 +29,11 @@ type DbClient interface {
 	Select(dest interface{}, query string, args ...interface{}) error
 	Rebind(query string) string
 	Close() error
+}
+
+type SqlxDbClient interface {
+	DbClient
+	NamedExec(query string, arg interface{}) (sql.Result, error)
+	Queryx(query string, args ...interface{}) (*sqlx.Rows, error)
+	Beginx() (*sqlx.Tx, error)
 }

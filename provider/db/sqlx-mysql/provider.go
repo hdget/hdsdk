@@ -8,13 +8,13 @@ import (
 type mysqlProvider struct {
 	logger    intf.LoggerProvider
 	config    *mysqlProviderConfig
-	defaultDb intf.DbClient
-	masterDb  intf.DbClient
-	slaveDbs  []intf.DbClient
-	extraDbs  map[string]intf.DbClient
+	defaultDb intf.SqlxDbClient
+	masterDb  intf.SqlxDbClient
+	slaveDbs  []intf.SqlxDbClient
+	extraDbs  map[string]intf.SqlxDbClient
 }
 
-func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.DbProvider, error) {
+func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.SqlxDbProvider, error) {
 	c, err := newConfig(configProvider)
 	if err != nil {
 		return nil, errors.Wrap(err, "new mysql config")
@@ -23,8 +23,8 @@ func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.D
 	provider := &mysqlProvider{
 		logger:   logger,
 		config:   c,
-		slaveDbs: make([]intf.DbClient, len(c.Slaves)),
-		extraDbs: make(map[string]intf.DbClient),
+		slaveDbs: make([]intf.SqlxDbClient, len(c.Slaves)),
+		extraDbs: make(map[string]intf.SqlxDbClient),
 	}
 
 	err = provider.Init(logger, c)
@@ -77,18 +77,18 @@ func (p *mysqlProvider) Init(args ...any) error {
 	return nil
 }
 
-func (p *mysqlProvider) My() intf.DbClient {
+func (p *mysqlProvider) My() intf.SqlxDbClient {
 	return p.defaultDb
 }
 
-func (p *mysqlProvider) Master() intf.DbClient {
+func (p *mysqlProvider) Master() intf.SqlxDbClient {
 	return p.masterDb
 }
 
-func (p *mysqlProvider) Slave(i int) intf.DbClient {
+func (p *mysqlProvider) Slave(i int) intf.SqlxDbClient {
 	return p.slaveDbs[i]
 }
 
-func (p *mysqlProvider) By(name string) intf.DbClient {
+func (p *mysqlProvider) By(name string) intf.SqlxDbClient {
 	return p.extraDbs[name]
 }

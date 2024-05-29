@@ -58,12 +58,10 @@ func (m sqliteClient) Close() error {
 }
 
 func (m sqliteClient) Get(dest interface{}, query string, args ...interface{}) error {
-	//TODO implement me
 	return nil
 }
 
 func (m sqliteClient) Select(dest interface{}, query string, args ...interface{}) error {
-	//TODO implement me
 	return nil
 }
 

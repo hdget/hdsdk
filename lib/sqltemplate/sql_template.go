@@ -57,7 +57,7 @@ const (
 	defaultLimitClause = "LIMIT 0, 10"
 )
 
-func NewSqlTemplate() SqlTemplate {
+func New() SqlTemplate {
 	me := &query{
 		baseQuery: &baseQuery{
 			wheres: make([]string, 0),

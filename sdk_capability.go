@@ -10,6 +10,10 @@ func Db() intf.DbProvider {
 	return _instance.db
 }
 
+func Sqlx() intf.SqlxDbProvider {
+	return _instance.sqlxDb
+}
+
 func Redis() intf.RedisProvider {
 	return _instance.redis
 }
