@@ -1,6 +1,7 @@
 package hdsdk
 
 import (
+	"context"
 	"github.com/hdget/hdsdk/v2/errdef"
 	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdsdk/v2/provider/config/viper"
@@ -59,10 +60,9 @@ func (i *SdkInstance) LoadConfig(configVar any) *SdkInstance {
 }
 
 // Initialize all kinds of capability
-func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) (err error) {
+func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
 	if i.configProvider == nil {
-		err = errdef.ErrConfigProviderNotReady
-		return
+		return errdef.ErrConfigProviderNotReady
 	}
 
 	loggerInitialized := false
@@ -100,13 +100,10 @@ func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) (err error) {
 		fxOptions = append(fxOptions, fx.NopLogger)
 	}
 
-	defer func() {
-		if e := recover(); e != nil {
-			hdutils.RecordErrorStack("hdsdk")
-			err = errors.New("sdk not initialized")
-			return
-		}
-	}()
-	_ = fx.New(fxOptions...)
+	err := fx.New(fxOptions...).Start(context.Background())
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
