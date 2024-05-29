@@ -1,11 +1,15 @@
 package dapr
 
 import (
+	"context"
+	"fmt"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/dapr/go-sdk/service/grpc"
+	"github.com/dapr/go-sdk/service/http"
 	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/pkg/errors"
 	"go/importer"
+	"net"
 )
 
 type Server interface {
@@ -28,12 +32,21 @@ var (
 )
 
 func NewGrpcServer(logger intf.LoggerProvider, address string, modulePaths ...string) (Server, error) {
-	service, err := grpc.NewService(address)
+	lis, err := net.Listen("tcp", address)
 	if err != nil {
-		return nil, errors.Wrap(err, "new dapr grpc server")
+		return nil, fmt.Errorf("grpc server failed to listen on %s: %w", address, err)
 	}
 
-	srv := &serverImpl{Service: service, logger: logger}
+	// install health check handler
+	grpcServer := grpc.NewServiceWithListener(lis)
+	err = grpcServer.AddHealthCheckHandler("", func(ctx context.Context) (err error) {
+		return nil
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "install health check handler")
+	}
+
+	srv := &serverImpl{Service: grpcServer, logger: logger}
 	if err = srv.initialize(modulePaths...); err != nil {
 		return nil, err
 	}
@@ -42,12 +55,17 @@ func NewGrpcServer(logger intf.LoggerProvider, address string, modulePaths ...st
 }
 
 func NewHttpServer(logger intf.LoggerProvider, address string, modulePaths ...string) (Server, error) {
-	service, err := grpc.NewService(address)
+	httpServer := http.NewServiceWithMux(address, nil)
+
+	// install health check handler
+	err := httpServer.AddHealthCheckHandler("", func(ctx context.Context) (err error) {
+		return nil
+	})
 	if err != nil {
-		return nil, errors.Wrap(err, "new dapr http server")
+		return nil, errors.Wrap(err, "install health check handler")
 	}
 
-	srv := &serverImpl{Service: service, logger: logger}
+	srv := &serverImpl{Service: httpServer, logger: logger}
 	if err = srv.initialize(modulePaths...); err != nil {
 		return nil, err
 	}
@@ -74,7 +92,6 @@ func (impl *serverImpl) GracefulStop() error {
 
 // Initialize 初始化server
 func (impl *serverImpl) initialize(modulePaths ...string) error {
-
 	// 注册各种类型的handlers
 	for method, handler := range impl.GetInvocationHandlers() {
 		if err := impl.AddServiceInvocationHandler(method, handler); err != nil {
@@ -105,7 +122,6 @@ func (impl *serverImpl) GetInvocationHandlers() map[string]common.ServiceInvocat
 			handlers[h.GetInvokeName()] = h.GetInvokeFunction(impl.logger)
 		}
 	}
-
 	return handlers
 }
 
