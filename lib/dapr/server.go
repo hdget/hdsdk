@@ -1,7 +1,6 @@
 package dapr
 
 import (
-	"context"
 	"fmt"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/dapr/go-sdk/service/grpc"
@@ -29,6 +28,7 @@ type serverImpl struct {
 var (
 	_moduleName2invocationModule = make(map[string]InvocationModule) // service invocation module
 	_moduleName2eventModule      = make(map[string]EventModule)      // topic event module
+	_moduleName2healthModule     = make(map[string]HealthModule)     // health module
 )
 
 func NewGrpcServer(logger intf.LoggerProvider, address string, modulePaths ...string) (Server, error) {
@@ -39,12 +39,6 @@ func NewGrpcServer(logger intf.LoggerProvider, address string, modulePaths ...st
 
 	// install health check handler
 	grpcServer := grpc.NewServiceWithListener(lis)
-	err = grpcServer.AddHealthCheckHandler("", func(ctx context.Context) (err error) {
-		return nil
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, "install health check handler")
-	}
 
 	srv := &serverImpl{Service: grpcServer, logger: logger}
 	if err = srv.initialize(modulePaths...); err != nil {
@@ -57,16 +51,8 @@ func NewGrpcServer(logger intf.LoggerProvider, address string, modulePaths ...st
 func NewHttpServer(logger intf.LoggerProvider, address string, modulePaths ...string) (Server, error) {
 	httpServer := http.NewServiceWithMux(address, nil)
 
-	// install health check handler
-	err := httpServer.AddHealthCheckHandler("", func(ctx context.Context) (err error) {
-		return nil
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, "install health check handler")
-	}
-
 	srv := &serverImpl{Service: httpServer, logger: logger}
-	if err = srv.initialize(modulePaths...); err != nil {
+	if err := srv.initialize(modulePaths...); err != nil {
 		return nil, err
 	}
 	return srv, nil
@@ -92,6 +78,11 @@ func (impl *serverImpl) GracefulStop() error {
 
 // Initialize 初始化server
 func (impl *serverImpl) initialize(modulePaths ...string) error {
+	// 注册health check handler
+	if err := impl.AddHealthCheckHandler("", impl.GetHealthCheckHandler()); err != nil {
+		return errors.Wrap(err, "adding health check handler")
+	}
+
 	// 注册各种类型的handlers
 	for method, handler := range impl.GetInvocationHandlers() {
 		if err := impl.AddServiceInvocationHandler(method, handler); err != nil {
@@ -136,6 +127,19 @@ func (impl *serverImpl) GetEvents() []Event {
 	return events
 }
 
+func (impl *serverImpl) GetHealthCheckHandler() common.HealthCheckHandler {
+	if len(_moduleName2healthModule) == 0 {
+		return EmptyHealthCheckFunction
+	}
+
+	var firstModule HealthModule
+	for _, module := range _moduleName2healthModule {
+		firstModule = module
+		break
+	}
+	return firstModule.GetHandler()
+}
+
 // GetBindingHandlers todo:需要通过反射获取bindingHandlers
 func (impl *serverImpl) GetBindingHandlers() map[string]common.BindingInvocationHandler {
 	return nil
@@ -147,4 +151,8 @@ func registerInvocationModule(module InvocationModule) {
 
 func registerEventModule(module EventModule) {
 	_moduleName2eventModule[module.GetMeta().ModuleName] = module
+}
+
+func registerHealthModule(module HealthModule) {
+	_moduleName2healthModule[module.GetMeta().ModuleName] = module
 }
