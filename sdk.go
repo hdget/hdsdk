@@ -100,6 +100,5 @@ func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
 	}
 
 	_ = fx.New(fxOptions...)
-	_instance.logger.Debug("sdk initialized")
 	return nil
 }
