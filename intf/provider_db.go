@@ -13,14 +13,6 @@ type DbProvider interface {
 	By(name string) DbClient
 }
 
-type SqlxDbProvider interface {
-	Provider
-	My() SqlxDbClient
-	Master() SqlxDbClient
-	Slave(i int) SqlxDbClient
-	By(name string) SqlxDbClient
-}
-
 type DbClient interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	Query(query string, args ...interface{}) (*sql.Rows, error)
@@ -29,6 +21,14 @@ type DbClient interface {
 	Select(dest interface{}, query string, args ...interface{}) error
 	Rebind(query string) string
 	Close() error
+}
+
+type SqlxDbProvider interface {
+	Provider
+	My() SqlxDbClient
+	Master() SqlxDbClient
+	Slave(i int) SqlxDbClient
+	By(name string) SqlxDbClient
 }
 
 type SqlxDbClient interface {

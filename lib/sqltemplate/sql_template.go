@@ -2,7 +2,7 @@ package sqltemplate
 
 import (
 	"fmt"
-	"github.com/hdget/hdsdk/v2"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdsdk/v2/lib/pagination"
 	"github.com/hdget/hdsdk/v2/protobuf"
 	"github.com/jmoiron/sqlx"
@@ -30,7 +30,8 @@ type SqlTemplate interface {
 	ImportConditions([]string, []any)    // 导入where条件
 }
 
-type baseQuery struct {
+type sqlTemplateImpl struct {
+	dbClient    intf.DbClient
 	concrete    SqlTemplate
 	template    string
 	wheres      []string
@@ -41,14 +42,14 @@ type baseQuery struct {
 }
 
 type joinSubQuery struct {
-	*baseQuery
+	*sqlTemplateImpl
 	alias string
 	on    string
 }
 
 // SqlTemplate 基于模板创建, 只支持where和limit
 type query struct {
-	*baseQuery
+	*sqlTemplateImpl
 	joinSubQuerys []*joinSubQuery
 }
 
@@ -57,20 +58,22 @@ const (
 	defaultLimitClause = "LIMIT 0, 10"
 )
 
-func New() SqlTemplate {
+func New(dbClient intf.DbClient) SqlTemplate {
 	me := &query{
-		baseQuery: &baseQuery{
-			wheres: make([]string, 0),
-			args:   make([]any, 0),
+		sqlTemplateImpl: &sqlTemplateImpl{
+			dbClient: dbClient,
+			wheres:   make([]string, 0),
+			args:     make([]any, 0),
 		},
 	}
 	me.concrete = me
 	return me
 }
 
-func NewJoinSubQuery(template, alias, on string) SqlTemplate {
+func NewJoinSubQuery(dbClient intf.DbClient, template, alias, on string) SqlTemplate {
 	me := &joinSubQuery{
-		baseQuery: &baseQuery{
+		sqlTemplateImpl: &sqlTemplateImpl{
+			dbClient: dbClient,
 			template: template,
 			wheres:   make([]string, 0),
 			args:     make([]any, 0),
@@ -151,27 +154,27 @@ func (sq *joinSubQuery) Generate() (string, []any, error) {
 	return sq.process(strings.Join(parts, " "))
 }
 
-/* baseQuery */
+/* sqlTemplateImpl */
 
-func (b *baseQuery) Where(condition string, args ...any) {
+func (b *sqlTemplateImpl) Where(condition string, args ...any) {
 	b.wheres = append(b.wheres, fmt.Sprintf("(%s)", condition))
 	b.args = append(b.args, args...)
 }
 
-func (b *baseQuery) ExportConditions() ([]string, []any) {
+func (b *sqlTemplateImpl) ExportConditions() ([]string, []any) {
 	return b.wheres, b.args
 }
 
-func (b *baseQuery) ImportConditions(wheres []string, args []any) {
+func (b *sqlTemplateImpl) ImportConditions(wheres []string, args []any) {
 	b.wheres, b.args = wheres, args
 }
 
-func (b *baseQuery) With(template string) SqlTemplate {
+func (b *sqlTemplateImpl) With(template string) SqlTemplate {
 	b.template = template
 	return b.concrete
 }
 
-func (b *baseQuery) Limit(listParam *protobuf.ListParam) SqlTemplate {
+func (b *sqlTemplateImpl) Limit(listParam *protobuf.ListParam) SqlTemplate {
 	if listParam != nil {
 		b.limitClause = pagination.New(listParam).GetLimitClause()
 		return b.concrete
@@ -180,7 +183,7 @@ func (b *baseQuery) Limit(listParam *protobuf.ListParam) SqlTemplate {
 	return b.concrete
 }
 
-func (b *baseQuery) Next(pkName string, nextParam *protobuf.NextParam) SqlTemplate {
+func (b *sqlTemplateImpl) Next(pkName string, nextParam *protobuf.NextParam) SqlTemplate {
 	if nextParam == nil {
 		b.limitClause = defaultNextClause
 		return b.concrete
@@ -199,65 +202,65 @@ func (b *baseQuery) Next(pkName string, nextParam *protobuf.NextParam) SqlTempla
 	return b.concrete
 }
 
-func (b *baseQuery) OrderBy(orderBy string) SqlTemplate {
+func (b *sqlTemplateImpl) OrderBy(orderBy string) SqlTemplate {
 	b.orderBy = fmt.Sprintf("ORDER BY %s", orderBy)
 	return b.concrete
 }
 
-func (b *baseQuery) GroupBy(groupBy string) SqlTemplate {
+func (b *sqlTemplateImpl) GroupBy(groupBy string) SqlTemplate {
 	b.groupBy = fmt.Sprintf("GROUP BY %s", groupBy)
 	return b.concrete
 }
 
-func (b *baseQuery) InsertArgs(extraArgs ...any) SqlTemplate {
+func (b *sqlTemplateImpl) InsertArgs(extraArgs ...any) SqlTemplate {
 	b.args = append(extraArgs, b.args...)
 	return b.concrete
 }
 
-func (b *baseQuery) AppendArgs(extraArgs ...any) SqlTemplate {
+func (b *sqlTemplateImpl) AppendArgs(extraArgs ...any) SqlTemplate {
 	b.args = append(b.args, extraArgs...)
 	return b.concrete
 }
 
-func (b *baseQuery) JoinSubQuery(tpl SqlTemplate) SqlTemplate {
+func (b *sqlTemplateImpl) JoinSubQuery(tpl SqlTemplate) SqlTemplate {
 	return b.concrete.JoinSubQuery(tpl)
 }
 
-func (b *baseQuery) Generate() (string, []any, error) {
+func (b *sqlTemplateImpl) Generate() (string, []any, error) {
 	return b.concrete.Generate()
 }
 
-func (b *baseQuery) ToSql() (string, []any, error) {
+func (b *sqlTemplateImpl) ToSql() (string, []any, error) {
 	return b.concrete.Generate()
 }
 
-func (b *baseQuery) Get(v any) error {
+func (b *sqlTemplateImpl) Get(v any) error {
 	xquery, xargs, err := b.concrete.Generate()
 	if err != nil {
 		return errors.Wrap(err, "generate sql")
 	}
 
-	err = hdsdk.Db().My().Get(v, xquery, xargs...)
+	err = b.dbClient.Get(v, xquery, xargs...)
 	if err != nil {
 		return errors.Wrap(err, "db get")
 	}
 	return nil
 }
 
-func (b *baseQuery) Select(v any) error {
+func (b *sqlTemplateImpl) Select(v any) error {
 	xquery, xargs, err := b.concrete.Generate()
 	if err != nil {
 		return errors.Wrap(err, "generate sql")
 	}
 
-	err = hdsdk.Db().My().Select(v, xquery, xargs...)
+	err = b.dbClient.Select(v, xquery, xargs...)
 	if err != nil {
 		return errors.Wrap(err, "db select")
 	}
 	return nil
 }
 
-func (b *baseQuery) Count() (int64, error) {
+func (b *sqlTemplateImpl) Count() (int64, error) {
 	// 获取total
 	xquery, xargs, err := b.concrete.Generate()
 	if err != nil {
@@ -265,14 +268,14 @@ func (b *baseQuery) Count() (int64, error) {
 	}
 
 	var total int64
-	err = hdsdk.Db().My().Get(&total, xquery, xargs...)
+	err = b.dbClient.Get(&total, xquery, xargs...)
 	if err != nil {
 		return 0, errors.Wrap(err, "db count")
 	}
 	return total, nil
 }
 
-func (b *baseQuery) getWhereClause() string {
+func (b *sqlTemplateImpl) getWhereClause() string {
 	if len(b.wheres) == 0 {
 		return ""
 	}
@@ -280,14 +283,14 @@ func (b *baseQuery) getWhereClause() string {
 }
 
 // process 后期处理，现在暂时只处理SQL中的IN关键字
-func (b *baseQuery) process(query string) (string, []any, error) {
+func (b *sqlTemplateImpl) process(query string) (string, []any, error) {
 	// 发现如果where里面有IN, 需要特殊处理
 	if strings.Contains(strings.ToUpper(query), " IN ") {
 		newQuery, newArgs, err := sqlx.In(query, b.args...)
 		if err != nil {
 			return "", nil, errors.Wrap(err, "sqlboiler-sqlite3-sqlx.In")
 		}
-		newQuery = hdsdk.Db().My().Rebind(newQuery)
+		newQuery = b.dbClient.Rebind(newQuery)
 		return newQuery, newArgs, nil
 	}
 	return query, b.args, nil
