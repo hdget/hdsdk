@@ -42,6 +42,10 @@ func New(app, env string, options ...Option) *SdkInstance {
 	return _instance
 }
 
+func HasInitialized() bool {
+	return _instance != nil
+}
+
 func (i *SdkInstance) LoadConfig(configVar any) *SdkInstance {
 	if i.configProvider != nil {
 		// if config provider is already provided in New, ignore it

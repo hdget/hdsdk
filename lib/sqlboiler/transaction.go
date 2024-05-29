@@ -2,6 +2,8 @@ package sqlboiler
 
 import (
 	"context"
+	"github.com/hdget/hdsdk/v2"
+	"github.com/hdget/hdutils"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
@@ -32,7 +34,24 @@ func NewTransaction(args ...boil.Transactor) (*Transaction, error) {
 }
 
 func (t Transaction) CommitOrRollback(err error) {
-	if t.needCommit {
-		CommitOrRollback(t.Tx, err)
+	if !t.needCommit {
+		return
+	}
+
+	errLogger := hdutils.LogError
+	if hdsdk.HasInitialized() {
+		errLogger = hdsdk.Logger().Error
+	}
+
+	// need commit
+	if err != nil {
+		e := t.Tx.Rollback()
+		errLogger("db roll back", "err", err, "rollback", e)
+		return
+	}
+
+	e := t.Tx.Commit()
+	if e != nil {
+		errLogger("db commit", "err", e)
 	}
 }

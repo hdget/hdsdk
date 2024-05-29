@@ -2,28 +2,12 @@ package sqlboiler
 
 import (
 	"fmt"
-	"github.com/hdget/hdsdk/v2"
 	"github.com/hdget/hdsdk/v2/lib/pagination"
 	"github.com/hdget/hdsdk/v2/protobuf"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"time"
 )
-
-func CommitOrRollback(tx boil.Transactor, err error) {
-	if err != nil {
-		e := tx.Rollback()
-		if e != nil {
-			hdsdk.Logger().Error("db rollback", "err", e)
-		}
-		return
-	}
-
-	e := tx.Commit()
-	if e != nil {
-		hdsdk.Logger().Error("db commit", "err", e)
-	}
-}
 
 // GetLimitQueryMods 获取Limit相关QueryMods
 func GetLimitQueryMods(list *protobuf.ListParam) []qm.QueryMod {

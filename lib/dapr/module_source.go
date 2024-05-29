@@ -211,7 +211,6 @@ func (p moduleAstParserImpl) parseModuleSourceInfo(skipDirs ...string) (*ModuleS
 			//		}
 			//	}
 		}
-
 		return nil
 	})
 
