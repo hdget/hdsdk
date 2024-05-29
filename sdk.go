@@ -99,9 +99,7 @@ func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
 		fxOptions = append(fxOptions, fx.NopLogger)
 	}
 
-	_ = fx.New(
-		fxOptions...,
-	)
-
+	_ = fx.New(fxOptions...)
+	_instance.logger.Debug("sdk initialized")
 	return nil
 }
