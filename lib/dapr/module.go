@@ -13,6 +13,7 @@ const (
 	ModuleKindUnknown ModuleKind = iota
 	ModuleKindInvocation
 	ModuleKindEvent
+	ModuleKindHealth
 )
 
 type moduler interface {

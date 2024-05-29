@@ -39,6 +39,7 @@ type ModuleSourceHandleOption func(*moduleAstParserImpl)
 const (
 	exprInvocationModule = "&{dapr InvocationModule}"
 	exprEventModule      = "&{dapr EventModule}"
+	exprHealthModule     = "&{dapr HealthModule}"
 	libDaprImportPath    = "github.com/hdget/hdsdk/v2/lib/dapr"
 )
 
@@ -149,10 +150,12 @@ func (p moduleAstParserImpl) parseModuleSourceInfo(skipDirs ...string) (*ModuleS
 										case exprEventModule:
 											found, _ := filepath.Rel(p.sourceRootDir, filepath.Dir(path))
 											sourceInfo.ModulePaths[ModuleKindEvent] = filepath.ToSlash(found)
+										case exprHealthModule:
+											found, _ := filepath.Rel(p.sourceRootDir, filepath.Dir(path))
+											sourceInfo.ModulePaths[ModuleKindHealth] = filepath.ToSlash(found)
 										}
 									}
 								}
-
 							}
 						}
 					}
