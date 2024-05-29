@@ -59,9 +59,10 @@ func (i *SdkInstance) LoadConfig(configVar any) *SdkInstance {
 }
 
 // Initialize all kinds of capability
-func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
+func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) (err error) {
 	if i.configProvider == nil {
-		return errdef.ErrConfigProviderNotReady
+		err = errdef.ErrConfigProviderNotReady
+		return
 	}
 
 	loggerInitialized := false
@@ -99,6 +100,13 @@ func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
 		fxOptions = append(fxOptions, fx.NopLogger)
 	}
 
+	defer func() {
+		if e := recover(); e != nil {
+			hdutils.RecordErrorStack("hdsdk")
+			err = errors.New("sdk not initialized")
+			return
+		}
+	}()
 	_ = fx.New(fxOptions...)
 	return nil
 }
