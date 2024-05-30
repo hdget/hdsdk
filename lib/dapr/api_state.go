@@ -3,13 +3,13 @@ package dapr
 import (
 	"context"
 	"github.com/dapr/go-sdk/client"
-	"github.com/hdget/hdutils"
+	"github.com/hdget/hdutils/convert"
 	"github.com/pkg/errors"
 )
 
 // SaveState 保存状态
 func SaveState(storeName, key string, value interface{}) error {
-	data, err := hdutils.ToBytes(value)
+	data, err := convert.ToBytes(value)
 	if err != nil {
 		return err
 	}

@@ -4,7 +4,9 @@ import (
 	"context"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/v2/intf"
-	"github.com/hdget/hdutils"
+	"github.com/hdget/hdutils/convert"
+	panicUtils "github.com/hdget/hdutils/panic"
+	reflectUtils "github.com/hdget/hdutils/reflect"
 )
 
 type invocationHandler interface {
@@ -48,17 +50,17 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) com
 		// 挂载defer函数
 		defer func() {
 			if r := recover(); r != nil {
-				hdutils.RecordErrorStack(h.module.GetApp())
+				panicUtils.RecordErrorStack(h.module.GetApp())
 			}
 		}()
 
 		response, err := h.fn(ctx, event)
 		if err != nil {
-			req := []rune(hdutils.BytesToString(event.Data))
+			req := []rune(convert.BytesToString(event.Data))
 			if len(req) > maxRequestLength {
 				req = append(req[:maxRequestLength], []rune("...")...)
 			}
-			logger.Error("service invoke", "module", h.module.GetMeta().StructName, "handler", hdutils.Reflect().GetFuncName(h.fn), "err", err, "req", req)
+			logger.Error("service invoke", "module", h.module.GetMeta().StructName, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", req)
 			return Error(err)
 		}
 

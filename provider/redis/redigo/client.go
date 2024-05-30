@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gomodule/redigo/redis"
 	"github.com/hdget/hdsdk/v2/intf"
-	"github.com/hdget/hdutils"
+	"github.com/hdget/hdutils/convert"
 	"strconv"
 	"time"
 )
@@ -296,7 +296,7 @@ func (r *redisClient) HGetAll(key string) (map[string]string, error) {
 
 // HSet 设置某个field的值
 func (r *redisClient) HSet(key string, field interface{}, value interface{}) (int, error) {
-	strValue, err := hdutils.ToString(value)
+	strValue, err := convert.ToString(value)
 	if err != nil {
 		return 0, err
 	}
@@ -366,7 +366,7 @@ func (r *redisClient) GetString(key string) (string, error) {
 
 // Set 设置某个key为value
 func (r *redisClient) Set(key string, value interface{}) error {
-	strValue, err := hdutils.ToString(value)
+	strValue, err := convert.ToString(value)
 	if err != nil {
 		return err
 	}
@@ -382,7 +382,7 @@ func (r *redisClient) Set(key string, value interface{}) error {
 
 // SetEx 设置某个key为value,并设置过期时间(单位为秒)
 func (r *redisClient) SetEx(key string, value interface{}, expire int) error {
-	strValue, err := hdutils.ToString(value)
+	strValue, err := convert.ToString(value)
 	if err != nil {
 		return err
 	}

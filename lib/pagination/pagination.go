@@ -2,7 +2,7 @@ package pagination
 
 import (
 	"github.com/hdget/hdsdk/v2/protobuf"
-	"github.com/hdget/hdutils"
+	"github.com/hdget/hdutils/page"
 )
 
 const (
@@ -12,20 +12,20 @@ const (
 var (
 	defaultPageParam = &protobuf.ListParam{
 		Page:     1,
-		PageSize: DefaultPageSize,
+		PageSize: page.DefaultPageSize,
 	}
 )
 
-func New(listParam *protobuf.ListParam) hdutils.Pagination {
+func New(listParam *protobuf.ListParam) page.Pagination {
 	p := listParam
 	if p == nil {
 		p = defaultPageParam
 	}
 
 	// 处理当前页面
-	page := p.Page
-	if page == 0 {
-		page = 1
+	currentPage := p.Page
+	if currentPage == 0 {
+		currentPage = 1
 	}
 
 	// 处理每页大小
@@ -33,5 +33,5 @@ func New(listParam *protobuf.ListParam) hdutils.Pagination {
 	if pageSize <= 0 {
 		pageSize = DefaultPageSize
 	}
-	return hdutils.NewPagination(page, pageSize)
+	return page.NewPagination(currentPage, pageSize)
 }

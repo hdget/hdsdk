@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/hdget/hdsdk/v2/lib/bizerr"
-	"github.com/hdget/hdutils"
+	"github.com/hdget/hdutils/convert"
 	"net/http"
 )
 
@@ -58,10 +58,10 @@ func SuccessRaw(c *gin.Context, result interface{}) {
 	case string:
 		content = t
 	case []byte:
-		content = hdutils.BytesToString(t)
+		content = convert.BytesToString(t)
 	default:
 		v, _ := json.Marshal(result)
-		content = hdutils.BytesToString(v)
+		content = convert.BytesToString(v)
 	}
 	c.Writer.WriteHeader(http.StatusOK)
 	c.Header("Content-Type", "application/json; charset=utf-8")

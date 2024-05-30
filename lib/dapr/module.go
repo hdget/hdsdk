@@ -1,7 +1,7 @@
 package dapr
 
 import (
-	"github.com/hdget/hdutils"
+	reflectUtils "github.com/hdget/hdutils/reflect"
 	"github.com/pkg/errors"
 	"regexp"
 	"strconv"
@@ -41,7 +41,7 @@ type ModuleMeta struct {
 
 // newModule 从约定的结构名中解析模块名和版本, 结构名需要为v<number>_<module>
 func newModule(app string, moduleObject any) (moduler, error) {
-	structName := hdutils.Reflect().GetStructName(moduleObject)
+	structName := reflectUtils.GetStructName(moduleObject)
 	if structName == "" {
 		return nil, errInvalidModule
 	}

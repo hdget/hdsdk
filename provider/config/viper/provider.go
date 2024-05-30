@@ -11,7 +11,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/hdget/hdsdk/v2/intf"
-	"github.com/hdget/hdutils"
+	"github.com/hdget/hdutils/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"path/filepath"
@@ -154,7 +154,7 @@ func (p *viperConfigLoader) loadFromFile() error {
 		return err
 	}
 
-	hdutils.LogDebug("load configer from file", "file", p.local.ConfigFileUsed())
+	logger.LogDebug("load configer from file", "file", p.local.ConfigFileUsed())
 	return nil
 }
 
@@ -180,7 +180,7 @@ func (p *viperConfigLoader) setupConfigFile() {
 			if foundDir != "" {
 				configDirs = append(configDirs, foundDir)
 			} else {
-				hdutils.LogFatal("no config dir found", "app", p.app, "env", p.env)
+				logger.LogFatal("no config dir found", "app", p.app, "env", p.env)
 			}
 		}
 

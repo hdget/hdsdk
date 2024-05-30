@@ -2,7 +2,7 @@ package viper
 
 import (
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/hdutils"
+	"github.com/hdget/hdutils/logger"
 	"github.com/spf13/viper"
 	"path"
 )
@@ -36,7 +36,7 @@ func WithConfigDir(args ...string) Option {
 func WithConfigFilename(filename string) Option {
 	return func(c *viperConfigLoader) {
 		if path.Ext(filename) != "" {
-			hdutils.LogWarn("filename should not contains suffix", "filename", filename)
+			logger.LogWarn("filename should not contains suffix", "filename", filename)
 		}
 		c.fileOption.filename = filename
 	}
@@ -45,7 +45,7 @@ func WithConfigFilename(filename string) Option {
 func WithConfigType(configType string) Option {
 	return func(c *viperConfigLoader) {
 		if !pie.Contains(viper.SupportedExts, configType) {
-			hdutils.LogFatal("set configer type", "supported", viper.SupportedExts, "err", viper.UnsupportedConfigError(configType))
+			logger.LogFatal("set configer type", "supported", viper.SupportedExts, "err", viper.UnsupportedConfigError(configType))
 		}
 		c.configType = configType
 	}

@@ -3,7 +3,7 @@ package dapr
 import (
 	"context"
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/hdget/hdutils"
+	reflectUtils "github.com/hdget/hdutils/reflect"
 	"github.com/pkg/errors"
 	"strings"
 )
@@ -76,7 +76,7 @@ func AsInvocationModule(app string, moduleObject any) (InvocationModule, error) 
 	}
 
 	// 初始化module
-	err = hdutils.Reflect().StructSet(moduleObject, (*InvocationModule)(nil), moduleInstance)
+	err = reflectUtils.StructSet(moduleObject, (*InvocationModule)(nil), moduleInstance)
 	if err != nil {
 		return nil, errors.Wrapf(err, "install module: %+v", m)
 	}
@@ -107,7 +107,7 @@ func (m *invocationModuleImpl) DiscoverHandlers(args ...HandlerNameMatcher) ([]i
 
 	handlers := make([]invocationHandler, 0)
 	// 这里需要传入当前实际正在使用的服务模块，即带有common.ServiceInvocationHandler的struct实例
-	for methodName, method := range hdutils.Reflect().MatchReceiverMethods(m.self, InvocationFunction(nil)) {
+	for methodName, method := range reflectUtils.MatchReceiverMethods(m.self, InvocationFunction(nil)) {
 		handlerName, matched := matchFn(methodName)
 		if !matched {
 			continue
@@ -131,7 +131,7 @@ func (m *invocationModuleImpl) GetHandlers() []invocationHandler {
 func (m *invocationModuleImpl) newInvocationHandler(module moduler, handlerAlias string, fn InvocationFunction) invocationHandler {
 	return &invocationHandlerImpl{
 		handlerAlias: handlerAlias,
-		handlerName:  hdutils.Reflect().GetFuncName(fn),
+		handlerName:  reflectUtils.GetFuncName(fn),
 		module:       module,
 		fn:           fn,
 	}

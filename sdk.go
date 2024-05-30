@@ -6,7 +6,7 @@ import (
 	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdsdk/v2/provider/config/viper"
 	"github.com/hdget/hdsdk/v2/provider/logger/zerolog"
-	"github.com/hdget/hdutils"
+	"github.com/hdget/hdutils/logger"
 	"github.com/pkg/errors"
 	"go.uber.org/fx"
 )
@@ -38,7 +38,7 @@ func New(app, env string, options ...Option) *SdkInstance {
 	var err error
 	_instance.configProvider, err = viper.New(app, env)
 	if err != nil {
-		hdutils.LogFatal("new default config provider", "err", err)
+		logger.LogFatal("new default config provider", "err", err)
 	}
 
 	return _instance
@@ -53,7 +53,7 @@ func (i *SdkInstance) LoadConfig(configVar any) *SdkInstance {
 		// if config provider is already provided in New, ignore it
 		err := i.configProvider.Unmarshal(configVar)
 		if err != nil {
-			hdutils.LogError("unmarshal to config var", "err", err)
+			logger.LogError("unmarshal to config var", "err", err)
 		}
 	}
 	return i

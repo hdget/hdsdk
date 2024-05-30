@@ -7,7 +7,7 @@ package zerolog
 
 import (
 	"github.com/hdget/hdsdk/v2/intf"
-	"github.com/hdget/hdutils"
+	"github.com/hdget/hdutils/logger"
 	"github.com/rs/zerolog"
 	"log"
 	"strings"
@@ -74,42 +74,42 @@ func (p zerologLoggerProvider) GetStdLogger() *log.Logger {
 }
 
 func (p *zerologLoggerProvider) Log(keyvals ...interface{}) error {
-	msgValue, errValue, fields := hdutils.ParseArgs(keyvals...)
+	msgValue, errValue, fields := logger.ParseArgs(keyvals...)
 	p.logger.Trace().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msgValue)
 	return nil
 }
 
 func (p *zerologLoggerProvider) Trace(msg string, keyvals ...interface{}) {
-	_, errValue, fields := hdutils.ParseArgs(keyvals...)
+	_, errValue, fields := logger.ParseArgs(keyvals...)
 	p.logger.Trace().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (p *zerologLoggerProvider) Debug(msg string, keyvals ...interface{}) {
-	_, errValue, fields := hdutils.ParseArgs(keyvals...)
+	_, errValue, fields := logger.ParseArgs(keyvals...)
 	p.logger.Debug().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (p *zerologLoggerProvider) Info(msg string, keyvals ...interface{}) {
-	_, errValue, fields := hdutils.ParseArgs(keyvals...)
+	_, errValue, fields := logger.ParseArgs(keyvals...)
 	p.logger.Info().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (p *zerologLoggerProvider) Warn(msg string, keyvals ...interface{}) {
-	_, errValue, fields := hdutils.ParseArgs(keyvals...)
+	_, errValue, fields := logger.ParseArgs(keyvals...)
 	p.logger.Warn().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (p *zerologLoggerProvider) Error(msg string, keyvals ...interface{}) {
-	_, errValue, fields := hdutils.ParseArgs(keyvals...)
+	_, errValue, fields := logger.ParseArgs(keyvals...)
 	p.logger.Error().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (p *zerologLoggerProvider) Fatal(msg string, keyvals ...interface{}) {
-	_, errValue, fields := hdutils.ParseArgs(keyvals...)
+	_, errValue, fields := logger.ParseArgs(keyvals...)
 	p.logger.Fatal().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }
 
 func (p *zerologLoggerProvider) Panic(msg string, keyvals ...interface{}) {
-	_, errValue, fields := hdutils.ParseArgs(keyvals...)
+	_, errValue, fields := logger.ParseArgs(keyvals...)
 	p.logger.Panic().Caller(defaultCallerSkipFrameCount).Err(errValue).Fields(fields).Msg(msg)
 }

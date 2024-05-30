@@ -70,10 +70,10 @@ package dapr
 //	packagePath := strings.Join(splitFuncName[0:len(splitFuncName)-2], ".")
 //
 //	varName := "routes"
-//	return hdutils.
+//	return gen.
 //		NewGoFile("autogen", map[string]string{packagePath: ""}).
 //		DeclareSliceVar(varName, packagePath, routeItems).
-//		AddMethod(hdutils.Reflect().GetStructName(m), hdutils.Reflect().GetFuncName(m.Get), nil, []string{"any"}, []jen.Code{jen.Return(jen.Id(varName))}).
+//		AddMethod(reflectUtils.GetStructName(m), reflectUtils.GetFuncName(m.Get), nil, []string{"any"}, []jen.Code{jen.Return(jen.Id(varName))}).
 //		Save(path.Join("autogen", "routes.go"))
 //}
 

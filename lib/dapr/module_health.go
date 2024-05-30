@@ -3,7 +3,7 @@ package dapr
 import (
 	"context"
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/hdget/hdutils"
+	reflectUtils "github.com/hdget/hdutils/reflect"
 	"github.com/pkg/errors"
 )
 
@@ -63,7 +63,7 @@ func AsHealthModule(app string, moduleObject any, fn HealthCheckFunction) (Healt
 	}
 
 	// 初始化module
-	err = hdutils.Reflect().StructSet(moduleObject, (*HealthModule)(nil), moduleInstance)
+	err = reflectUtils.StructSet(moduleObject, (*HealthModule)(nil), moduleInstance)
 	if err != nil {
 		return nil, errors.Wrapf(err, "install module: %+v", m)
 	}

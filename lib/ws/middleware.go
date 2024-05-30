@@ -1,9 +1,9 @@
 package ws
 
 import (
+	"github.com/elliotchance/pie/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/hdget/hdsdk/v2/intf"
-	"github.com/hdget/hdutils"
 	"strings"
 	"time"
 )
@@ -17,7 +17,7 @@ func newLoggerMiddleware(logger intf.LoggerProvider) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//请求方式
 		reqMethod := c.Request.Method
-		if hdutils.Contains(SkipHttpMethods, reqMethod) {
+		if pie.Contains(SkipHttpMethods, reqMethod) {
 			c.Next()
 			return
 		}

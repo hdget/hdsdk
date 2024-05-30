@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/v2/lib/bizerr"
-	"github.com/hdget/hdutils"
+	"github.com/hdget/hdutils/convert"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -28,7 +28,7 @@ func Success(event *common.InvocationEvent, resp any) (*common.Content, error) {
 	var data []byte
 	switch t := resp.(type) {
 	case string:
-		data = hdutils.StringToBytes(t)
+		data = convert.StringToBytes(t)
 	case []byte:
 		data = t
 	default:

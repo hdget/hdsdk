@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dapr/go-sdk/client"
-	"github.com/hdget/hdutils"
+	"github.com/hdget/hdutils/convert"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/metadata"
 	"strings"
@@ -24,7 +24,7 @@ func (a apiImpl) Invoke(appId string, moduleVersion int, moduleName, handler str
 	var value []byte
 	switch t := data.(type) {
 	case string:
-		value = hdutils.StringToBytes(t)
+		value = convert.StringToBytes(t)
 	case []byte:
 		value = t
 	default:

@@ -3,7 +3,8 @@ package dapr
 import (
 	"encoding/json"
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/hdutils"
+	"github.com/hdget/hdutils/ast"
+	"github.com/hdget/hdutils/convert"
 	"github.com/pkg/errors"
 	"strings"
 )
@@ -39,7 +40,7 @@ func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...Handl
 	// 这里需要匹配func(ctx context.Context, in *common.InvocationEvent) (out *common.Content, err error)
 	// 函数参数类型为: context.Context, *common.InvocationEvent
 	// 函数返回结果为：
-	funcInfos, err := hdutils.AST().InspectFunction(srcPath, handlerParamSignatures, handlerResultSignatures, annotationPrefix)
+	funcInfos, err := ast.InspectFunction(srcPath, handlerParamSignatures, handlerResultSignatures, annotationPrefix)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +89,7 @@ func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...Handl
 }
 
 // parseRouteAnnotation handlerName为register或者discover handler时候使用的handlerAlias
-func (m *invocationModuleImpl) parseRouteAnnotation(handlerAlias string, fnInfo *hdutils.AstFunction, ann *hdutils.AstAnnotation) (*RouteAnnotation, error) {
+func (m *invocationModuleImpl) parseRouteAnnotation(handlerAlias string, fnInfo *ast.Function, ann *ast.Annotation) (*RouteAnnotation, error) {
 	// 设置初始值
 	routeAnnotation := &RouteAnnotation{
 		Endpoint:      "",
@@ -104,7 +105,7 @@ func (m *invocationModuleImpl) parseRouteAnnotation(handlerAlias string, fnInfo 
 	// 尝试将注解后的值进行jsonUnmarshal
 	if strings.HasPrefix(ann.Value, "{") && strings.HasSuffix(ann.Value, "}") {
 		// 如果定义不为空，尝试unmarshal
-		err := json.Unmarshal(hdutils.StringToBytes(ann.Value), &routeAnnotation)
+		err := json.Unmarshal(convert.StringToBytes(ann.Value), &routeAnnotation)
 		if err != nil {
 			return nil, errors.Wrapf(err, "parse route annotation, annotation: %s", ann.Value)
 		}

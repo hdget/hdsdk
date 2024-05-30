@@ -3,7 +3,7 @@ package sqlboiler
 import (
 	"context"
 	"github.com/hdget/hdsdk/v2"
-	"github.com/hdget/hdutils"
+	"github.com/hdget/hdutils/logger"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 )
 
@@ -38,7 +38,7 @@ func (t Transaction) CommitOrRollback(err error) {
 		return
 	}
 
-	errLogger := hdutils.LogError
+	errLogger := logger.LogError
 	if hdsdk.HasInitialized() {
 		errLogger = hdsdk.Logger().Error
 	}

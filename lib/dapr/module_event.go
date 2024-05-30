@@ -1,7 +1,7 @@
 package dapr
 
 import (
-	"github.com/hdget/hdutils"
+	reflectUtils "github.com/hdget/hdutils/reflect"
 	"github.com/pkg/errors"
 	"time"
 )
@@ -77,7 +77,7 @@ func AsEventModule(app, pubsub string, moduleObject any, options ...EventModuleO
 	}
 
 	// 初始化module
-	err = hdutils.Reflect().StructSet(moduleObject, (*EventModule)(nil), moduleInstance)
+	err = reflectUtils.StructSet(moduleObject, (*EventModule)(nil), moduleInstance)
 	if err != nil {
 		return nil, errors.Wrapf(err, "install module: %+v", m)
 	}

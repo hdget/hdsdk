@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/v2/intf"
-	"github.com/hdget/hdutils"
+	"github.com/hdget/hdutils/convert"
+	panicUtils "github.com/hdget/hdutils/panic"
 	"time"
 )
 
@@ -31,7 +32,7 @@ func (h eventHandlerImpl) GetEventFunction(logger intf.LoggerProvider) common.To
 		quit := make(chan bool, 1)
 		defer func() {
 			if r := recover(); r != nil {
-				hdutils.RecordErrorStack(h.module.GetApp())
+				panicUtils.RecordErrorStack(h.module.GetApp())
 			}
 			quit <- true
 			retry = false
@@ -59,7 +60,7 @@ func (h eventHandlerImpl) GetEventFunction(logger intf.LoggerProvider) common.To
 }
 
 func trimData(data []byte) []rune {
-	trimmed := []rune(hdutils.BytesToString(data))
+	trimmed := []rune(convert.BytesToString(data))
 	if len(trimmed) > maxRequestLength {
 		trimmed = append(trimmed[:maxRequestLength], []rune("...")...)
 	}
