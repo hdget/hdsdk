@@ -13,6 +13,7 @@ const (
 	ProviderCategoryGraph
 	ProviderCategoryMq
 	ProviderCategoryDbSqlx
+	ProviderCategoryDbBuilder
 )
 
 type ProviderName string
@@ -24,6 +25,7 @@ const (
 	ProviderNameSqlBoilerMysql  ProviderName = "sqlboiler-mysql"
 	ProviderNameSqlBoilerSqlite ProviderName = "sqlboiler-sqlite3"
 	ProviderNameSqlxMysql       ProviderName = "sqlx-mysql"
+	ProviderNameSquirrelMysql   ProviderName = "squirrel-mysql"
 	ProviderNameNeo4j           ProviderName = "neo4j"
 	ProviderNameRabbitMq        ProviderName = "rabbitmq"
 )

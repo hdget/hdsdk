@@ -10,6 +10,10 @@ func Db() intf.DbProvider {
 	return _instance.db
 }
 
+func DbBuilder() intf.DbBuilderProvider {
+	return _instance.dbBuilder
+}
+
 func Sqlx() intf.SqlxDbProvider {
 	return _instance.sqlxDb
 }

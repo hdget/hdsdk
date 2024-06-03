@@ -2,6 +2,7 @@ package intf
 
 import (
 	"database/sql"
+	"github.com/hdget/hdsdk/v2/protobuf"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -36,4 +37,20 @@ type SqlxDbClient interface {
 	NamedExec(query string, arg interface{}) (sql.Result, error)
 	Queryx(query string, args ...interface{}) (*sqlx.Rows, error)
 	Beginx() (*sqlx.Tx, error)
+}
+
+type DbBuilderProvider interface {
+	Provider
+	My() DbBuilderClient
+	Master() DbBuilderClient
+	Slave(i int) DbBuilderClient
+	By(name string) DbBuilderClient
+}
+
+type DbBuilderClient interface {
+	ToSql() (string, []any, error)
+	XGet(v any) error
+	XSelect(v any, args ...*protobuf.ListParam) error
+	XCount() (int64, error)
+	XQuery(args ...*protobuf.ListParam) (*sqlx.Rows, error)
 }
