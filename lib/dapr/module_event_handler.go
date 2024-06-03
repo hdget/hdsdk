@@ -33,10 +33,11 @@ func (h eventHandlerImpl) GetEventFunction(logger intf.LoggerProvider) common.To
 		defer func() {
 			if r := recover(); r != nil {
 				panicUtils.RecordErrorStack(h.module.GetApp())
+				// panic后赋值
+				retry = false
+				err = fmt.Errorf("%s panic", h.module.GetApp())
 			}
 			quit <- true
-			retry = false
-			err = fmt.Errorf("%s panic", h.module.GetApp())
 		}()
 
 		go func() {
