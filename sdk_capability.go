@@ -10,7 +10,8 @@ func Db() intf.DbProvider {
 	return _instance.db
 }
 
-func DbBuilder() intf.DbBuilderProvider {
+func DbBuilder(sqlizer intf.Sqlizer) intf.DbBuilderProvider {
+	_instance.dbBuilder.Set(sqlizer)
 	return _instance.dbBuilder
 }
 

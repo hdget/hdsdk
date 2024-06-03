@@ -6,6 +6,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+type Sqlizer interface {
+	ToSql() (string, []interface{}, error)
+}
+
 type DbProvider interface {
 	Provider
 	My() DbClient
@@ -45,6 +49,7 @@ type DbBuilderProvider interface {
 	Master() DbBuilderClient
 	Slave(i int) DbBuilderClient
 	By(name string) DbBuilderClient
+	Set(sqlizer Sqlizer)
 }
 
 type DbBuilderClient interface {

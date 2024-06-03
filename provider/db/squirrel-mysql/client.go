@@ -15,7 +15,7 @@ import (
 
 type mysqlClient struct {
 	*sqlx.DB
-	_builder squirrel.Sqlizer
+	_builder intf.Sqlizer
 }
 
 const (
@@ -24,7 +24,7 @@ const (
 	dsnTemplate = "%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local"
 )
 
-func newClient(c *mysqlConfig) (intf.DbBuilderClient, error) {
+func newDb(c *mysqlConfig) (*sqlx.DB, error) {
 	// 构造连接参数
 	dsn := fmt.Sprintf(dsnTemplate, c.User, c.Password, c.Host, c.Port, c.Database)
 	db, err := sqlx.Connect("mysql", dsn)
@@ -38,7 +38,7 @@ func newClient(c *mysqlConfig) (intf.DbBuilderClient, error) {
 	// connection.go:173: driver: bad connection
 	db.SetConnMaxLifetime(3 * time.Minute)
 
-	return &mysqlClient{DB: db}, nil
+	return db, nil
 }
 
 func (m mysqlClient) ToSql() (string, []any, error) {

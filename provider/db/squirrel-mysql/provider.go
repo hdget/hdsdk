@@ -2,16 +2,18 @@ package sqlx_mysql
 
 import (
 	"github.com/hdget/hdsdk/v2/intf"
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
 
 type mysqlProvider struct {
 	logger    intf.LoggerProvider
 	config    *mysqlProviderConfig
-	defaultDb intf.DbBuilderClient
-	masterDb  intf.DbBuilderClient
-	slaveDbs  []intf.DbBuilderClient
-	extraDbs  map[string]intf.DbBuilderClient
+	defaultDb *sqlx.DB
+	masterDb  *sqlx.DB
+	slaveDbs  []*sqlx.DB
+	extraDbs  map[string]*sqlx.DB
+	_builder  intf.Sqlizer
 }
 
 func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.DbBuilderProvider, error) {
@@ -23,8 +25,8 @@ func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.D
 	provider := &mysqlProvider{
 		logger:   logger,
 		config:   c,
-		slaveDbs: make([]intf.DbBuilderClient, len(c.Slaves)),
-		extraDbs: make(map[string]intf.DbBuilderClient),
+		slaveDbs: make([]*sqlx.DB, len(c.Slaves)),
+		extraDbs: make(map[string]*sqlx.DB),
 	}
 
 	err = provider.Init(logger, c)
@@ -38,7 +40,7 @@ func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.D
 func (p *mysqlProvider) Init(args ...any) error {
 	var err error
 	if p.config.Default != nil {
-		p.defaultDb, err = newClient(p.config.Default)
+		p.defaultDb, err = newDb(p.config.Default)
 		if err != nil {
 			return errors.Wrap(err, "init mysql default connection")
 		}
@@ -47,7 +49,7 @@ func (p *mysqlProvider) Init(args ...any) error {
 	}
 
 	if p.config.Master != nil {
-		p.masterDb, err = newClient(p.config.Master)
+		p.masterDb, err = newDb(p.config.Master)
 		if err != nil {
 			return errors.Wrap(err, "init mysql master connection")
 		}
@@ -55,7 +57,7 @@ func (p *mysqlProvider) Init(args ...any) error {
 	}
 
 	for i, slaveConf := range p.config.Slaves {
-		slaveClient, err := newClient(slaveConf)
+		slaveClient, err := newDb(slaveConf)
 		if err != nil {
 			return errors.Wrapf(err, "init mysql slave connection, index: %d", i)
 		}
@@ -65,7 +67,7 @@ func (p *mysqlProvider) Init(args ...any) error {
 	}
 
 	for _, itemConf := range p.config.Items {
-		itemClient, err := newClient(itemConf)
+		itemClient, err := newDb(itemConf)
 		if err != nil {
 			return errors.Wrapf(err, "new mysql extra connection, name: %s", itemConf.Name)
 		}
@@ -78,17 +80,33 @@ func (p *mysqlProvider) Init(args ...any) error {
 }
 
 func (p *mysqlProvider) My() intf.DbBuilderClient {
-	return p.defaultDb
+	return &mysqlClient{
+		DB:       p.defaultDb,
+		_builder: p._builder,
+	}
 }
 
 func (p *mysqlProvider) Master() intf.DbBuilderClient {
-	return p.masterDb
+	return &mysqlClient{
+		DB:       p.masterDb,
+		_builder: p._builder,
+	}
 }
 
 func (p *mysqlProvider) Slave(i int) intf.DbBuilderClient {
-	return p.slaveDbs[i]
+	return &mysqlClient{
+		DB:       p.slaveDbs[i],
+		_builder: p._builder,
+	}
 }
 
 func (p *mysqlProvider) By(name string) intf.DbBuilderClient {
-	return p.extraDbs[name]
+	return &mysqlClient{
+		DB:       p.extraDbs[name],
+		_builder: p._builder,
+	}
+}
+
+func (p *mysqlProvider) Set(builder intf.Sqlizer) {
+	p._builder = builder
 }
