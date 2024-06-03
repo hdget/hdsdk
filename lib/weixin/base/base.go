@@ -75,8 +75,7 @@ func (b *ApiWeixin) ParseResult(data []byte, result any) error {
 func (b *ApiWeixin) generateAccessToken() (*types.WxAccessToken, error) {
 	wxAccessTokenURL := fmt.Sprintf(urlGetWxAccessToken, b.AppId, b.AppSecret)
 
-	client := resty.New()
-	resp, err := client.R().Get(wxAccessTokenURL)
+	resp, err := resty.New().R().Get(wxAccessTokenURL)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get access token, appId: %s", b.AppId)
 	}
