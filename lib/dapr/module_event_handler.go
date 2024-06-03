@@ -2,12 +2,10 @@ package dapr
 
 import (
 	"context"
-	"fmt"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdutils/convert"
 	panicUtils "github.com/hdget/hdutils/panic"
-	"time"
 )
 
 type eventHandler interface {
@@ -28,35 +26,31 @@ func (h eventHandlerImpl) GetTopic() string {
 }
 
 func (h eventHandlerImpl) GetEventFunction(logger intf.LoggerProvider) common.TopicEventHandler {
-	return func(ctx context.Context, event *common.TopicEvent) (retry bool, err error) {
-		quit := make(chan bool, 1)
+	return func(ctx context.Context, event *common.TopicEvent) (bool, error) {
+		//quit := make(chan bool, 1)
 		defer func() {
 			if r := recover(); r != nil {
 				panicUtils.RecordErrorStack(h.module.GetApp())
-				// panic后赋值
-				retry = false
-				err = fmt.Errorf("%s panic", h.module.GetApp())
 			}
-			quit <- true
+			//quit <- true
 		}()
 
-		go func() {
-			select {
-			case <-time.After(h.module.GetAckTimeout()):
-				logger.Error("event processing timeout, discard message", "message", trimData(event.RawData))
-				retry = false
-				err = ctx.Err()
-			case <-quit:
-				break
-			}
-		}()
+		//go func() {
+		//	select {
+		//	case <-time.After(h.module.GetAckTimeout()):
+		//		logger.Error("event processing timeout, discard message", "message", trimData(event.RawData))
+		//		break
+		//	case <-quit:
+		//		break
+		//	}
+		//}()
 
 		// 执行具体的函数
-		retry, err = h.fn(ctx, event)
+		retry, err := h.fn(ctx, event)
 		if err != nil {
 			logger.Error("event processing", "message", trimData(event.RawData), "err", err)
 		}
-		return
+		return retry, err
 	}
 }
 
