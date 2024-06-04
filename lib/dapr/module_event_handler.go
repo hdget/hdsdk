@@ -3,7 +3,6 @@ package dapr
 import (
 	"context"
 	"github.com/dapr/go-sdk/service/common"
-	"github.com/dapr/go-sdk/service/grpc"
 	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdutils/convert"
 	panicUtils "github.com/hdget/hdutils/panic"
@@ -36,7 +35,7 @@ func (h eventHandlerImpl) GetTopic() string {
 // err: nil 只要错误为空，则消息成功消费, 不管retry的值为什么样
 // err: not nil + retry: false DAPR打印DROP status消息
 // err: not nil + retry: true  根据DAPR resilience策略进行重试，最后重试次数结束, DAPR打印日志
-func (h eventHandlerImpl) GetEventFunction(logger intf.LoggerProvider, srv *grpc.Server) common.TopicEventHandler {
+func (h eventHandlerImpl) GetEventFunction(logger intf.LoggerProvider) common.TopicEventHandler {
 	return func(ctx context.Context, event *common.TopicEvent) (bool, error) {
 		quit := make(chan *eventHandleResult, 1)
 		go func(chanResult chan *eventHandleResult) {
@@ -65,7 +64,6 @@ func (h eventHandlerImpl) GetEventFunction(logger intf.LoggerProvider, srv *grpc
 			if result.err != nil {
 				logger.Error("event processing", "message", trimData(event.RawData), "err", result.err)
 			}
-
 		}
 		return result.retry, result.err
 	}
