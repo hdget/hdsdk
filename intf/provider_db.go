@@ -41,6 +41,7 @@ type SqlxDbClient interface {
 	NamedExec(query string, arg interface{}) (sql.Result, error)
 	Queryx(query string, args ...interface{}) (*sqlx.Rows, error)
 	Beginx() (*sqlx.Tx, error)
+	Db() *sqlx.DB
 }
 
 type DbBuilderProvider interface {

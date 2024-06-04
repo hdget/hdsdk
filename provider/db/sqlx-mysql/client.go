@@ -38,3 +38,7 @@ func newClient(c *mysqlConfig) (intf.SqlxDbClient, error) {
 func (m mysqlClient) Close() error {
 	return m.DB.Close()
 }
+
+func (m mysqlClient) Db() *sqlx.DB {
+	return m.DB
+}
