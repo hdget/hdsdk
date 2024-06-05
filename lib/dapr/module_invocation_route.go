@@ -47,13 +47,13 @@ func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...Handl
 
 	routeAnnotations := make([]*RouteAnnotation, 0)
 	for _, fnInfo := range funcInfos {
-		moduleMeta, err := parseModuleMeta(fnInfo.Receiver)
+		moduleInfo, err := parseModuleInfo(fnInfo.Receiver)
 		if err != nil {
 			return nil, err
 		}
 
 		// 忽略掉不是本模块的备注
-		if moduleMeta.StructName != m.moduler.GetMeta().StructName {
+		if moduleInfo.StructName != m.moduler.GetInfo().StructName {
 			continue
 		}
 

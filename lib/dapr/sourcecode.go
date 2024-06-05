@@ -17,24 +17,24 @@ import (
 	"strings"
 )
 
-type ModuleSourceHandler interface {
-	Handle() (*ModuleSource, error)
+type SourceCodeHandler interface {
+	Handle() (*SourceCodeInfo, error)
 }
 
-// ModuleSource 模块源代码信息
-type ModuleSource struct {
-	Routes           []*protobuf.RouteItem
-	ModulePaths      map[ModuleKind]string // 模块的路径
-	ServerSourceFile string                // dapr.NewGrpcServer所在的go文件
+// SourceCodeInfo 模块源代码信息
+type SourceCodeInfo struct {
+	ModulePaths map[ModuleKind]string // 模块的路径
+	ServerEntry string                // 服务的入口文件即dapr.NewGrpcServer所在的go文件
+	Routes      []*protobuf.RouteItem
 }
 
-type moduleAstParserImpl struct {
+type sourceCodeHandleImpl struct {
 	sourceRootDir       string
 	skipDirs            []string
 	handlerNameMatchers []HandlerNameMatcher
 }
 
-type ModuleSourceHandleOption func(*moduleAstParserImpl)
+type SourceCodeHandleOption func(*sourceCodeHandleImpl)
 
 const (
 	exprInvocationModule = "&{dapr InvocationModule}"
@@ -51,8 +51,8 @@ var (
 )
 
 // NewModuleSourceHandler 获取模块源代码处理器
-func NewModuleSourceHandler(baseDir string, options ...ModuleSourceHandleOption) ModuleSourceHandler {
-	p := &moduleAstParserImpl{
+func NewModuleSourceHandler(baseDir string, options ...SourceCodeHandleOption) SourceCodeHandler {
+	p := &sourceCodeHandleImpl{
 		sourceRootDir: baseDir,
 	}
 	for _, option := range options {
@@ -62,45 +62,53 @@ func NewModuleSourceHandler(baseDir string, options ...ModuleSourceHandleOption)
 	return p
 }
 
-func WithSkipDirs(skipDirs ...string) ModuleSourceHandleOption {
-	return func(impl *moduleAstParserImpl) {
+func WithSkipDirs(skipDirs ...string) SourceCodeHandleOption {
+	return func(impl *sourceCodeHandleImpl) {
 		impl.skipDirs = skipDirs
 	}
 }
 
-func WithHandlerMatchers(handlerNameMatchers ...HandlerNameMatcher) ModuleSourceHandleOption {
-	return func(impl *moduleAstParserImpl) {
+func WithHandlerMatchers(handlerNameMatchers ...HandlerNameMatcher) SourceCodeHandleOption {
+	return func(impl *sourceCodeHandleImpl) {
 		impl.handlerNameMatchers = handlerNameMatchers
 	}
 }
 
-func (p moduleAstParserImpl) Handle() (*ModuleSource, error) {
-	moduleSource, err := p.parseModuleSourceInfo(p.skipDirs...)
+func (p sourceCodeHandleImpl) Handle() (*SourceCodeInfo, error) {
+	sourceCodeInfo, err := p.discover(p.skipDirs...)
 	if err != nil {
 		return nil, err
 	}
 
 	// 如果找到dapr.NewGrpcServer或者dapr.NewHttpServer则需要将导入invocationModule和eventModule
-	if moduleSource.ServerSourceFile != "" && len(moduleSource.ModulePaths) > 0 {
-		err = p.addImportModulePaths(moduleSource.ServerSourceFile, moduleSource.ModulePaths)
+	if sourceCodeInfo.ServerEntry != "" && len(sourceCodeInfo.ModulePaths) > 0 {
+		err = p.addImportModulePaths(sourceCodeInfo.ServerEntry, sourceCodeInfo.ModulePaths)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// 如果找到invocationModule则需要查找路由
-	if moduleSource.ModulePaths[ModuleKindInvocation] != "" {
-		moduleSource.Routes, err = p.discoverRouteItems(moduleSource.ModulePaths[ModuleKindInvocation])
+	if sourceCodeInfo.ModulePaths[ModuleKindInvocation] != "" {
+		sourceCodeInfo.Routes, err = p.findRoutes(sourceCodeInfo.ModulePaths[ModuleKindInvocation])
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return moduleSource, nil
+	return sourceCodeInfo, nil
 }
 
-// parseModuleSourceInfo parse source info
-func (p moduleAstParserImpl) parseModuleSourceInfo(skipDirs ...string) (*ModuleSource, error) {
+func (p sourceCodeHandleImpl) Patch(serverEntry string, modulePaths map[ModuleKind]string) error {
+	if serverEntry == "" || len(modulePaths) == 0 {
+		return errors.New("invalid patch argument")
+	}
+	// 如果找到dapr.NewGrpcServer或者dapr.NewHttpServer则需要将导入invocationModule和eventModule
+	return p.addImportModulePaths(serverEntry, modulePaths)
+}
+
+// discover parse source codes and get source code info
+func (p sourceCodeHandleImpl) discover(skipDirs ...string) (*SourceCodeInfo, error) {
 	st, err := os.Stat(p.sourceRootDir)
 	if err != nil {
 		return nil, err
@@ -110,7 +118,7 @@ func (p moduleAstParserImpl) parseModuleSourceInfo(skipDirs ...string) (*ModuleS
 		return nil, fmt.Errorf("invalid source code dir, dir: %s", p.sourceRootDir)
 	}
 
-	sourceInfo := &ModuleSource{
+	sourceInfo := &SourceCodeInfo{
 		ModulePaths: make(map[ModuleKind]string),
 	}
 	_ = filepath.Walk(p.sourceRootDir, func(path string, info os.FileInfo, err error) error {
@@ -164,7 +172,7 @@ func (p moduleAstParserImpl) parseModuleSourceInfo(skipDirs ...string) (*ModuleS
 						// 检查是否使用了别名指向的包的函数
 						if pkgPath, ok := importAliase2importPath[x.Name]; ok && pkgPath == libDaprImportPath {
 							if pie.Contains(daprServerFunctions, n.Sel.Name) {
-								sourceInfo.ServerSourceFile = path
+								sourceInfo.ServerEntry = path
 							}
 						}
 					}
@@ -220,7 +228,7 @@ func (p moduleAstParserImpl) parseModuleSourceInfo(skipDirs ...string) (*ModuleS
 	return sourceInfo, nil
 }
 
-func (p moduleAstParserImpl) getProjectModuleName() (string, error) {
+func (p sourceCodeHandleImpl) getProjectModuleName() (string, error) {
 	// 获取根模块名
 	cmdOutput, err := exec.Command("go", "list", "-m").CombinedOutput()
 	if err != nil {
@@ -237,7 +245,7 @@ func (p moduleAstParserImpl) getProjectModuleName() (string, error) {
 }
 
 // MonkeyPatch 修改源代码的方式匿名导入pkg, sourceFile是相对于basePath的相对路径
-func (p moduleAstParserImpl) addImportModulePaths(sourceFile string, modulePaths map[ModuleKind]string) error {
+func (p sourceCodeHandleImpl) addImportModulePaths(sourceFile string, modulePaths map[ModuleKind]string) error {
 	// 获取项目模块名
 	projectModuleName, err := p.getProjectModuleName()
 	if err != nil {
@@ -314,10 +322,10 @@ func (p moduleAstParserImpl) addImportModulePaths(sourceFile string, modulePaths
 	return nil
 }
 
-func (p moduleAstParserImpl) discoverRouteItems(relInvocationModulePath string) ([]*protobuf.RouteItem, error) {
+func (p sourceCodeHandleImpl) findRoutes(relInvocationModulePath string) ([]*protobuf.RouteItem, error) {
 	routeItems := make([]*protobuf.RouteItem, 0)
 	absModulePath := filepath.Join(p.sourceRootDir, relInvocationModulePath)
-	for _, moduleInstance := range LoadInvocationModules(relInvocationModulePath) {
+	for _, moduleInstance := range loadInvocationModules(relInvocationModulePath) {
 		routeAnnotations, err := moduleInstance.GetRouteAnnotations(absModulePath, p.handlerNameMatchers...)
 		if err != nil {
 			return nil, err
@@ -337,8 +345,8 @@ func (p moduleAstParserImpl) discoverRouteItems(relInvocationModulePath string) 
 
 				routeItems = append(routeItems, &protobuf.RouteItem{
 					App:           moduleInstance.GetApp(),
-					ModuleVersion: int32(moduleInstance.GetMeta().ModuleVersion),
-					ModuleName:    moduleInstance.GetMeta().ModuleName,
+					ModuleVersion: int32(moduleInstance.GetInfo().ModuleVersion),
+					ModuleName:    moduleInstance.GetInfo().ModuleName,
 					Handler:       ann.HandlerAlias,
 					Endpoint:      ann.Endpoint,
 					HttpMethod:    httpMethod,

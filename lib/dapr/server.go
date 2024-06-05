@@ -58,8 +58,8 @@ func NewHttpServer(logger intf.LoggerProvider, address string, modulePaths ...st
 	return srv, nil
 }
 
-// LoadInvocationModules 获取所有服务调用模块, args为服务模块所在的文件路径
-func LoadInvocationModules(invocationModulePath string) map[string]InvocationModule {
+// loadInvocationModules 获取所有服务调用模块, args为服务模块所在的文件路径
+func loadInvocationModules(invocationModulePath string) map[string]InvocationModule {
 	_, _ = importer.Default().Import(invocationModulePath)
 	return _moduleName2invocationModule
 }
@@ -146,13 +146,13 @@ func (impl *serverImpl) GetBindingHandlers() map[string]common.BindingInvocation
 }
 
 func registerInvocationModule(module InvocationModule) {
-	_moduleName2invocationModule[module.GetMeta().ModuleName] = module
+	_moduleName2invocationModule[module.GetInfo().ModuleName] = module
 }
 
 func registerEventModule(module EventModule) {
-	_moduleName2eventModule[module.GetMeta().ModuleName] = module
+	_moduleName2eventModule[module.GetInfo().ModuleName] = module
 }
 
 func registerHealthModule(module HealthModule) {
-	_moduleName2healthModule[module.GetMeta().ModuleName] = module
+	_moduleName2healthModule[module.GetInfo().ModuleName] = module
 }

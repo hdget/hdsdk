@@ -42,7 +42,7 @@ func (h invocationHandlerImpl) GetName() string {
 }
 
 func (h invocationHandlerImpl) GetInvokeName() string {
-	return Api().GetServiceInvocationName(h.module.GetMeta().ModuleVersion, h.module.GetMeta().ModuleName, h.handlerAlias)
+	return Api().GetServiceInvocationName(h.module.GetInfo().ModuleVersion, h.module.GetInfo().ModuleName, h.handlerAlias)
 }
 
 func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) common.ServiceInvocationHandler {
@@ -60,7 +60,7 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) com
 			if len(req) > maxRequestLength {
 				req = append(req[:maxRequestLength], []rune("...")...)
 			}
-			logger.Error("service invoke", "module", h.module.GetMeta().StructName, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", req)
+			logger.Error("service invoke", "module", h.module.GetInfo().StructName, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", req)
 			return Error(err)
 		}
 

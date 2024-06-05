@@ -44,6 +44,7 @@ func (h eventHandlerImpl) GetEventFunction(logger intf.LoggerProvider) common.To
 				if r := recover(); r != nil {
 					panicUtils.RecordErrorStack(h.module.GetApp())
 				}
+
 				// 传递执行结果
 				chanResult <- fnResult
 			}()
