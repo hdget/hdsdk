@@ -7,7 +7,6 @@ import (
 	"github.com/dapr/go-sdk/service/http"
 	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/pkg/errors"
-	"go/importer"
 	"net"
 )
 
@@ -40,28 +39,22 @@ func NewGrpcServer(logger intf.LoggerProvider, address string, modulePaths ...st
 	// install health check handler
 	grpcServer := grpc.NewServiceWithListener(lis)
 
-	srv := &serverImpl{Service: grpcServer, logger: logger}
-	if err = srv.initialize(modulePaths...); err != nil {
+	appServer := &serverImpl{Service: grpcServer, logger: logger}
+	if err = appServer.initialize(); err != nil {
 		return nil, err
 	}
 
-	return srv, nil
+	return appServer, nil
 }
 
 func NewHttpServer(logger intf.LoggerProvider, address string, modulePaths ...string) (Server, error) {
 	httpServer := http.NewServiceWithMux(address, nil)
 
 	srv := &serverImpl{Service: httpServer, logger: logger}
-	if err := srv.initialize(modulePaths...); err != nil {
+	if err := srv.initialize(); err != nil {
 		return nil, err
 	}
 	return srv, nil
-}
-
-// loadInvocationModules 获取所有服务调用模块, args为服务模块所在的文件路径
-func loadInvocationModules(invocationModulePath string) map[string]InvocationModule {
-	_, _ = importer.Default().Import(invocationModulePath)
-	return _moduleName2invocationModule
 }
 
 func (impl *serverImpl) Start() error {
@@ -77,7 +70,7 @@ func (impl *serverImpl) GracefulStop() error {
 }
 
 // Initialize 初始化server
-func (impl *serverImpl) initialize(modulePaths ...string) error {
+func (impl *serverImpl) initialize() error {
 	// 注册health check handler
 	if err := impl.AddHealthCheckHandler("", impl.GetHealthCheckHandler()); err != nil {
 		return errors.Wrap(err, "adding health check handler")

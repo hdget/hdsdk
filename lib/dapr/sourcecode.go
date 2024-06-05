@@ -18,23 +18,20 @@ import (
 )
 
 type SourceCodeHandler interface {
-	Handle() (*SourceCodeInfo, error)
+	Discover(skipDirs ...string) (*SourceCodeInfo, error)                                                                // 查找源代码信息
+	Patch(sourceCodeInfo *SourceCodeInfo) error                                                                          // 给源代码文件打补丁，加入导入匿名import模块路径
+	FindRoutes(sourceCodeInfo *SourceCodeInfo, handlerNameMatchers ...HandlerNameMatcher) ([]*protobuf.RouteItem, error) // 找路由，必须在patch完成后重启一个进程来执行该方法，否则patch内容不生效
 }
 
 // SourceCodeInfo 模块源代码信息
 type SourceCodeInfo struct {
 	ModulePaths map[ModuleKind]string // 模块的路径
 	ServerEntry string                // 服务的入口文件即dapr.NewGrpcServer所在的go文件
-	Routes      []*protobuf.RouteItem
 }
 
 type sourceCodeHandleImpl struct {
-	sourceRootDir       string
-	skipDirs            []string
-	handlerNameMatchers []HandlerNameMatcher
+	rootDir string
 }
-
-type SourceCodeHandleOption func(*sourceCodeHandleImpl)
 
 const (
 	exprInvocationModule = "&{dapr InvocationModule}"
@@ -50,78 +47,47 @@ var (
 	}
 )
 
-// NewModuleSourceHandler 获取模块源代码处理器
-func NewModuleSourceHandler(baseDir string, options ...SourceCodeHandleOption) SourceCodeHandler {
-	p := &sourceCodeHandleImpl{
-		sourceRootDir: baseDir,
-	}
-	for _, option := range options {
-		option(p)
-	}
-
-	return p
-}
-
-func WithSkipDirs(skipDirs ...string) SourceCodeHandleOption {
-	return func(impl *sourceCodeHandleImpl) {
-		impl.skipDirs = skipDirs
+// NewSourceCodeHandler 获取模块源代码处理器
+func NewSourceCodeHandler(baseDir string) SourceCodeHandler {
+	return &sourceCodeHandleImpl{
+		rootDir: baseDir,
 	}
 }
 
-func WithHandlerMatchers(handlerNameMatchers ...HandlerNameMatcher) SourceCodeHandleOption {
-	return func(impl *sourceCodeHandleImpl) {
-		impl.handlerNameMatchers = handlerNameMatchers
+func (p sourceCodeHandleImpl) Patch(sourceCodeInfo *SourceCodeInfo) error {
+	if sourceCodeInfo == nil {
+		return errors.New("empty source code info")
 	}
-}
 
-func (p sourceCodeHandleImpl) Handle() (*SourceCodeInfo, error) {
-	sourceCodeInfo, err := p.discover(p.skipDirs...)
+	// 处理源代码
+	if sourceCodeInfo.ServerEntry == "" || len(sourceCodeInfo.ModulePaths) == 0 {
+		return errors.New("server entry not found or empty module paths")
+	}
+
+	// 如果找到dapr.NewGrpcServer或者dapr.NewHttpServer则需要将导入invocationModule和eventModule
+	err := p.addImportModulePaths(sourceCodeInfo.ServerEntry, sourceCodeInfo.ModulePaths)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// 如果找到dapr.NewGrpcServer或者dapr.NewHttpServer则需要将导入invocationModule和eventModule
-	if sourceCodeInfo.ServerEntry != "" && len(sourceCodeInfo.ModulePaths) > 0 {
-		err = p.addImportModulePaths(sourceCodeInfo.ServerEntry, sourceCodeInfo.ModulePaths)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	// 如果找到invocationModule则需要查找路由
-	if sourceCodeInfo.ModulePaths[ModuleKindInvocation] != "" {
-		sourceCodeInfo.Routes, err = p.findRoutes(sourceCodeInfo.ModulePaths[ModuleKindInvocation])
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return sourceCodeInfo, nil
+	return nil
 }
 
-func (p sourceCodeHandleImpl) Patch(serverEntry string, modulePaths map[ModuleKind]string) error {
-	if serverEntry == "" || len(modulePaths) == 0 {
-		return errors.New("invalid patch argument")
-	}
-	// 如果找到dapr.NewGrpcServer或者dapr.NewHttpServer则需要将导入invocationModule和eventModule
-	return p.addImportModulePaths(serverEntry, modulePaths)
-}
-
-// discover parse source codes and get source code info
-func (p sourceCodeHandleImpl) discover(skipDirs ...string) (*SourceCodeInfo, error) {
-	st, err := os.Stat(p.sourceRootDir)
+// Discover parse source codes and get source code info
+func (p sourceCodeHandleImpl) Discover(skipDirs ...string) (*SourceCodeInfo, error) {
+	st, err := os.Stat(p.rootDir)
 	if err != nil {
 		return nil, err
 	}
 
 	if !st.IsDir() {
-		return nil, fmt.Errorf("invalid source code dir, dir: %s", p.sourceRootDir)
+		return nil, fmt.Errorf("invalid source code dir, dir: %s", p.rootDir)
 	}
 
 	sourceInfo := &SourceCodeInfo{
 		ModulePaths: make(map[ModuleKind]string),
 	}
-	_ = filepath.Walk(p.sourceRootDir, func(path string, info os.FileInfo, err error) error {
+	_ = filepath.Walk(p.rootDir, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
 			// 忽略掉.开头的隐藏目录和需要skip的目录
 			if strings.HasPrefix(info.Name(), ".") || pie.Contains(skipDirs, info.Name()) {
@@ -153,13 +119,13 @@ func (p sourceCodeHandleImpl) discover(skipDirs ...string) (*SourceCodeInfo, err
 									if len(structures.Fields.List) > 0 {
 										switch fmt.Sprintf("%s", structures.Fields.List[0].Type) {
 										case exprInvocationModule:
-											found, _ := filepath.Rel(p.sourceRootDir, filepath.Dir(path))
+											found, _ := filepath.Rel(p.rootDir, filepath.Dir(path))
 											sourceInfo.ModulePaths[ModuleKindInvocation] = filepath.ToSlash(found)
 										case exprEventModule:
-											found, _ := filepath.Rel(p.sourceRootDir, filepath.Dir(path))
+											found, _ := filepath.Rel(p.rootDir, filepath.Dir(path))
 											sourceInfo.ModulePaths[ModuleKindEvent] = filepath.ToSlash(found)
 										case exprHealthModule:
-											found, _ := filepath.Rel(p.sourceRootDir, filepath.Dir(path))
+											found, _ := filepath.Rel(p.rootDir, filepath.Dir(path))
 											sourceInfo.ModulePaths[ModuleKindHealth] = filepath.ToSlash(found)
 										}
 									}
@@ -322,11 +288,15 @@ func (p sourceCodeHandleImpl) addImportModulePaths(sourceFile string, modulePath
 	return nil
 }
 
-func (p sourceCodeHandleImpl) findRoutes(relInvocationModulePath string) ([]*protobuf.RouteItem, error) {
+func (p sourceCodeHandleImpl) FindRoutes(sourceCodeInfo *SourceCodeInfo, handlerNameMatchers ...HandlerNameMatcher) ([]*protobuf.RouteItem, error) {
+	if len(sourceCodeInfo.ModulePaths) == 0 || sourceCodeInfo.ModulePaths[ModuleKindInvocation] == "" {
+		return nil, errors.New("invocation module path not found")
+	}
+
 	routeItems := make([]*protobuf.RouteItem, 0)
-	absModulePath := filepath.Join(p.sourceRootDir, relInvocationModulePath)
-	for _, moduleInstance := range loadInvocationModules(relInvocationModulePath) {
-		routeAnnotations, err := moduleInstance.GetRouteAnnotations(absModulePath, p.handlerNameMatchers...)
+	absModulePath := filepath.Join(p.rootDir, sourceCodeInfo.ModulePaths[ModuleKindInvocation])
+	for _, moduleInstance := range _moduleName2invocationModule {
+		routeAnnotations, err := moduleInstance.GetRouteAnnotations(absModulePath, handlerNameMatchers...)
 		if err != nil {
 			return nil, err
 		}
