@@ -4,13 +4,19 @@ import (
 	"context"
 	"github.com/spf13/cast"
 	"google.golang.org/grpc/metadata"
+	"strings"
 )
+
+type RoleValue struct {
+	Id    int64
+	Level int
+}
 
 const (
 	MetaKeyAppId      = "Hd-App-Id"
 	MetaKeyApiVersion = "Hd-Api-Version"
 	MetaKeyUserId     = "Hd-User-Id"
-	MetaKeyRoleIds    = "Hd-Role-Ids"
+	MetaKeyRoleValues = "Hd-Role-Values"
 	MetaKeyPermIds    = "Hd-Perm-Ids"
 )
 
@@ -29,7 +35,7 @@ type MetaManager interface {
 	GetAppId(ctx context.Context) string
 	GetApiVersion(ctx context.Context) string
 	GetUserId(ctx context.Context) int64
-	GetRoleIds(ctx context.Context) []int64
+	GetRoleValues(ctx context.Context) []*RoleValue
 	GetPermIds(ctx context.Context) []int64
 }
 
@@ -56,12 +62,25 @@ func (m metaManagerImpl) GetUserId(ctx context.Context) int64 {
 	return cast.ToInt64(m.GetValue(ctx, MetaKeyUserId))
 }
 
-func (m metaManagerImpl) GetRoleIds(ctx context.Context) []int64 {
-	roleIds := make([]int64, 0)
-	for _, v := range m.GetValues(ctx, MetaKeyRoleIds) {
-		roleIds = append(roleIds, cast.ToInt64(v))
+func (m metaManagerImpl) GetRoleValues(ctx context.Context) []*RoleValue {
+	results := make([]*RoleValue, 0)
+	for _, v := range m.GetValues(ctx, MetaKeyRoleValues) {
+		tokens := strings.Split(v, ":")
+		if len(tokens) != 2 {
+			return nil
+		}
+
+		roleId := cast.ToInt64(tokens[0])
+		if roleId == 0 {
+			return nil
+		}
+
+		results = append(results, &RoleValue{
+			Id:    roleId,
+			Level: cast.ToInt(tokens[1]),
+		})
 	}
-	return roleIds
+	return results
 }
 
 func (m metaManagerImpl) GetPermIds(ctx context.Context) []int64 {
