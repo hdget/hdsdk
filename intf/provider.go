@@ -10,7 +10,6 @@ const (
 	ProviderCategoryLogger
 	ProviderCategoryDb
 	ProviderCategoryRedis
-	ProviderCategoryGraph
 	ProviderCategoryMq
 	ProviderCategoryDbSqlx
 	ProviderCategoryDbBuilder
@@ -26,7 +25,6 @@ const (
 	ProviderNameSqlBoilerSqlite ProviderName = "sqlboiler-sqlite3"
 	ProviderNameSqlxMysql       ProviderName = "sqlx-mysql"
 	ProviderNameSquirrelMysql   ProviderName = "squirrel-mysql"
-	ProviderNameNeo4j           ProviderName = "neo4j"
 	ProviderNameRabbitMq        ProviderName = "rabbitmq"
 )
 

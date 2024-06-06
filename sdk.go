@@ -18,9 +18,9 @@ type SdkInstance struct {
 	db             intf.DbProvider
 	sqlxDb         intf.SqlxDbProvider
 	dbBuilder      intf.DbBuilderProvider
-	graph          intf.GraphProvider
-	redis          intf.RedisProvider
-	mq             intf.MqProvider
+	//graph          intf.GraphProvider
+	redis intf.RedisProvider
+	mq    intf.MqProvider
 }
 
 var (
@@ -84,8 +84,8 @@ func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.dbBuilder))
 		case intf.ProviderCategoryRedis:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.redis))
-		case intf.ProviderCategoryGraph:
-			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.graph))
+		//case intf.ProviderCategoryGraph:
+		//	fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.graph))
 		case intf.ProviderCategoryMq:
 			fxOptions = append(fxOptions, c.Module, fx.Populate(&_instance.mq))
 		default:

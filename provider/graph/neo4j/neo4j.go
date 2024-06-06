@@ -1,10 +1,9 @@
-// Package neo4j
 package neo4j
 
 import (
+	"github.com/fatih/structs"
 	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j"
-	"github.com/pkg/errors"
 	"github.com/spf13/cast"
 )
 
@@ -14,11 +13,7 @@ type neo4jProvider struct {
 	driver neo4j.Driver
 }
 
-var (
-	errInvalidTransactionFunction = errors.New("invalid neo4j.TransactionWork function")
-)
-
-func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.GraphProvider, error) {
+func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (Provider, error) {
 	c, err := newConfig(configProvider)
 	if err != nil {
 		return nil, err
@@ -49,18 +44,14 @@ func (p *neo4jProvider) Init(args ...any) error {
 	return nil
 }
 
-func (p *neo4jProvider) Exec(transFunctions []any) (string, error) {
+func (p *neo4jProvider) Exec(workFuncs []neo4j.TransactionWork, bookmarks ...string) (string, error) {
 	session := p.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	defer func(session neo4j.Session) {
 		_ = session.Close()
 	}(session)
 
-	for _, fn := range transFunctions {
-		workFn, ok := fn.(neo4j.TransactionWork)
-		if !ok {
-			return "", errInvalidTransactionFunction
-		}
-		if _, err := session.WriteTransaction(workFn); err != nil {
+	for _, fn := range workFuncs {
+		if _, err := session.WriteTransaction(fn); err != nil {
 			return "", err
 		}
 	}
@@ -68,12 +59,68 @@ func (p *neo4jProvider) Exec(transFunctions []any) (string, error) {
 	return session.LastBookmark(), nil
 }
 
-func (p *neo4jProvider) Reader() intf.GraphSession {
-	return newNeo4jSession(p.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead}))
+func (impl *neo4jProvider) Get(cypher string, args ...interface{}) (interface{}, error) {
+	session := impl.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer func(session neo4j.Session) {
+		_ = session.Close()
+	}(session)
+
+	var param map[string]interface{}
+	if len(args) > 0 {
+		param = structs.Map(args[0])
+	}
+
+	result, err := session.Run(cypher, param)
+	if err != nil {
+		return nil, err
+	}
+
+	var ret interface{}
+	if result.Next() {
+		ret = result.Record().Values[0]
+	}
+
+	if err = result.Err(); err != nil {
+		return nil, err
+	}
+
+	return ret, nil
 }
 
-func (p *neo4jProvider) Writer() intf.GraphSession {
-	return newNeo4jSession(p.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite}))
+func (impl *neo4jProvider) Select(cypher string, args ...interface{}) ([]interface{}, error) {
+	session := impl.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead})
+	defer func(session neo4j.Session) {
+		_ = session.Close()
+	}(session)
+
+	var param map[string]interface{}
+	if len(args) > 0 {
+		param = structs.Map(args[0])
+	}
+
+	result, err := session.Run(cypher, param)
+	if err != nil {
+		return nil, err
+	}
+
+	rets := make([]interface{}, 0)
+	for result.Next() {
+		rets = append(rets, result.Record().Values[0])
+	}
+
+	if err = result.Err(); err != nil {
+		return nil, err
+	}
+
+	return rets, nil
+}
+
+func (impl *neo4jProvider) Reader(bookmarks ...string) neo4j.Session {
+	return impl.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeRead, Bookmarks: bookmarks})
+}
+
+func (impl *neo4jProvider) Writer(bookmarks ...string) neo4j.Session {
+	return impl.driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite, Bookmarks: bookmarks})
 }
 
 func (p *neo4jProvider) newNeo4jDriver() (neo4j.Driver, error) {
