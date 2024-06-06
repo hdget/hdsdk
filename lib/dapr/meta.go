@@ -27,7 +27,7 @@ type MetaManager interface {
 	GetValue(ctx context.Context, key string) string
 	GetValues(ctx context.Context, key string) []string
 	GetAppId(ctx context.Context) string
-	GetApiVersion(ctx context.Context) int
+	GetApiVersion(ctx context.Context) string
 	GetUserId(ctx context.Context) int64
 	GetRoleIds(ctx context.Context) []int64
 	GetPermIds(ctx context.Context) []int64
@@ -48,8 +48,8 @@ func (m metaManagerImpl) GetHttpHeaderKeys() []string {
 	return _httpHeaderKeys
 }
 
-func (m metaManagerImpl) GetApiVersion(ctx context.Context) int {
-	return cast.ToInt(m.GetValue(ctx, MetaKeyApiVersion))
+func (m metaManagerImpl) GetApiVersion(ctx context.Context) string {
+	return m.GetValue(ctx, MetaKeyApiVersion)
 }
 
 func (m metaManagerImpl) GetUserId(ctx context.Context) int64 {
