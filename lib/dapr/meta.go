@@ -87,6 +87,7 @@ func (m metaManagerImpl) GetValue(ctx context.Context, key string) string {
 	if !ok {
 		return ""
 	}
+
 	values := md.Get(key)
 	if len(values) == 0 {
 		return ""

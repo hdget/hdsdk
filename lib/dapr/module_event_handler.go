@@ -70,10 +70,10 @@ func (h eventHandlerImpl) GetEventFunction(logger intf.LoggerProvider) common.To
 	}
 }
 
-func trimData(data []byte) []rune {
+func trimData(data []byte) string {
 	trimmed := []rune(convert.BytesToString(data))
 	if len(trimmed) > maxRequestLength {
 		trimmed = append(trimmed[:maxRequestLength], []rune("...")...)
 	}
-	return trimmed
+	return string(trimmed)
 }

@@ -66,7 +66,7 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) com
 				req = append(req[:maxRequestLength], []rune("...")...)
 			}
 
-			logger.Error("service invoke", "module", h.module.GetModuleInfo().StructName, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", req)
+			logger.Error("service invoke", "module", h.module.GetModuleInfo().StructName, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", string(req))
 			return h.replyError(err)
 		}
 

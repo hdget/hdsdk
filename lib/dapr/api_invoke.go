@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/hdutils/convert"
+	"github.com/hdget/hdutils/logger"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/metadata"
 	"strings"
@@ -46,11 +47,16 @@ func (a apiImpl) Invoke(appId string, moduleVersion int, moduleName, handler str
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
 	//defer daprClient.Close()
 	// 添加额外的meta信息
+	logger.LogDebug("=============", "args", args)
+	args = append(args, "aaa", "bbb")
 	ctx := context.Background()
 	if len(args) > 0 {
 		md := metadata.Pairs(args...)
 		ctx = metadata.NewOutgoingContext(ctx, md)
 	}
+
+	ddd, rrr := metadata.FromIncomingContext(ctx)
+	logger.LogDebug("=============", "ddd", ddd, "rrr", rrr)
 
 	fullMethodName := getServiceInvocationName(moduleVersion, moduleName, handler)
 	resp, err := daprClient.InvokeMethodWithContent(ctx, appId, fullMethodName, "post", &client.DataContent{
