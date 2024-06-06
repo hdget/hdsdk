@@ -7,7 +7,7 @@ import (
 )
 
 // Lock 锁
-func Lock(lockStore, lockOwner, resource string, expiryInSeconds int) error {
+func (a apiImpl) Lock(lockStore, lockOwner, resource string, expiryInSeconds int) error {
 	daprClient, err := client.NewClient()
 	if err != nil {
 		return errors.Wrap(err, "new dapr client")
@@ -33,7 +33,7 @@ func Lock(lockStore, lockOwner, resource string, expiryInSeconds int) error {
 }
 
 // Unlock 取消锁
-func Unlock(lockStore, lockOwner, resource string) error {
+func (a apiImpl) Unlock(lockStore, lockOwner, resource string) error {
 	daprClient, err := client.NewClient()
 	if err != nil {
 		return errors.Wrap(err, "new dapr client")

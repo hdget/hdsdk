@@ -13,7 +13,7 @@ type InvocationModule interface {
 	DiscoverHandlers(args ...HandlerNameMatcher) ([]invocationHandler, error)                   // 通过反射发现Handlers
 	RegisterHandlers(functions map[string]InvocationFunction) error                             // 注册Handlers
 	GetHandlers() []invocationHandler                                                           // 获取handlers
-	GetRouteAnnotations(srcPath string, args ...HandlerNameMatcher) ([]*RouteAnnotation, error) // 从源代码获取路由注解
+	GetRouteAnnotations(srcPath string, args ...HandlerNameMatcher) ([]*routeAnnotation, error) // 从源代码获取路由注解
 }
 
 type invocationModuleImpl struct {

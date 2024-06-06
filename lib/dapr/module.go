@@ -7,10 +7,10 @@ import (
 	"strconv"
 )
 
-type ModuleKind int
+type moduleKind int
 
 const (
-	ModuleKindUnknown    ModuleKind = iota
+	moduleKindUnknown    moduleKind = iota
 	ModuleKindInvocation            // dapr调用模块
 	ModuleKindEvent                 // dapr事件模块
 	ModuleKindHealth                // dapr健康检测模块
@@ -18,7 +18,7 @@ const (
 
 type moduler interface {
 	GetApp() string
-	GetInfo() *ModuleInfo
+	GetModuleInfo() *moduleInfo
 }
 
 var (
@@ -29,11 +29,11 @@ var (
 )
 
 type baseModule struct {
-	App  string      // 应用名称
-	Info *ModuleInfo // 模块的信息
+	app        string      // 应用名称
+	moduleInfo *moduleInfo // 模块的信息
 }
 
-type ModuleInfo struct {
+type moduleInfo struct {
 	StructName    string // 模块结构体的全名, 格式: "v<模块版本号>_<模块名>"
 	ModuleName    string // 模块名
 	ModuleVersion int    // 模块版本号
@@ -46,27 +46,27 @@ func newModule(app string, moduleObject any) (moduler, error) {
 		return nil, errInvalidModule
 	}
 
-	moduleInfo, err := parseModuleInfo(structName)
+	mInfo, err := parseModuleInfo(structName)
 	if err != nil {
 		return nil, err
 	}
 
 	return &baseModule{
-		App:  app,
-		Info: moduleInfo,
+		app:        app,
+		moduleInfo: mInfo,
 	}, nil
 }
 
 func (m *baseModule) GetApp() string {
-	return m.App
+	return m.app
 }
 
-// GetMeta 获取模块元数据信息
-func (m *baseModule) GetInfo() *ModuleInfo {
-	return m.Info
+// GetModuleInfo 获取模块元数据信息
+func (m *baseModule) GetModuleInfo() *moduleInfo {
+	return m.moduleInfo
 }
 
-func parseModuleInfo(structName string) (*ModuleInfo, error) {
+func parseModuleInfo(structName string) (*moduleInfo, error) {
 	tokens := regModuleName.FindStringSubmatch(structName)
 	if len(tokens) != 3 {
 		return nil, errInvalidModuleName
@@ -77,7 +77,7 @@ func parseModuleInfo(structName string) (*ModuleInfo, error) {
 		return nil, errInvalidModuleName
 	}
 
-	return &ModuleInfo{
+	return &moduleInfo{
 		StructName:    structName,
 		ModuleName:    tokens[2],
 		ModuleVersion: moduleVersion,

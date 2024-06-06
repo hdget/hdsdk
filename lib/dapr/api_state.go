@@ -8,7 +8,7 @@ import (
 )
 
 // SaveState 保存状态
-func SaveState(storeName, key string, value interface{}) error {
+func (a apiImpl) SaveState(storeName, key string, value interface{}) error {
 	data, err := convert.ToBytes(value)
 	if err != nil {
 		return err
@@ -34,7 +34,7 @@ func SaveState(storeName, key string, value interface{}) error {
 }
 
 // GetState 保存状态
-func GetState(storeName, key string) ([]byte, error) {
+func (a apiImpl) GetState(storeName, key string) ([]byte, error) {
 	daprClient, err := client.NewClient()
 	if err != nil {
 		return nil, errors.Wrap(err, "new dapr client")
@@ -54,7 +54,7 @@ func GetState(storeName, key string) ([]byte, error) {
 }
 
 // DeleteState 删除状态
-func DeleteState(storeName, key string) error {
+func (a apiImpl) DeleteState(storeName, key string) error {
 	daprClient, err := client.NewClient()
 	if err != nil {
 		return errors.Wrap(err, "new dapr client")

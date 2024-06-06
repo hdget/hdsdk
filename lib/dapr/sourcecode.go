@@ -25,7 +25,7 @@ type SourceCodeHandler interface {
 
 // SourceCodeInfo 模块源代码信息
 type SourceCodeInfo struct {
-	ModulePaths map[ModuleKind]string // 模块的路径
+	ModulePaths map[moduleKind]string // 模块的路径
 	ServerEntry string                // 服务的入口文件即dapr.NewGrpcServer所在的go文件
 }
 
@@ -85,7 +85,7 @@ func (p sourceCodeHandleImpl) Discover(skipDirs ...string) (*SourceCodeInfo, err
 	}
 
 	sourceInfo := &SourceCodeInfo{
-		ModulePaths: make(map[ModuleKind]string),
+		ModulePaths: make(map[moduleKind]string),
 	}
 	_ = filepath.Walk(p.rootDir, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
@@ -211,7 +211,7 @@ func (p sourceCodeHandleImpl) getProjectModuleName() (string, error) {
 }
 
 // MonkeyPatch 修改源代码的方式匿名导入pkg, sourceFile是相对于basePath的相对路径
-func (p sourceCodeHandleImpl) addImportModulePaths(sourceFile string, modulePaths map[ModuleKind]string) error {
+func (p sourceCodeHandleImpl) addImportModulePaths(sourceFile string, modulePaths map[moduleKind]string) error {
 	// 获取项目模块名
 	projectModuleName, err := p.getProjectModuleName()
 	if err != nil {
@@ -315,8 +315,8 @@ func (p sourceCodeHandleImpl) FindRoutes(sourceCodeInfo *SourceCodeInfo, handler
 
 				routeItems = append(routeItems, &protobuf.RouteItem{
 					App:           moduleInstance.GetApp(),
-					ModuleVersion: int32(moduleInstance.GetInfo().ModuleVersion),
-					ModuleName:    moduleInstance.GetInfo().ModuleName,
+					ModuleVersion: int32(moduleInstance.GetModuleInfo().ModuleVersion),
+					ModuleName:    moduleInstance.GetModuleInfo().ModuleName,
 					Handler:       ann.HandlerAlias,
 					Endpoint:      ann.Endpoint,
 					HttpMethod:    httpMethod,

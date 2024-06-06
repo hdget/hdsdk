@@ -52,7 +52,7 @@ func (a apiImpl) Invoke(appId string, moduleVersion int, moduleName, handler str
 		ctx = metadata.NewOutgoingContext(ctx, md)
 	}
 
-	fullMethodName := a.GetServiceInvocationName(moduleVersion, moduleName, handler)
+	fullMethodName := getServiceInvocationName(moduleVersion, moduleName, handler)
 	resp, err := daprClient.InvokeMethodWithContent(ctx, appId, fullMethodName, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
@@ -65,6 +65,6 @@ func (a apiImpl) Invoke(appId string, moduleVersion int, moduleName, handler str
 }
 
 // GetServiceInvocationName 构造version:module:realMethod的方法名
-func (a apiImpl) GetServiceInvocationName(moduleVersion int, moduleName, handler string) string {
+func getServiceInvocationName(moduleVersion int, moduleName, handler string) string {
 	return strings.Join([]string{fmt.Sprintf("v%d", moduleVersion), moduleName, handler}, ":")
 }

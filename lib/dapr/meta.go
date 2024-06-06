@@ -7,54 +7,83 @@ import (
 )
 
 const (
-	MetaPrefix     = "hd-"
-	MetaAppId      = MetaPrefix + "app-id"
-	MetaApiVersion = MetaPrefix + "api-version"
+	MetaKeyAppId      = "hd-app-id"
+	MetaKeyApiVersion = "hd-api-version"
+	MetaKeyUserId     = "hd-user-id"
+	MetaKeyRoleIds    = "hd-role-ids"
+	MetaKeyPermIds    = "hd-perm-ids"
 )
 
 var (
-	// AllMetaKeys 所有meta的关键字
-	AllMetaKeys = []string{
-		MetaAppId,
-		MetaApiVersion,
+	// MetaKeys 所有meta的关键字
+	_httpHeaderKeys = []string{
+		MetaKeyAppId,
+		MetaKeyApiVersion,
 	}
 )
 
 type MetaManager interface {
-	GetAppId() string
-	GetApiVersion() int
-	GetMetaValue(key string) string
-	GetMetaValues(key string) []string
+	GetHttpHeaderKeys() []string
+	GetValue(ctx context.Context, key string) string
+	GetValues(ctx context.Context, key string) []string
+	GetAppId(ctx context.Context) string
+	GetApiVersion(ctx context.Context) int
+	GetUserId(ctx context.Context) int64
+	GetRoleIds(ctx context.Context) []int64
+	GetPermIds(ctx context.Context) []int64
 }
 
 type metaManagerImpl struct {
-	ctx context.Context
 }
 
-func NewMetaManager(ctx context.Context) MetaManager {
-	return &metaManagerImpl{ctx: ctx}
+func Meta() MetaManager {
+	return &metaManagerImpl{}
 }
 
-func (m metaManagerImpl) GetAppId() string {
-	return m.GetMetaValue(MetaAppId)
+func (m metaManagerImpl) GetAppId(ctx context.Context) string {
+	return m.GetValue(ctx, MetaKeyAppId)
 }
 
-func (m metaManagerImpl) GetApiVersion() int {
-	return cast.ToInt(m.GetMetaValue(MetaApiVersion))
+func (m metaManagerImpl) GetHttpHeaderKeys() []string {
+	return _httpHeaderKeys
 }
 
-// GetMetaValues get grpc meta values
-func (m metaManagerImpl) GetMetaValues(key string) []string {
-	md, ok := metadata.FromIncomingContext(m.ctx)
+func (m metaManagerImpl) GetApiVersion(ctx context.Context) int {
+	return cast.ToInt(m.GetValue(ctx, MetaKeyApiVersion))
+}
+
+func (m metaManagerImpl) GetUserId(ctx context.Context) int64 {
+	return cast.ToInt64(m.GetValue(ctx, MetaKeyUserId))
+}
+
+func (m metaManagerImpl) GetRoleIds(ctx context.Context) []int64 {
+	roleIds := make([]int64, 0)
+	for _, v := range m.GetValues(ctx, MetaKeyRoleIds) {
+		roleIds = append(roleIds, cast.ToInt64(v))
+	}
+	return roleIds
+}
+
+func (m metaManagerImpl) GetPermIds(ctx context.Context) []int64 {
+	permIds := make([]int64, 0)
+	for _, v := range m.GetValues(ctx, MetaKeyPermIds) {
+		permIds = append(permIds, cast.ToInt64(v))
+	}
+	return permIds
+}
+
+// GetValues get grpc meta values
+func (m metaManagerImpl) GetValues(ctx context.Context, key string) []string {
+	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil
 	}
 	return md.Get(key)
 }
 
-// GetMetaValue get the first grpc meta value
-func (m metaManagerImpl) GetMetaValue(key string) string {
-	md, ok := metadata.FromIncomingContext(m.ctx)
+// GetValue get the first grpc meta value
+func (m metaManagerImpl) GetValue(ctx context.Context, key string) string {
+	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return ""
 	}

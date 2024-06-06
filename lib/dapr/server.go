@@ -16,7 +16,7 @@ type Server interface {
 	GracefulStop() error
 	GetInvocationHandlers() map[string]common.ServiceInvocationHandler
 	GetBindingHandlers() map[string]common.BindingInvocationHandler
-	GetEvents() []Event
+	GetEvents() []daprEvent
 }
 
 type serverImpl struct {
@@ -90,7 +90,7 @@ func (impl *serverImpl) initialize() error {
 	}
 
 	for _, event := range impl.GetEvents() {
-		if err := impl.AddTopicEventHandler(event.Subscription, event.Handler); err != nil {
+		if err := impl.AddTopicEventHandler(event.subscription, event.handler); err != nil {
 			return errors.Wrap(err, "adding event handler")
 		}
 	}
@@ -109,12 +109,12 @@ func (impl *serverImpl) GetInvocationHandlers() map[string]common.ServiceInvocat
 	return handlers
 }
 
-func (impl *serverImpl) GetEvents() []Event {
+func (impl *serverImpl) GetEvents() []daprEvent {
 	// 获取handlers
-	events := make([]Event, 0)
+	events := make([]daprEvent, 0)
 	for _, m := range _moduleName2eventModule {
 		for _, h := range m.GetHandlers() {
-			events = append(events, GetEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction(impl.logger)))
+			events = append(events, getDaprEvent(m.GetPubSub(), h.GetTopic(), h.GetEventFunction(impl.logger)))
 		}
 	}
 	return events
@@ -122,7 +122,7 @@ func (impl *serverImpl) GetEvents() []Event {
 
 func (impl *serverImpl) GetHealthCheckHandler() common.HealthCheckHandler {
 	if len(_moduleName2healthModule) == 0 {
-		return EmptyHealthCheckFunction
+		return emptyHealthCheckFunction
 	}
 
 	var firstModule HealthModule
@@ -139,13 +139,13 @@ func (impl *serverImpl) GetBindingHandlers() map[string]common.BindingInvocation
 }
 
 func registerInvocationModule(module InvocationModule) {
-	_moduleName2invocationModule[module.GetInfo().ModuleName] = module
+	_moduleName2invocationModule[module.GetModuleInfo().ModuleName] = module
 }
 
 func registerEventModule(module EventModule) {
-	_moduleName2eventModule[module.GetInfo().ModuleName] = module
+	_moduleName2eventModule[module.GetModuleInfo().ModuleName] = module
 }
 
 func registerHealthModule(module HealthModule) {
-	_moduleName2healthModule[module.GetInfo().ModuleName] = module
+	_moduleName2healthModule[module.GetModuleInfo().ModuleName] = module
 }

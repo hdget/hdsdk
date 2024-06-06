@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-type RouteAnnotation struct {
+type routeAnnotation struct {
 	Endpoint      string   `json:"endpoint"`      // endpoint
 	Methods       []string `json:"methods"`       // http methods
 	Origin        string   `json:"origin"`        // 请求来源
@@ -31,7 +31,7 @@ var (
 )
 
 // GetRouteAnnotations 从源代码的注解中解析路由注解
-func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...HandlerNameMatcher) ([]*RouteAnnotation, error) {
+func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...HandlerNameMatcher) ([]*routeAnnotation, error) {
 	matchFn := m.defaultHandlerNameMatcher
 	if len(args) > 0 {
 		matchFn = args[0]
@@ -45,15 +45,15 @@ func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...Handl
 		return nil, err
 	}
 
-	routeAnnotations := make([]*RouteAnnotation, 0)
+	routeAnnotations := make([]*routeAnnotation, 0)
 	for _, fnInfo := range funcInfos {
-		moduleInfo, err := parseModuleInfo(fnInfo.Receiver)
+		mInfo, err := parseModuleInfo(fnInfo.Receiver)
 		if err != nil {
 			return nil, err
 		}
 
 		// 忽略掉不是本模块的备注
-		if moduleInfo.StructName != m.moduler.GetInfo().StructName {
+		if mInfo.StructName != m.moduler.GetModuleInfo().StructName {
 			continue
 		}
 
@@ -89,9 +89,9 @@ func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...Handl
 }
 
 // parseRouteAnnotation handlerName为register或者discover handler时候使用的handlerAlias
-func (m *invocationModuleImpl) parseRouteAnnotation(handlerAlias string, fnInfo *ast.Function, ann *ast.Annotation) (*RouteAnnotation, error) {
+func (m *invocationModuleImpl) parseRouteAnnotation(handlerAlias string, fnInfo *ast.Function, ann *ast.Annotation) (*routeAnnotation, error) {
 	// 设置初始值
-	routeAnnotation := &RouteAnnotation{
+	routeAnnotation := &routeAnnotation{
 		Endpoint:      "",
 		Methods:       []string{"GET"},
 		Origin:        "",

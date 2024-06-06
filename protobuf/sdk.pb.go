@@ -877,7 +877,7 @@ func (m *RouteItem) Unmarshal(dAtA []byte) error {
 			}
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field App", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field app", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -960,7 +960,7 @@ func (m *RouteItem) Unmarshal(dAtA []byte) error {
 			}
 		case 5:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Handler", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field handler", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {

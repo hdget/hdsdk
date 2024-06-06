@@ -2,11 +2,16 @@ package dapr
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/v2/intf"
+	"github.com/hdget/hdsdk/v2/lib/bizerr"
 	"github.com/hdget/hdutils/convert"
 	panicUtils "github.com/hdget/hdutils/panic"
 	reflectUtils "github.com/hdget/hdutils/reflect"
+	"github.com/pkg/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type invocationHandler interface {
@@ -42,7 +47,7 @@ func (h invocationHandlerImpl) GetName() string {
 }
 
 func (h invocationHandlerImpl) GetInvokeName() string {
-	return Api().GetServiceInvocationName(h.module.GetInfo().ModuleVersion, h.module.GetInfo().ModuleName, h.handlerAlias)
+	return getServiceInvocationName(h.module.GetModuleInfo().ModuleVersion, h.module.GetModuleInfo().ModuleName, h.handlerAlias)
 }
 
 func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) common.ServiceInvocationHandler {
@@ -54,16 +59,52 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) com
 			}
 		}()
 
-		response, err := h.fn(ctx, event)
+		result, err := h.fn(ctx, event)
 		if err != nil {
 			req := []rune(convert.BytesToString(event.Data))
 			if len(req) > maxRequestLength {
 				req = append(req[:maxRequestLength], []rune("...")...)
 			}
-			logger.Error("service invoke", "module", h.module.GetInfo().StructName, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", req)
-			return Error(err)
+
+			logger.Error("service invoke", "module", h.module.GetModuleInfo().StructName, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", req)
+			return h.replyError(err)
 		}
 
-		return Success(event, response)
+		return h.replySuccess(event, result)
 	}
+}
+
+func (h invocationHandlerImpl) replyError(err error) (*common.Content, error) {
+	var be *bizerr.BizError
+	ok := errors.As(err, &be)
+	if ok {
+		st, _ := status.New(codes.Internal, "internal error").WithDetails(&bizerr.Error{
+			Code: be.Code,
+			Msg:  be.Msg,
+		})
+		return nil, st.Err()
+	}
+	return nil, err
+}
+
+func (h invocationHandlerImpl) replySuccess(event *common.InvocationEvent, result any) (*common.Content, error) {
+	var err error
+	var data []byte
+	switch t := result.(type) {
+	case string:
+		data = convert.StringToBytes(t)
+	case []byte:
+		data = t
+	default:
+		data, err = json.Marshal(result)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &common.Content{
+		ContentType: ContentTypeJson,
+		Data:        data,
+		DataTypeURL: event.DataTypeURL,
+	}, nil
 }

@@ -7,14 +7,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Event struct {
-	Subscription *common.Subscription
-	Handler      common.TopicEventHandler
+type daprEvent struct {
+	subscription *common.Subscription
+	handler      common.TopicEventHandler
 }
 
 // Publish 发布消息
 // isRawPayLoad 发送原始的消息，非cloudevent message
-func Publish(pubSubName, topic string, data interface{}, args ...bool) error {
+func (a apiImpl) Publish(pubSubName, topic string, data interface{}, args ...bool) error {
 	daprClient, err := client.NewClient()
 	if err != nil {
 		return errors.Wrap(err, "new dapr client")
@@ -27,7 +27,7 @@ func Publish(pubSubName, topic string, data interface{}, args ...bool) error {
 	//defer daprClient.Close()
 
 	var opt client.PublishEventOption
-	metaOptions := getMeta(args...)
+	metaOptions := getPublishMetaOptions(args...)
 	if metaOptions != nil {
 		opt = client.PublishEventWithMetadata(metaOptions)
 		err = daprClient.PublishEvent(context.Background(), pubSubName, topic, data, opt)
@@ -42,19 +42,19 @@ func Publish(pubSubName, topic string, data interface{}, args ...bool) error {
 	return nil
 }
 
-func GetEvent(pubsubName, topic string, handler common.TopicEventHandler, args ...bool) Event {
-	metaOptions := getMeta(args...)
-	return Event{
-		Subscription: &common.Subscription{
+func getDaprEvent(pubsubName, topic string, handler common.TopicEventHandler, args ...bool) daprEvent {
+	metaOptions := getPublishMetaOptions(args...)
+	return daprEvent{
+		subscription: &common.Subscription{
 			PubsubName: pubsubName,
 			Topic:      topic,
 			Metadata:   metaOptions,
 		},
-		Handler: handler,
+		handler: handler,
 	}
 }
 
-func getMeta(args ...bool) map[string]string {
+func getPublishMetaOptions(args ...bool) map[string]string {
 	isRawPayLoad := false
 	if len(args) > 0 {
 		isRawPayLoad = args[0]
