@@ -68,25 +68,3 @@ func (a apiImpl) Invoke(appId string, moduleVersion int, moduleName, handler str
 func (a apiImpl) GetServiceInvocationName(moduleVersion int, moduleName, handler string) string {
 	return strings.Join([]string{fmt.Sprintf("v%d", moduleVersion), moduleName, handler}, ":")
 }
-
-// GetMetaValues get grpc meta values
-func GetMetaValues(ctx context.Context, key string) []string {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return nil
-	}
-	return md.Get(key)
-}
-
-// GetMetaValue get the first grpc meta value
-func GetMetaValue(ctx context.Context, key string) string {
-	md, ok := metadata.FromIncomingContext(ctx)
-	if !ok {
-		return ""
-	}
-	values := md.Get(key)
-	if len(values) == 0 {
-		return ""
-	}
-	return values[0]
-}
