@@ -53,10 +53,8 @@ func (a apiImpl) Invoke(appId string, moduleVersion int, moduleName, handler str
 	if len(args) > 0 {
 		md := metadata.Pairs(args...)
 		ctx = metadata.NewOutgoingContext(ctx, md)
+		logger.LogDebug("=============", "ddd", md)
 	}
-
-	ddd, rrr := metadata.FromIncomingContext(ctx)
-	logger.LogDebug("=============", "ddd", ddd, "rrr", rrr)
 
 	fullMethodName := getServiceInvocationName(moduleVersion, moduleName, handler)
 	resp, err := daprClient.InvokeMethodWithContent(ctx, appId, fullMethodName, "post", &client.DataContent{
