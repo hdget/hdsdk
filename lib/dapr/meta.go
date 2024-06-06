@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	MetaKeyAppId      = "hd-app-id"
-	MetaKeyApiVersion = "hd-api-version"
-	MetaKeyUserId     = "hd-user-id"
-	MetaKeyRoleIds    = "hd-role-ids"
-	MetaKeyPermIds    = "hd-perm-ids"
+	MetaKeyAppId      = "Hd-App-Id"
+	MetaKeyApiVersion = "Hd-Api-Version"
+	MetaKeyUserId     = "Hd-User-Id"
+	MetaKeyRoleIds    = "Hd-Role-Ids"
+	MetaKeyPermIds    = "Hd-Perm-Ids"
 )
 
 var (
