@@ -2,16 +2,16 @@ package dapr
 
 import (
 	"context"
-	"github.com/dapr/dapr/pkg/api/grpc/metadata"
 	"github.com/spf13/cast"
+	"google.golang.org/grpc/metadata"
 )
 
 const (
-	MetaKeyAppId      = "appId"
-	MetaKeyApiVersion = "apiVersion"
-	MetaKeyUserId     = "userId"
-	MetaKeyRoleIds    = "roleIds"
-	MetaKeyPermIds    = "permIds"
+	MetaKeyAppId      = "Hd-App-Id"
+	MetaKeyApiVersion = "Hd-Api-Version"
+	MetaKeyUserId     = "Hd-User-Id"
+	MetaKeyRoleIds    = "Hd-Role-Ids"
+	MetaKeyPermIds    = "Hd-Perm-Ids"
 )
 
 var (

@@ -11,7 +11,6 @@ import (
 	reflectUtils "github.com/hdget/hdutils/reflect"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -59,13 +58,6 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) com
 				panicUtils.RecordErrorStack(h.module.GetApp())
 			}
 		}()
-
-		ddd, ok := metadata.FromIncomingContext(ctx)
-		if !ok {
-			logger.Debug("zzzzzzzzzzz not ok")
-		} else {
-			logger.Debug("zzzzzzzzz", "ddd", ddd)
-		}
 
 		result, err := h.fn(ctx, event)
 		if err != nil {
