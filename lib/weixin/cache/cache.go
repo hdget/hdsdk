@@ -16,8 +16,9 @@ type ApiWeixinCache interface {
 }
 
 const (
-	tplAccessToken = "%s:%s:accesstoken" // string
-	tplTicket      = "%s:%s:ticket"      // string
+	// wxmp和wxoa共享同一个access token
+	tplAccessToken = "weixin:%s:accesstoken" // string
+	tplTicket      = "%s:%s:ticket"          // string
 	tplSessionKey  = `%s:%s:session`
 )
 
@@ -33,12 +34,12 @@ func New(app types.WeixinApp, appId string) ApiWeixinCache {
 }
 
 func (c *weixinCacheImpl) GetAccessToken() (string, error) {
-	bs, err := hdsdk.Redis().My().Get(fmt.Sprintf(tplAccessToken, c.App, c.appId))
+	bs, err := hdsdk.Redis().My().Get(fmt.Sprintf(tplAccessToken, c.appId))
 	return string(bs), err
 }
 
 func (c *weixinCacheImpl) SetAccessToken(token string, expires int) error {
-	return hdsdk.Redis().My().SetEx(fmt.Sprintf(tplAccessToken, c.App, c.appId), token, expires)
+	return hdsdk.Redis().My().SetEx(fmt.Sprintf(tplAccessToken, c.appId), token, expires)
 }
 
 func (c *weixinCacheImpl) GetTicket() (string, error) {
