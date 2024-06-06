@@ -11,8 +11,5 @@ func GetMetaKvs(c *gin.Context) []string {
 
 // AddMetaKvs 添加信息到meta中去
 func AddMetaKvs(c *gin.Context, key, value string) {
-	meta := GetMetaKvs(c)
-	meta = append(meta, key)
-	meta = append(meta, value)
-	c.Set(keyMeta, meta)
+	c.Set(keyMeta, append(GetMetaKvs(c), key, value))
 }
