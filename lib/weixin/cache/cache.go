@@ -16,10 +16,11 @@ type ApiWeixinCache interface {
 }
 
 const (
-	// wxmp和wxoa共享同一个access token
-	tplAccessToken = "weixin:%s:accesstoken" // string
-	tplTicket      = "%s:%s:ticket"          // string
-	tplSessionKey  = `%s:%s:session`
+	tplAccessToken = "wxmp:%s:accesstoken"
+	// todo:wxmp和wxoa共享同一个access token, 为了兼容以前的版本将weixin改成wxmp
+	//tplAccessToken = "weixin:%s:accesstoken"
+	tplTicket     = "%s:%s:ticket"
+	tplSessionKey = `%s:%s:session`
 )
 
 type weixinCacheImpl struct {
