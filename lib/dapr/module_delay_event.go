@@ -69,7 +69,7 @@ func AsDelayEventModule(app string, moduleObject any, options ...DelayEventModul
 	moduleInstance := &delayEventModuleImpl{
 		moduler:       m,
 		ackTimeout:    defaultAckTimeout,
-		backoffPolicy: backoff.NewExponentialBackOff(),
+		backoffPolicy: getDefaultBackOffPolicy(),
 	}
 
 	for _, option := range options {
@@ -117,4 +117,19 @@ func (m *delayEventModuleImpl) newDelayEventHandler(module DelayEventModule, top
 		topic:  topic,
 		fn:     fn,
 	}
+}
+
+// NewExponentialBackOff creates an instance of ExponentialBackOff using default values.
+func getDefaultBackOffPolicy() *backoff.ExponentialBackOff {
+	b := &backoff.ExponentialBackOff{
+		InitialInterval:     1 * time.Second,
+		RandomizationFactor: backoff.DefaultRandomizationFactor,
+		Multiplier:          backoff.DefaultMultiplier,
+		MaxInterval:         10 * time.Second,
+		MaxElapsedTime:      60 * time.Second,
+		Stop:                backoff.Stop,
+		Clock:               backoff.SystemClock,
+	}
+	b.Reset()
+	return b
 }
