@@ -1,13 +1,16 @@
 package dapr
 
 import (
+	"context"
 	"fmt"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/dapr/go-sdk/service/grpc"
 	"github.com/dapr/go-sdk/service/http"
+	"github.com/hdget/hdsdk/v2"
 	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/pkg/errors"
 	"net"
+	"strings"
 )
 
 type Server interface {
@@ -22,15 +25,18 @@ type Server interface {
 type serverImpl struct {
 	common.Service
 	logger intf.LoggerProvider
+	ctx    context.Context
+	cancel context.CancelFunc
 }
 
 var (
 	_moduleName2invocationModule = make(map[string]InvocationModule) // service invocation module
 	_moduleName2eventModule      = make(map[string]EventModule)      // topic event module
 	_moduleName2healthModule     = make(map[string]HealthModule)     // health module
+	_moduleName2delayEventModule = make(map[string]DelayEventModule) // delay event module
 )
 
-func NewGrpcServer(logger intf.LoggerProvider, address string, modulePaths ...string) (Server, error) {
+func NewGrpcServer(logger intf.LoggerProvider, address string) (Server, error) {
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		return nil, fmt.Errorf("grpc server failed to listen on %s: %w", address, err)
@@ -39,7 +45,14 @@ func NewGrpcServer(logger intf.LoggerProvider, address string, modulePaths ...st
 	// install health check handler
 	grpcServer := grpc.NewServiceWithListener(lis)
 
-	appServer := &serverImpl{Service: grpcServer, logger: logger}
+	ctx, cancel := context.WithCancel(context.Background())
+	appServer := &serverImpl{
+		Service: grpcServer,
+		logger:  logger,
+		ctx:     ctx,
+		cancel:  cancel,
+	}
+
 	if err = appServer.initialize(); err != nil {
 		return nil, err
 	}
@@ -47,14 +60,22 @@ func NewGrpcServer(logger intf.LoggerProvider, address string, modulePaths ...st
 	return appServer, nil
 }
 
-func NewHttpServer(logger intf.LoggerProvider, address string, modulePaths ...string) (Server, error) {
+func NewHttpServer(logger intf.LoggerProvider, address string) (Server, error) {
 	httpServer := http.NewServiceWithMux(address, nil)
 
-	srv := &serverImpl{Service: httpServer, logger: logger}
-	if err := srv.initialize(); err != nil {
+	ctx, cancel := context.WithCancel(context.Background())
+	appServer := &serverImpl{
+		Service: httpServer,
+		logger:  logger,
+		ctx:     ctx,
+		cancel:  cancel,
+	}
+
+	if err := appServer.initialize(); err != nil {
 		return nil, err
 	}
-	return srv, nil
+
+	return appServer, nil
 }
 
 func (impl *serverImpl) Start() error {
@@ -62,10 +83,12 @@ func (impl *serverImpl) Start() error {
 }
 
 func (impl *serverImpl) Stop() error {
+	impl.cancel()
 	return impl.Service.Stop()
 }
 
 func (impl *serverImpl) GracefulStop() error {
+	impl.cancel()
 	return impl.Service.GracefulStop()
 }
 
@@ -95,6 +118,11 @@ func (impl *serverImpl) initialize() error {
 		}
 	}
 
+	err := impl.SubscribeDelayEvents()
+	if err != nil {
+		return errors.Wrap(err, "adding delay event handler")
+	}
+
 	return nil
 }
 
@@ -118,6 +146,39 @@ func (impl *serverImpl) GetEvents() []daprEvent {
 		}
 	}
 	return events
+}
+
+func (impl *serverImpl) SubscribeDelayEvents() error {
+	topic2delayEventHandler := make(map[string]delayEventHandler)
+	for _, m := range _moduleName2delayEventModule {
+		for _, h := range m.GetHandlers() {
+			topic := h.GetTopic()
+			if strings.Contains(topic, "@") {
+				return errors.New("invalid delay event topic: '@' character not allowed")
+			}
+			topic2delayEventHandler[topic] = h
+		}
+	}
+
+	if len(topic2delayEventHandler) == 0 {
+		return nil
+	}
+
+	// if we configured delay event module, but no message queue configured raise error
+	if hdsdk.Mq() == nil {
+		return errors.New("sdk message queue not initialized")
+	}
+
+	// initialize subscriber
+	subscriber, err := hdsdk.Mq().NewSubscriber()
+	if err != nil {
+		return err
+	}
+
+	for _, h := range topic2delayEventHandler {
+		go h.Handle(impl.ctx, impl.logger, subscriber)
+	}
+	return nil
 }
 
 func (impl *serverImpl) GetHealthCheckHandler() common.HealthCheckHandler {
@@ -144,6 +205,10 @@ func registerInvocationModule(module InvocationModule) {
 
 func registerEventModule(module EventModule) {
 	_moduleName2eventModule[module.GetModuleInfo().ModuleName] = module
+}
+
+func registerDelayEventModule(module DelayEventModule) {
+	_moduleName2delayEventModule[module.GetModuleInfo().ModuleName] = module
 }
 
 func registerHealthModule(module HealthModule) {

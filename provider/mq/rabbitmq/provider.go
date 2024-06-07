@@ -1,6 +1,9 @@
 package rabbitmq
 
-import "github.com/hdget/hdsdk/v2/intf"
+import (
+	"fmt"
+	"github.com/hdget/hdsdk/v2/intf"
+)
 
 // rabbitmqProvider
 // Note: most codes comes from https://github.com/ThreeDotsLabs/watermill-amqp
@@ -29,4 +32,13 @@ func (p rabbitmqProvider) NewPublisher() (intf.Publisher, error) {
 
 func (p rabbitmqProvider) NewSubscriber() (intf.Subscriber, error) {
 	return newSubscriber(p.config, p.logger)
+}
+
+func (p rabbitmqProvider) AsDelayTopic(topic string) string {
+	return fmt.Sprintf("%s@DELAY", topic)
+}
+
+func (p rabbitmqProvider) IsDelayTopic() bool {
+	//TODO implement me
+	panic("implement me")
 }

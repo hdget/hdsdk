@@ -58,19 +58,30 @@ func newSubscriber(config *RabbitMqConfig, logger intf.LoggerProvider) (intf.Sub
 	}, nil
 }
 
-// Subscribe consumes messages from AMQP broker.
 func (s *rmpSubscriberImpl) Subscribe(ctx context.Context, topic string) (<-chan *mq.Message, error) {
+	topology, err := newTopology(topic)
+	if err != nil {
+		return nil, errors.Wrap(err, "new topology")
+	}
+	return s.subscribe(ctx, topic, topology)
+}
+
+func (s *rmpSubscriberImpl) SubscribeDelay(ctx context.Context, topic string) (<-chan *mq.Message, error) {
+	topology, err := newDelayTopology(topic)
+	if err != nil {
+		return nil, errors.Wrap(err, "new delay topology")
+	}
+	return s.subscribe(ctx, topic, topology)
+}
+
+// Subscribe consumes messages from AMQP broker.
+func (s *rmpSubscriberImpl) subscribe(ctx context.Context, topic string, topology *Topology) (<-chan *mq.Message, error) {
 	if s.connection.IsClosed() {
 		return nil, errors.New("AMQP connection is closed")
 	}
 
 	if !s.connection.IsConnected() {
 		return nil, errors.New("not connected to AMQP")
-	}
-
-	topology, err := newTopology(topic)
-	if err != nil {
-		return nil, errors.Wrap(err, "new topology")
 	}
 
 	out := make(chan *mq.Message)

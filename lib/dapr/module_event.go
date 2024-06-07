@@ -84,7 +84,7 @@ func AsEventModule(app, pubsub string, moduleObject any, options ...EventModuleO
 
 	module, ok := moduleObject.(EventModule)
 	if !ok {
-		return nil, errors.New("invalid invocation module")
+		return nil, errors.New("invalid event module")
 	}
 
 	return module, nil

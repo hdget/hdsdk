@@ -43,40 +43,43 @@ type Topology struct {
 // order:close ===> exchange: order, exchangeType: fanout, queue: order_close, routingKey: "", bindingKey: "", exchangeKind: default
 // cancel@delay ===> exchange: order, routingKey: cancel, exchangeKind: delay
 func newTopology(topic string) (*Topology, error) {
-	exchangeKind := ExchangeKindDefault
-	index := strings.Index(strings.ToUpper(topic), "@DELAY")
-	if index > -1 {
-		exchangeKind = ExchangeKindDelay
-	}
-
-	remains := topic
-	if index > -1 {
-		remains = topic[:index]
-	}
-
 	var result *Topology
-	tokens := strings.Split(remains, ":")
+	tokens := strings.Split(topic, ":")
 	switch len(tokens) {
 	case 1:
-		switch exchangeKind {
-		case ExchangeKindDefault: // use default exchange
-			result = &Topology{
-				exchangeKind: ExchangeKindDefault,
-				exchangeType: ExchangeTypeDirect,
-				queueName:    tokens[0],
-				routingKey:   tokens[0],
-			}
-		case ExchangeKindDelay: // tokens[0] as the exchange name
-			result = &Topology{
-				exchangeKind: ExchangeKindDelay,
-				exchangeType: ExchangeTypeFanout,
-				exchangeName: tokens[0],
-				queueName:    fmt.Sprintf("%s_%s", tokens[0], tokens[0]),
-			}
+		// use default exchange
+		result = &Topology{
+			exchangeKind: ExchangeKindDefault,
+			exchangeType: ExchangeTypeDirect,
+			queueName:    tokens[0],
+			routingKey:   tokens[0],
 		}
 	case 2: // use explicit exchange
 		result = &Topology{
-			exchangeKind: exchangeKind,
+			exchangeKind: ExchangeKindDefault,
+			exchangeType: ExchangeTypeFanout,
+			exchangeName: tokens[0],
+			queueName:    fmt.Sprintf("%s_%s", tokens[0], tokens[1]),
+		}
+	}
+	return result, nil
+}
+
+func newDelayTopology(topic string) (*Topology, error) {
+	var result *Topology
+	tokens := strings.Split(topic, ":")
+	switch len(tokens) {
+	case 1:
+		// tokens[0] as the exchange name
+		result = &Topology{
+			exchangeKind: ExchangeKindDelay,
+			exchangeType: ExchangeTypeFanout,
+			exchangeName: tokens[0],
+			queueName:    fmt.Sprintf("%s_%s", tokens[0], tokens[0]),
+		}
+	case 2: // use explicit exchange
+		result = &Topology{
+			exchangeKind: ExchangeKindDelay,
 			exchangeType: ExchangeTypeFanout,
 			exchangeName: tokens[0],
 			queueName:    fmt.Sprintf("%s_%s", tokens[0], tokens[1]),

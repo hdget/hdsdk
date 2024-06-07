@@ -5,6 +5,8 @@ import (
 	"github.com/hdget/hdsdk/v2/provider/mq"
 )
 
+type MsgPayload []byte
+
 type MqProvider interface {
 	Provider
 	NewPublisher() (Publisher, error)
@@ -21,9 +23,10 @@ type Publisher interface {
 	// This means that if publishing one of the messages fails, the next messages will not be published.
 	//
 	// Publish must be thread safe.
-	Publish(topic string, messages [][]byte, args ...int64) error
+	Publish(topic string, messages []MsgPayload) error
 	// Close should flush unsent messages, if publisher is async.
 	Close() error
+	PublishDelay(topic string, messages []MsgPayload, delaySeconds int64) error
 }
 
 // Subscriber is the consuming part of the Pub/Sub.
@@ -38,6 +41,7 @@ type Subscriber interface {
 	// Provided ctx is set to all produced messages.
 	// When Nack or Ack is called on the message, context of the message is canceled.
 	Subscribe(ctx context.Context, topic string) (<-chan *mq.Message, error)
+	SubscribeDelay(ctx context.Context, topic string) (<-chan *mq.Message, error)
 	// Close closes all subscriptions with their output channels and flush offsets etc. when needed.
 	Close() error
 }
