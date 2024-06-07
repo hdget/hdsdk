@@ -44,22 +44,23 @@ type Topology struct {
 // cancel@delay ===> exchange: order, routingKey: cancel, exchangeKind: delay
 func newTopology(topic string) (*Topology, error) {
 	var result *Topology
-	tokens := strings.Split(topic, ":")
-	switch len(tokens) {
-	case 1:
+	index := strings.Index(topic, ":")
+	switch index {
+	case -1:
 		// use default exchange
 		result = &Topology{
 			exchangeKind: ExchangeKindDefault,
 			exchangeType: ExchangeTypeDirect,
-			queueName:    tokens[0],
-			routingKey:   tokens[0],
+			queueName:    topic,
+			routingKey:   topic,
 		}
-	case 2: // use explicit exchange
+	default:
+		// use explicit exchange
 		result = &Topology{
 			exchangeKind: ExchangeKindDefault,
 			exchangeType: ExchangeTypeFanout,
-			exchangeName: tokens[0],
-			queueName:    fmt.Sprintf("%s_%s", tokens[0], tokens[1]),
+			exchangeName: topic[index:],
+			queueName:    fmt.Sprintf("%s_%s", topic[:index], topic[index:]),
 		}
 	}
 	return result, nil
@@ -67,22 +68,23 @@ func newTopology(topic string) (*Topology, error) {
 
 func newDelayTopology(topic string) (*Topology, error) {
 	var result *Topology
-	tokens := strings.Split(topic, ":")
-	switch len(tokens) {
-	case 1:
-		// tokens[0] as the exchange name
+	index := strings.Index(topic, ":")
+	switch index {
+	case -1:
+		// use default exchange
 		result = &Topology{
 			exchangeKind: ExchangeKindDelay,
-			exchangeType: ExchangeTypeFanout,
-			exchangeName: tokens[0],
-			queueName:    fmt.Sprintf("%s_%s", tokens[0], tokens[0]),
+			exchangeType: ExchangeTypeDirect,
+			queueName:    topic,
+			routingKey:   topic,
 		}
-	case 2: // use explicit exchange
+	default:
+		// use explicit exchange
 		result = &Topology{
 			exchangeKind: ExchangeKindDelay,
 			exchangeType: ExchangeTypeFanout,
-			exchangeName: tokens[0],
-			queueName:    fmt.Sprintf("%s_%s", tokens[0], tokens[1]),
+			exchangeName: topic[index:],
+			queueName:    fmt.Sprintf("%s_%s", topic[:index], topic[index:]),
 		}
 	}
 	return result, nil

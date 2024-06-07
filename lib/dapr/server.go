@@ -10,7 +10,6 @@ import (
 	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/pkg/errors"
 	"net"
-	"strings"
 )
 
 type Server interface {
@@ -152,11 +151,7 @@ func (impl *serverImpl) SubscribeDelayEvents() error {
 	topic2delayEventHandler := make(map[string]delayEventHandler)
 	for _, m := range _moduleName2delayEventModule {
 		for _, h := range m.GetHandlers() {
-			topic := h.GetTopic()
-			if strings.Contains(topic, "@") {
-				return errors.New("invalid delay event topic: '@' character not allowed")
-			}
-			topic2delayEventHandler[topic] = h
+			topic2delayEventHandler[h.GetTopic()] = h
 		}
 	}
 
