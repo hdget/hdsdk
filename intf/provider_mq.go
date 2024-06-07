@@ -5,8 +5,6 @@ import (
 	"github.com/hdget/hdsdk/v2/provider/mq"
 )
 
-type MsgPayload []byte
-
 type MqProvider interface {
 	Provider
 	NewPublisher() (Publisher, error)
@@ -23,10 +21,10 @@ type Publisher interface {
 	// This means that if publishing one of the messages fails, the next messages will not be published.
 	//
 	// Publish must be thread safe.
-	Publish(topic string, messages []MsgPayload) error
+	Publish(topic string, messages [][]byte) error
 	// Close should flush unsent messages, if publisher is async.
 	Close() error
-	PublishDelay(topic string, messages []MsgPayload, delaySeconds int64) error
+	PublishDelay(topic string, messages [][]byte, delaySeconds int64) error
 }
 
 // Subscriber is the consuming part of the Pub/Sub.

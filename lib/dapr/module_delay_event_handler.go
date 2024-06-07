@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/hdget/hdsdk/v2/intf"
-	"github.com/hdget/hdsdk/v2/provider/mq"
 	"time"
 )
 
@@ -19,7 +18,7 @@ type delayEventHandlerImpl struct {
 	fn     DelayEventFunction // 调用函数
 }
 
-type DelayEventFunction func(message *mq.Message) (retry bool, err error)
+type DelayEventFunction func(message []byte) (retry bool, err error)
 
 func (h delayEventHandlerImpl) GetTopic() string {
 	return h.topic
@@ -35,13 +34,14 @@ func (h delayEventHandlerImpl) Handle(ctx context.Context, logger intf.LoggerPro
 		logger.Fatal("subscribe delay event", "topic", h.GetTopic())
 	}
 
+LOOP:
 	for {
 		select {
 		case <-ctx.Done():
-			logger.Debug("quit delay event handler", "topic", h.GetTopic())
-			break
+			logger.Debug("gracefully shutdown delay event handler", "topic", h.GetTopic())
+			break LOOP
 		case msg := <-msgChan:
-			retry, err := h.fn(msg)
+			retry, err := h.fn(msg.Payload)
 			if err == nil {
 				msg.Ack()
 			} else {

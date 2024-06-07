@@ -27,9 +27,9 @@ var (
 )
 
 // NewDelayEventModule new delay event module
-func NewDelayEventModule(app, pubsub string, moduleObject DelayEventModule, functions map[string]DelayEventFunction, options ...DelayEventModuleOption) error {
+func NewDelayEventModule(app string, moduleObject DelayEventModule, functions map[string]DelayEventFunction, options ...DelayEventModuleOption) error {
 	// 首先实例化module
-	module, err := AsDelayEventModule(app, pubsub, moduleObject, options...)
+	module, err := AsDelayEventModule(app, moduleObject, options...)
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func NewDelayEventModule(app, pubsub string, moduleObject DelayEventModule, func
 //	      ...
 //	     }
 //	     im.DiscoverHandlers()
-func AsDelayEventModule(app, pubsub string, moduleObject any, options ...DelayEventModuleOption) (DelayEventModule, error) {
+func AsDelayEventModule(app string, moduleObject any, options ...DelayEventModuleOption) (DelayEventModule, error) {
 	m, err := newModule(app, moduleObject)
 	if err != nil {
 		return nil, err

@@ -93,6 +93,11 @@ func (impl *serverImpl) GracefulStop() error {
 
 // Initialize 初始化server
 func (impl *serverImpl) initialize() error {
+	err := impl.SubscribeDelayEvents()
+	if err != nil {
+		return errors.Wrap(err, "adding delay event handler")
+	}
+
 	// 注册health check handler
 	if err := impl.AddHealthCheckHandler("", impl.GetHealthCheckHandler()); err != nil {
 		return errors.Wrap(err, "adding health check handler")
@@ -115,11 +120,6 @@ func (impl *serverImpl) initialize() error {
 		if err := impl.AddTopicEventHandler(event.subscription, event.handler); err != nil {
 			return errors.Wrap(err, "adding event handler")
 		}
-	}
-
-	err := impl.SubscribeDelayEvents()
-	if err != nil {
-		return errors.Wrap(err, "adding delay event handler")
 	}
 
 	return nil

@@ -37,6 +37,7 @@ const (
 	exprInvocationModule = "&{dapr InvocationModule}"
 	exprEventModule      = "&{dapr EventModule}"
 	exprHealthModule     = "&{dapr HealthModule}"
+	exprDelayEventModule = "&{dapr DelayEventModule}"
 	libDaprImportPath    = "github.com/hdget/hdsdk/v2/lib/dapr"
 )
 
@@ -124,6 +125,9 @@ func (p sourceCodeHandleImpl) Discover(skipDirs ...string) (*SourceCodeInfo, err
 										case exprEventModule:
 											found, _ := filepath.Rel(p.rootDir, filepath.Dir(path))
 											sourceInfo.ModulePaths[ModuleKindEvent] = filepath.ToSlash(found)
+										case exprDelayEventModule:
+											found, _ := filepath.Rel(p.rootDir, filepath.Dir(path))
+											sourceInfo.ModulePaths[ModuleKindDelayEvent] = filepath.ToSlash(found)
 										case exprHealthModule:
 											found, _ := filepath.Rel(p.rootDir, filepath.Dir(path))
 											sourceInfo.ModulePaths[ModuleKindHealth] = filepath.ToSlash(found)

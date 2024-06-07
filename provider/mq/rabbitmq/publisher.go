@@ -48,7 +48,7 @@ func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (intf.Publ
 	}, nil
 }
 
-func (p *rmqPublisherImpl) PublishDelay(topic string, messages []intf.MsgPayload, delaySeconds int64) (err error) {
+func (p *rmqPublisherImpl) PublishDelay(topic string, messages [][]byte, delaySeconds int64) (err error) {
 	topology, err := newDelayTopology(topic)
 	if err != nil {
 		return errors.Wrap(err, "new delay topology")
@@ -56,7 +56,7 @@ func (p *rmqPublisherImpl) PublishDelay(topic string, messages []intf.MsgPayload
 	return p.publish(topic, messages, topology, delaySeconds)
 }
 
-func (p *rmqPublisherImpl) Publish(topic string, messages []intf.MsgPayload) (err error) {
+func (p *rmqPublisherImpl) Publish(topic string, messages [][]byte) (err error) {
 	topology, err := newTopology(topic)
 	if err != nil {
 		return errors.Wrap(err, "new topology")
@@ -67,7 +67,7 @@ func (p *rmqPublisherImpl) Publish(topic string, messages []intf.MsgPayload) (er
 // Publish publishes messages to AMQP broker.
 // Publish is blocking until the broker has received and saved the message.
 // Publish is always thread safe.
-func (p *rmqPublisherImpl) publish(topic string, messages []intf.MsgPayload, topology *Topology, args ...int64) (err error) {
+func (p *rmqPublisherImpl) publish(topic string, messages [][]byte, topology *Topology, args ...int64) (err error) {
 	if p.connection.IsClosed() {
 		return errors.New("connection is closed while publish message")
 	}
@@ -128,7 +128,7 @@ func (p *rmqPublisherImpl) preparePublishBindings(topic string, amqpChannel *amq
 	return nil
 }
 
-func (p *rmqPublisherImpl) publishMessage(channel channel, topology *Topology, msgPayload intf.MsgPayload, args ...int64) error {
+func (p *rmqPublisherImpl) publishMessage(channel channel, topology *Topology, msgPayload []byte, args ...int64) error {
 	var headers amqp.Table
 	if topology.exchangeKind == ExchangeKindDelay {
 		if len(args) == 0 {

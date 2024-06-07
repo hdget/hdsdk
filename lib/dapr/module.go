@@ -13,6 +13,7 @@ const (
 	moduleKindUnknown    moduleKind = iota
 	ModuleKindInvocation            // dapr调用模块
 	ModuleKindEvent                 // dapr事件模块
+	ModuleKindDelayEvent            // 延迟事件模块
 	ModuleKindHealth                // dapr健康检测模块
 )
 
