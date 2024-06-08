@@ -34,10 +34,6 @@ type invocationHandlerImpl struct {
 type InvocationFunction func(ctx context.Context, event *common.InvocationEvent) (any, error)
 type HandlerNameMatcher func(methodName string) (string, bool) // 传入receiver.methodName, 判断是否匹配，然后取出处理后的handlerName
 
-var (
-	maxRequestLength = 120
-)
-
 func (h invocationHandlerImpl) GetAlias() string {
 	return h.handlerAlias
 }
@@ -61,12 +57,7 @@ func (h invocationHandlerImpl) GetInvokeFunction(logger intf.LoggerProvider) com
 
 		result, err := h.fn(ctx, event)
 		if err != nil {
-			req := []rune(convert.BytesToString(event.Data))
-			if len(req) > maxRequestLength {
-				req = append(req[:maxRequestLength], []rune("...")...)
-			}
-
-			logger.Error("service invoke", "module", h.module.GetModuleInfo().StructName, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", string(req))
+			logger.Error("service invoke", "module", h.module.GetModuleInfo().StructName, "handler", reflectUtils.GetFuncName(h.fn), "err", err, "req", trimData(event.Data))
 			return h.replyError(err)
 		}
 

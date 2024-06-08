@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/hdget/hdsdk/v2/intf"
-	"github.com/hdget/hdutils/convert"
 	panicUtils "github.com/hdget/hdutils/panic"
 	"time"
 )
@@ -68,12 +67,4 @@ func (h eventHandlerImpl) GetEventFunction(logger intf.LoggerProvider) common.To
 		}
 		return result.retry, result.err
 	}
-}
-
-func trimData(data []byte) string {
-	trimmed := []rune(convert.BytesToString(data))
-	if len(trimmed) > maxRequestLength {
-		trimmed = append(trimmed[:maxRequestLength], []rune("...")...)
-	}
-	return string(trimmed)
 }
