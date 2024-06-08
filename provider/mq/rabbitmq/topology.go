@@ -49,9 +49,9 @@ func newTopology(topic string) (*Topology, error) {
 	// use default exchange
 	return &Topology{
 		ExchangeKind: ExchangeKindDefault,
-		ExchangeType: ExchangeTypeDirect,
+		ExchangeType: ExchangeTypeFanout,
+		ExchangeName: cleanTopic,
 		QueueName:    cleanTopic,
-		RoutingKey:   cleanTopic,
 	}, nil
 }
 

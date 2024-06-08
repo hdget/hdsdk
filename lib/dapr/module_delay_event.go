@@ -122,11 +122,11 @@ func (m *delayEventModuleImpl) newDelayEventHandler(module DelayEventModule, top
 // NewExponentialBackOff creates an instance of ExponentialBackOff using default values.
 func getDefaultBackOffPolicy() *backoff.ExponentialBackOff {
 	b := &backoff.ExponentialBackOff{
-		InitialInterval:     2 * time.Second,
-		RandomizationFactor: 0.5,
-		Multiplier:          2,
+		InitialInterval:     1 * time.Second,
+		RandomizationFactor: backoff.DefaultRandomizationFactor,
+		Multiplier:          backoff.DefaultMultiplier,
 		MaxInterval:         10 * time.Second,
-		MaxElapsedTime:      30 * time.Second,
+		MaxElapsedTime:      60 * time.Second,
 		Stop:                backoff.Stop,
 		Clock:               backoff.SystemClock,
 	}
