@@ -58,6 +58,7 @@ func newTopology(topic string) (*Topology, error) {
 			ExchangeType: ExchangeTypeDirect,
 			QueueName:    cleanTopic,
 			RoutingKey:   cleanTopic,
+			BindingKey:   cleanTopic,
 		}
 	default:
 		cleanExchangeName := text.CleanString(topic[index+1:])
@@ -78,6 +79,7 @@ func newTopology(topic string) (*Topology, error) {
 			ExchangeName: cleanExchangeName,
 			QueueName:    key,
 			RoutingKey:   key,
+			BindingKey:   key,
 		}
 	}
 	return result, nil
@@ -102,6 +104,7 @@ func newDelayTopology(exchangeName, topic string) (*Topology, error) {
 		ExchangeName: fmt.Sprintf("delay:%s", cleanExchangeName),
 		QueueName:    key,
 		RoutingKey:   key,
+		BindingKey:   key,
 	}, nil
 }
 
@@ -137,7 +140,7 @@ func (t *Topology) DeclareExchange(amqpChannel *amqp.Channel) error {
 
 func (t *Topology) DeclareQueue(amqpChannel *amqp.Channel) error {
 	_, err := amqpChannel.QueueDeclare(
-		t.QueueName, // queue: exchangeName_key
+		t.QueueName,
 		true,
 		false,
 		false,
