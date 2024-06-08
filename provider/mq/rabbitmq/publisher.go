@@ -25,7 +25,7 @@ func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (*rmqPubli
 		return nil, fmt.Errorf("publisher create new connection: %w", err)
 	}
 
-	channelManager, err := newChannelManager(logger, conn, config.ChannelPoolSize)
+	chanManager, err := newChannelManager(logger, conn, config.ChannelPoolSize)
 	if err != nil {
 		return nil, fmt.Errorf("create new channel pool: %w", err)
 	}
@@ -34,7 +34,7 @@ func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (*rmqPubli
 	closePublisher := func() error {
 		logger.Debug("closing publisher connection")
 
-		channelManager.Close()
+		chanManager.Close()
 
 		return conn.Close()
 	}
@@ -46,7 +46,7 @@ func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (*rmqPubli
 		publishBindingsLock:     sync.RWMutex{},
 		publishBindingsPrepared: make(map[string]struct{}),
 		closePublisher:          closePublisher,
-		channelManager:          channelManager,
+		channelManager:          chanManager,
 	}, nil
 }
 

@@ -49,9 +49,9 @@ func newTopology(topic string) (*Topology, error) {
 	// use default exchange
 	return &Topology{
 		ExchangeKind: ExchangeKindDefault,
-		ExchangeType: ExchangeTypeFanout,
-		ExchangeName: cleanTopic,
+		ExchangeType: ExchangeTypeDirect,
 		QueueName:    cleanTopic,
+		RoutingKey:   cleanTopic,
 	}, nil
 }
 
@@ -66,15 +66,14 @@ func newDelayTopology(exchangeName, topic string) (*Topology, error) {
 		return nil, fmt.Errorf("invalid topic, topic: %s", topic)
 	}
 
-	key := fmt.Sprintf("delay:%s:%s", cleanExchangeName, cleanTopic)
 	// use explicit exchange
 	return &Topology{
 		ExchangeKind: ExchangeKindDelay,
 		ExchangeType: ExchangeTypeDirect,
-		ExchangeName: fmt.Sprintf("delay:%s", cleanExchangeName),
-		QueueName:    key,
-		RoutingKey:   key,
-		BindingKey:   key,
+		ExchangeName: cleanExchangeName,
+		QueueName:    cleanTopic,
+		RoutingKey:   cleanTopic,
+		BindingKey:   cleanTopic,
 	}, nil
 }
 

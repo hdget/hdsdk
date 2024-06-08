@@ -60,6 +60,7 @@ func (r rabbitmqProvider) DelayPublisher(name string) (intf.MessageQueuePublishe
 			return nil, err
 		}
 	}
+
 	return _delayPublisher, nil
 }
 

@@ -6,7 +6,7 @@ import (
 
 type DelayEventModuleOption func(*delayEventModuleImpl)
 
-func WithBackOff(backoff *backoff.ExponentialBackOff) DelayEventModuleOption {
+func WithBackOff(backoff backoff.BackOff) DelayEventModuleOption {
 	return func(m *delayEventModuleImpl) {
 		m.backoffPolicy = backoff
 	}

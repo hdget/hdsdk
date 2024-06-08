@@ -12,14 +12,14 @@ type DelayEventModule interface {
 	RegisterHandlers(functions map[string]DelayEventFunction) error // 注册Handlers
 	GetHandlers() []delayEventHandler                               // 获取handlers
 	GetAckTimeout() time.Duration
-	GetBackOffPolicy() *backoff.ExponentialBackOff
+	GetBackOffPolicy() backoff.BackOff
 }
 
 type delayEventModuleImpl struct {
 	moduler
 	handlers      []delayEventHandler
 	ackTimeout    time.Duration
-	backoffPolicy *backoff.ExponentialBackOff
+	backoffPolicy backoff.BackOff
 }
 
 var (
@@ -107,7 +107,7 @@ func (m *delayEventModuleImpl) GetAckTimeout() time.Duration {
 	return m.ackTimeout
 }
 
-func (m *delayEventModuleImpl) GetBackOffPolicy() *backoff.ExponentialBackOff {
+func (m *delayEventModuleImpl) GetBackOffPolicy() backoff.BackOff {
 	return m.backoffPolicy
 }
 
@@ -120,16 +120,14 @@ func (m *delayEventModuleImpl) newDelayEventHandler(module DelayEventModule, top
 }
 
 // NewExponentialBackOff creates an instance of ExponentialBackOff using default values.
-func getDefaultBackOffPolicy() *backoff.ExponentialBackOff {
-	b := &backoff.ExponentialBackOff{
-		InitialInterval:     1 * time.Second,
-		RandomizationFactor: backoff.DefaultRandomizationFactor,
-		Multiplier:          backoff.DefaultMultiplier,
-		MaxInterval:         10 * time.Second,
-		MaxElapsedTime:      60 * time.Second,
-		Stop:                backoff.Stop,
-		Clock:               backoff.SystemClock,
-	}
-	b.Reset()
-	return b
+func getDefaultBackOffPolicy() backoff.BackOff {
+	// 最开始等待3秒
+	b := backoff.NewExponentialBackOff()
+	b.InitialInterval = 3 * time.Second
+
+	// 最多尝试3次
+	nb := backoff.WithMaxRetries(b, 3)
+	backoff.WithMaxRetries(b, 3) // 最多重试3次
+	nb.Reset()
+	return nb
 }
