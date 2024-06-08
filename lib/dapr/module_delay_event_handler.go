@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/hdget/hdsdk/v2/intf"
+	"github.com/hdget/hdsdk/v2/provider/mq"
 	panicUtils "github.com/hdget/hdutils/panic"
 	"time"
 )
@@ -52,23 +53,33 @@ LOOP:
 		case msg := <-msgChan:
 			retry, err := h.fn(msg.Payload)
 			if err == nil {
-				msg.Ack()
+				mustAck(msg)
 			} else {
 				if !retry { // err != nil && retry == false
 					logger.Error("drop delay event", "err", err, "msg", trimData(msg.Payload))
-					msg.Ack()
+					mustAck(msg)
 				} else { // err != nil && retry == true
 					nextBackOff := h.module.GetBackOffPolicy().NextBackOff()
 					if nextBackOff == backoff.Stop {
 						logger.Error("drop delay event after retried many times", "err", err, "msg", trimData(msg.Payload))
-						msg.Ack()
+						mustAck(msg)
 					} else {
 						time.Sleep(nextBackOff)
 						logger.Error("retry delay event", "err", err, "msg", trimData(msg.Payload))
-						msg.Nack()
+						mustNAck(msg)
 					}
 				}
 			}
 		}
 	}
+}
+
+func mustAck(msg *mq.Message) {
+	msg.Ack()
+	<-msg.Acked()
+}
+
+func mustNAck(msg *mq.Message) {
+	msg.Nack()
+	<-msg.Nacked()
 }
