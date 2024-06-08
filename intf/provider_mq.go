@@ -5,14 +5,13 @@ import (
 	"github.com/hdget/hdsdk/v2/provider/mq"
 )
 
-type MqProvider interface {
+type MessageQueueProvider interface {
 	Provider
-	NewPublisher() (Publisher, error)
-	NewSubscriber() (Subscriber, error)
+	Publisher() (MessageQueuePublisher, error)
+	Subscriber() (MessageQueueSubscriber, error)
 }
 
-// Publisher is the emitting part of a Pub/Sub.
-type Publisher interface {
+type MessageQueuePublisher interface {
 	// Publish publishes provided messages to given topic.
 	//
 	// Publish can be synchronous or asynchronous - it depends on the implementation.
@@ -27,8 +26,8 @@ type Publisher interface {
 	PublishDelay(topic string, messages [][]byte, delaySeconds int64) error
 }
 
-// Subscriber is the consuming part of the Pub/Sub.
-type Subscriber interface {
+type MessageQueueSubscriber interface {
+	Provider
 	// Subscribe returns output channel with messages from provided topic.
 	// Channel is closed, when Close() was called on the subscriber.
 	//

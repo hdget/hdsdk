@@ -23,7 +23,7 @@ type pooledChannelManager struct {
 	closedChan chan struct{}
 }
 
-func newPooledChannelManager(logger intf.LoggerProvider, conn *connection, poolSize int) (channelManager, error) {
+func newPooledChannelManager(logger intf.LoggerProvider, connManager *connection, poolSize int) (channelManager, error) {
 	logger.Info("creating pooled channel manager", "poolSize", poolSize)
 
 	channels := make([]*pooledChannelImpl, poolSize)
@@ -32,7 +32,7 @@ func newPooledChannelManager(logger intf.LoggerProvider, conn *connection, poolS
 
 	// Create the channels and add them to the pool.
 	for i := 0; i < poolSize; i++ {
-		c, err := newPooledChannel(logger, conn)
+		c, err := newPooledChannel(logger, connManager)
 		if err != nil {
 			return nil, err
 		}
@@ -42,7 +42,7 @@ func newPooledChannelManager(logger intf.LoggerProvider, conn *connection, poolS
 
 	return &pooledChannelManager{
 		logger,
-		conn,
+		connManager,
 		channels,
 		0,
 		chanPool,
@@ -165,7 +165,7 @@ func (c *pooledChannelImpl) validate() error {
 func (c *pooledChannelImpl) openAMQPChannel() error {
 	var err error
 
-	c.amqpChan, err = c.connection.amqpConnection.Channel()
+	c.amqpChan, err = c.connection.AmqpConnection().Channel()
 	if err != nil {
 		return fmt.Errorf("create AMQP channel: %w", err)
 	}

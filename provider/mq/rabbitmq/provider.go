@@ -1,9 +1,6 @@
 package rabbitmq
 
-import (
-	"fmt"
-	"github.com/hdget/hdsdk/v2/intf"
-)
+import "github.com/hdget/hdsdk/v2/intf"
 
 // rabbitmqProvider
 // Note: most codes comes from https://github.com/ThreeDotsLabs/watermill-amqp
@@ -12,8 +9,12 @@ type rabbitmqProvider struct {
 	logger intf.LoggerProvider
 }
 
-// New initialize zerolog instance
-func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.MqProvider, error) {
+var (
+	_publisher  intf.MessageQueuePublisher
+	_subscriber intf.MessageQueueSubscriber
+)
+
+func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.MessageQueueProvider, error) {
 	config, err := newConfig(configProvider)
 	if err != nil {
 		return nil, err
@@ -22,23 +23,29 @@ func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.M
 	return &rabbitmqProvider{config: config, logger: logger}, nil
 }
 
-func (p rabbitmqProvider) Init(args ...any) error {
-	panic("implement me")
-}
-
-func (p rabbitmqProvider) NewPublisher() (intf.Publisher, error) {
-	return newPublisher(p.config, p.logger)
-}
-
-func (p rabbitmqProvider) NewSubscriber() (intf.Subscriber, error) {
-	return newSubscriber(p.config, p.logger)
-}
-
-func (p rabbitmqProvider) AsDelayTopic(topic string) string {
-	return fmt.Sprintf("%s@DELAY", topic)
-}
-
-func (p rabbitmqProvider) IsDelayTopic() bool {
+func (r rabbitmqProvider) Init(args ...any) error {
 	//TODO implement me
 	panic("implement me")
+}
+
+func (r rabbitmqProvider) Publisher() (intf.MessageQueuePublisher, error) {
+	var err error
+	if _publisher == nil {
+		_publisher, err = newPublisher(r.config, r.logger)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return _publisher, nil
+}
+
+func (r rabbitmqProvider) Subscriber() (intf.MessageQueueSubscriber, error) {
+	var err error
+	if _subscriber == nil {
+		_subscriber, err = newSubscriber(r.config, r.logger)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return _subscriber, nil
 }

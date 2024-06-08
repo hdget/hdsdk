@@ -23,10 +23,10 @@ func Redis() intf.RedisProvider {
 	return _instance.redis
 }
 
-func Mq() intf.MqProvider {
-	return _instance.mq
-}
-
 func Config() intf.ConfigProvider {
 	return _instance.configProvider
+}
+
+func Mq() intf.MessageQueueProvider {
+	return _instance.mq
 }

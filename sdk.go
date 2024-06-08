@@ -18,9 +18,9 @@ type SdkInstance struct {
 	db             intf.DbProvider
 	sqlxDb         intf.SqlxDbProvider
 	dbBuilder      intf.DbBuilderProvider
+	redis          intf.RedisProvider
+	mq             intf.MessageQueueProvider
 	//graph          intf.GraphProvider
-	redis intf.RedisProvider
-	mq    intf.MqProvider
 }
 
 var (

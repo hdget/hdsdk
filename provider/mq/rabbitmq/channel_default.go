@@ -5,7 +5,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-// defaultChannelProvider simply opens a new channel when Channel() is called and closes the channel
+// defaultChannelProvider simply opens a new channel when channel() is called and closes the channel
 // when CloseChannel is called.
 type defaultChannelManager struct {
 	connection *connection
@@ -16,7 +16,7 @@ func newDefaultChannelManager(conn *connection) channelManager {
 }
 
 func (m *defaultChannelManager) GetChannel() (channel, error) {
-	amqpChan, err := m.connection.amqpConnection.Channel()
+	amqpChan, err := m.connection.AmqpConnection().Channel()
 	if err != nil {
 		return nil, fmt.Errorf("create AMQP channel: %w", err)
 	}

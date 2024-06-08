@@ -2,6 +2,7 @@ package dapr
 
 import (
 	"context"
+	"fmt"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/hdget/hdsdk/v2/intf"
 	"time"
@@ -9,7 +10,7 @@ import (
 
 type delayEventHandler interface {
 	GetTopic() string
-	Handle(ctx context.Context, logger intf.LoggerProvider, subscriber intf.Subscriber)
+	Handle(ctx context.Context, logger intf.LoggerProvider, subscriber intf.MessageQueueSubscriber)
 }
 
 type delayEventHandlerImpl struct {
@@ -20,15 +21,16 @@ type delayEventHandlerImpl struct {
 
 type DelayEventFunction func(message []byte) (retry bool, err error)
 
+// GetTopic 将app做为后缀加入
 func (h delayEventHandlerImpl) GetTopic() string {
-	return h.topic
+	return fmt.Sprintf("%s@%s", h.topic, h.module.GetApp())
 }
 
 // Handle
 // err: nil 只要错误为空，则消息成功消费, 不管retry的值为什么样
 // err: not nil + retry: false 打印DROP status消息
 // err: not nil + retry: true  进行重试，最后重试次数结束, 打印日志
-func (h delayEventHandlerImpl) Handle(ctx context.Context, logger intf.LoggerProvider, subscriber intf.Subscriber) {
+func (h delayEventHandlerImpl) Handle(ctx context.Context, logger intf.LoggerProvider, subscriber intf.MessageQueueSubscriber) {
 	msgChan, err := subscriber.SubscribeDelay(context.Background(), h.GetTopic())
 	if err != nil {
 		logger.Fatal("subscribe delay event", "topic", h.GetTopic())
@@ -51,7 +53,7 @@ LOOP:
 				} else { // err != nil && retry == true
 					nextBackOff := h.module.GetBackOffPolicy().NextBackOff()
 					if nextBackOff == backoff.Stop {
-						logger.Error("drop delay event after retried many times")
+						logger.Error("drop delay event after retried many times", "err", err, "msg", trimData(msg.Payload))
 						msg.Ack()
 					} else {
 						time.Sleep(nextBackOff)

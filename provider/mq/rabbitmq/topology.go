@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-// direct: exchange --> routingKey --> q1,q2...
+// direct: exchange --> RoutingKey --> q1,q2...
 // topic: exchange --> pattern match --> q1,q2...
 // fanout: exchange --> routingkey not used --> q1, q2
-// publisher --- routingKey ---> exchange
-// subscriber -- queue --- bindingKey --- exchange
+// publisher --- RoutingKey ---> exchange
+// subscriber -- queue --- BindingKey --- exchange
 // RoutingKey: publisher send message to which exchange depends on RoutingKey
 // BindingKey: exchange bind to which queue depends on BindingKey
 
@@ -27,40 +27,41 @@ type ExchangeType string
 const (
 	ExchangeTypeDirect ExchangeType = "direct"
 	ExchangeTypeFanout ExchangeType = "fanout"
+	exchangeSeparator               = "@"
 )
 
 type Topology struct {
-	exchangeKind ExchangeKind
-	exchangeType ExchangeType
-	exchangeName string
-	queueName    string
-	routingKey   string
-	bindingKey   string
+	ExchangeKind ExchangeKind
+	ExchangeType ExchangeType
+	ExchangeName string
+	QueueName    string
+	RoutingKey   string
+	BindingKey   string
 }
 
 // newTopology will parse topic string to decide the exchange, queue, routing key ...
-// <exchange>:<routingKey>@<exchange type>
-// order:close ===> exchange: order, exchangeType: fanout, queue: order_close, routingKey: "", bindingKey: "", exchangeKind: default
-// cancel@delay ===> exchange: order, routingKey: cancel, exchangeKind: delay
+// <exchange>:<RoutingKey>@<exchange type>
+// order:close ===> exchange: order, ExchangeType: fanout, queue: order_close, RoutingKey: "", BindingKey: "", ExchangeKind: default
+// cancel@delay ===> exchange: order, RoutingKey: cancel, ExchangeKind: delay
 func newTopology(topic string) (*Topology, error) {
 	var result *Topology
-	index := strings.Index(topic, ":")
+	index := strings.Index(topic, exchangeSeparator)
 	switch index {
 	case -1:
 		// use default exchange
 		result = &Topology{
-			exchangeKind: ExchangeKindDefault,
-			exchangeType: ExchangeTypeDirect,
-			queueName:    topic,
-			routingKey:   topic,
+			ExchangeKind: ExchangeKindDefault,
+			ExchangeType: ExchangeTypeDirect,
+			QueueName:    topic,
+			RoutingKey:   topic,
 		}
 	default:
 		// use explicit exchange
 		result = &Topology{
-			exchangeKind: ExchangeKindDefault,
-			exchangeType: ExchangeTypeFanout,
-			exchangeName: topic[index:],
-			queueName:    fmt.Sprintf("%s_%s", topic[:index], topic[index:]),
+			ExchangeKind: ExchangeKindDefault,
+			ExchangeType: ExchangeTypeFanout,
+			ExchangeName: topic[index+1:],
+			QueueName:    fmt.Sprintf("%s_%s", topic[:index], topic[index:]),
 		}
 	}
 	return result, nil
@@ -68,44 +69,44 @@ func newTopology(topic string) (*Topology, error) {
 
 func newDelayTopology(topic string) (*Topology, error) {
 	var result *Topology
-	index := strings.Index(topic, ":")
+	index := strings.Index(topic, exchangeSeparator)
 	switch index {
 	case -1:
 		// use default exchange
 		result = &Topology{
-			exchangeKind: ExchangeKindDelay,
-			exchangeType: ExchangeTypeDirect,
-			queueName:    topic,
-			routingKey:   topic,
+			ExchangeKind: ExchangeKindDelay,
+			ExchangeType: ExchangeTypeDirect,
+			QueueName:    topic,
+			RoutingKey:   topic,
 		}
 	default:
 		// use explicit exchange
 		result = &Topology{
-			exchangeKind: ExchangeKindDelay,
-			exchangeType: ExchangeTypeFanout,
-			exchangeName: topic[index:],
-			queueName:    fmt.Sprintf("%s_%s", topic[:index], topic[index:]),
+			ExchangeKind: ExchangeKindDelay,
+			ExchangeType: ExchangeTypeFanout,
+			ExchangeName: topic[index+1:],
+			QueueName:    fmt.Sprintf("%s_%s", topic[:index], topic[index+1:]),
 		}
 	}
 	return result, nil
 }
 
-func (t *Topology) declareExchange(amqpChannel *amqp.Channel) error {
+func (t *Topology) DeclareExchange(amqpChannel *amqp.Channel) error {
 	var err error
-	if t.exchangeKind == ExchangeKindDelay {
+	if t.ExchangeKind == ExchangeKindDelay {
 		err = amqpChannel.ExchangeDeclare(
-			t.exchangeName,
+			t.ExchangeName,
 			"x-delayed-message",
 			true,
 			false,
 			false,
 			false,
-			amqp.Table{"x-delayed-type": string(t.exchangeType)},
+			amqp.Table{"x-delayed-type": string(t.ExchangeType)},
 		)
 	} else {
 		err = amqpChannel.ExchangeDeclare(
-			t.exchangeName,
-			string(t.exchangeType),
+			t.ExchangeName,
+			string(t.ExchangeType),
 			true,
 			false,
 			false,
@@ -120,9 +121,9 @@ func (t *Topology) declareExchange(amqpChannel *amqp.Channel) error {
 	return nil
 }
 
-func (t *Topology) declareQueue(amqpChannel *amqp.Channel) error {
+func (t *Topology) DeclareQueue(amqpChannel *amqp.Channel) error {
 	_, err := amqpChannel.QueueDeclare(
-		t.queueName, // queue: exchangeName_key
+		t.QueueName, // queue: exchangeName_key
 		true,
 		false,
 		false,
@@ -136,11 +137,11 @@ func (t *Topology) declareQueue(amqpChannel *amqp.Channel) error {
 	return nil
 }
 
-func (t *Topology) bindQueue(amqpChannel *amqp.Channel) error {
+func (t *Topology) BindQueue(amqpChannel *amqp.Channel) error {
 	err := amqpChannel.QueueBind(
-		t.queueName, // queue: exchangeName_key
-		t.bindingKey,
-		t.exchangeName,
+		t.QueueName, // queue: exchangeName_key
+		t.BindingKey,
+		t.ExchangeName,
 		false,
 		nil)
 	if err != nil {

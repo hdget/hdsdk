@@ -11,6 +11,7 @@ import (
 
 type rmqPublisherImpl struct {
 	*connection
+	logger                  intf.LoggerProvider
 	config                  *RabbitMqConfig
 	publishBindingsLock     sync.RWMutex
 	publishBindingsPrepared map[string]struct{}
@@ -18,13 +19,13 @@ type rmqPublisherImpl struct {
 	channelManager          channelManager
 }
 
-func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (intf.Publisher, error) {
+func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (intf.MessageQueuePublisher, error) {
 	conn, err := newConnection(logger, config)
 	if err != nil {
 		return nil, fmt.Errorf("publisher create new connection: %w", err)
 	}
 
-	chanManager, err := newChannelManager(logger, conn, config.ChannelPoolSize)
+	channelManager, err := newChannelManager(logger, conn, config.ChannelPoolSize)
 	if err != nil {
 		return nil, fmt.Errorf("create new channel pool: %w", err)
 	}
@@ -33,41 +34,46 @@ func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (intf.Publ
 	closePublisher := func() error {
 		logger.Debug("closing publisher connection")
 
-		chanManager.Close()
+		channelManager.Close()
 
 		return conn.Close()
 	}
 
 	return &rmqPublisherImpl{
 		connection:              conn,
+		logger:                  logger,
 		config:                  config,
 		publishBindingsLock:     sync.RWMutex{},
 		publishBindingsPrepared: make(map[string]struct{}),
 		closePublisher:          closePublisher,
-		channelManager:          chanManager,
+		channelManager:          channelManager,
 	}, nil
 }
 
+func (p *rmqPublisherImpl) Init(args ...any) error {
+	return nil
+}
+
 func (p *rmqPublisherImpl) PublishDelay(topic string, messages [][]byte, delaySeconds int64) (err error) {
-	topology, err := newDelayTopology(topic)
+	t, err := newDelayTopology(topic)
 	if err != nil {
 		return errors.Wrap(err, "new delay topology")
 	}
-	return p.publish(topic, messages, topology, delaySeconds)
+	return p.publish(topic, messages, t, delaySeconds)
 }
 
 func (p *rmqPublisherImpl) Publish(topic string, messages [][]byte) (err error) {
-	topology, err := newTopology(topic)
+	t, err := newTopology(topic)
 	if err != nil {
 		return errors.Wrap(err, "new topology")
 	}
-	return p.publish(topic, messages, topology)
+	return p.publish(topic, messages, t)
 }
 
 // Publish publishes messages to AMQP broker.
 // Publish is blocking until the broker has received and saved the message.
 // Publish is always thread safe.
-func (p *rmqPublisherImpl) publish(topic string, messages [][]byte, topology *Topology, args ...int64) (err error) {
+func (p *rmqPublisherImpl) publish(topic string, messages [][]byte, t *Topology, args ...int64) (err error) {
 	if p.connection.IsClosed() {
 		return errors.New("connection is closed while publish message")
 	}
@@ -76,8 +82,8 @@ func (p *rmqPublisherImpl) publish(topic string, messages [][]byte, topology *To
 		return errors.New("connection is not established yet while publish message")
 	}
 
-	p.connectionWaitGroup.Add(1)
-	defer p.connectionWaitGroup.Done()
+	p.connection.Begin()
+	defer p.connection.End()
 
 	theChannel, err := p.channelManager.GetChannel()
 	if err != nil {
@@ -90,13 +96,13 @@ func (p *rmqPublisherImpl) publish(topic string, messages [][]byte, topology *To
 		}
 	}()
 
-	err = p.preparePublishBindings(topic, theChannel.AMQPChannel(), topology)
+	err = p.preparePublishBindings(topic, theChannel.AMQPChannel(), t)
 	if err != nil {
 		return err
 	}
 
 	for _, msg := range messages {
-		if err = p.publishMessage(theChannel, topology, msg, args...); err != nil {
+		if err = p.publishMessage(theChannel, t, msg, args...); err != nil {
 			return err
 		}
 	}
@@ -104,7 +110,7 @@ func (p *rmqPublisherImpl) publish(topic string, messages [][]byte, topology *To
 	return nil
 }
 
-func (p *rmqPublisherImpl) preparePublishBindings(topic string, amqpChannel *amqp.Channel, topology *Topology) error {
+func (p *rmqPublisherImpl) preparePublishBindings(topic string, amqpChannel *amqp.Channel, t *Topology) error {
 	p.publishBindingsLock.RLock()
 	_, prepared := p.publishBindingsPrepared[topic]
 	p.publishBindingsLock.RUnlock()
@@ -116,9 +122,8 @@ func (p *rmqPublisherImpl) preparePublishBindings(topic string, amqpChannel *amq
 	p.publishBindingsLock.Lock()
 	defer p.publishBindingsLock.Unlock()
 
-	// setup bindings
-	if topology.exchangeName != "" {
-		err := topology.declareExchange(amqpChannel)
+	if t.ExchangeName != "" {
+		err := t.DeclareExchange(amqpChannel)
 		if err != nil {
 			return errors.Wrap(err, "declare exchange while prepare publish bindings")
 		}
@@ -128,9 +133,9 @@ func (p *rmqPublisherImpl) preparePublishBindings(topic string, amqpChannel *amq
 	return nil
 }
 
-func (p *rmqPublisherImpl) publishMessage(channel channel, topology *Topology, msgPayload []byte, args ...int64) error {
+func (p *rmqPublisherImpl) publishMessage(channel channel, t *Topology, msgPayload []byte, args ...int64) error {
 	var headers amqp.Table
-	if topology.exchangeKind == ExchangeKindDelay {
+	if t.ExchangeKind == ExchangeKindDelay {
 		if len(args) == 0 {
 			return errors.New("no delay seconds specified")
 		}
@@ -141,8 +146,8 @@ func (p *rmqPublisherImpl) publishMessage(channel channel, topology *Topology, m
 
 	err := channel.AMQPChannel().PublishWithContext(
 		context.Background(),
-		topology.exchangeName,
-		topology.routingKey,
+		t.ExchangeName,
+		t.RoutingKey,
 		false,
 		false,
 		amqp.Publishing{
@@ -156,11 +161,11 @@ func (p *rmqPublisherImpl) publishMessage(channel channel, topology *Topology, m
 	}
 
 	if !channel.DeliveryConfirmationEnabled() {
-		p.logger.Trace("message published", "topology", topology, "msg", string(msgPayload))
+		p.logger.Trace("message published", "topology", t, "msg", string(msgPayload))
 		return nil
 	}
 
-	p.logger.Trace("message published, waiting for delivery confirmation", "topology", topology, "msg", string(msgPayload))
+	p.logger.Trace("message published, waiting for delivery confirmation", "topology", t, "msg", string(msgPayload))
 	if !channel.Delivered() {
 		return fmt.Errorf("delivery not confirmed for message [%s]", string(msgPayload))
 	}
