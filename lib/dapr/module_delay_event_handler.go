@@ -23,6 +23,7 @@ type DelayEventFunction func(message []byte) (retry bool, err error)
 
 // GetTopic 将app做为后缀加入
 func (h delayEventHandlerImpl) GetTopic() string {
+	// 如果使用的rabbitmq, 则第一个为实际topic, 第二个值为exchange
 	return fmt.Sprintf("%s@%s", h.topic, h.module.GetApp())
 }
 
@@ -40,7 +41,7 @@ LOOP:
 	for {
 		select {
 		case <-ctx.Done():
-			logger.Debug("gracefully shutdown delay event handler", "topic", h.GetTopic())
+			logger.Debug("shutdown delay event handler", "topic", h.GetTopic())
 			break LOOP
 		case msg := <-msgChan:
 			retry, err := h.fn(msg.Payload)

@@ -2,6 +2,7 @@ package rabbitmq
 
 import (
 	"fmt"
+	"github.com/hdget/hdutils/text"
 	"github.com/pkg/errors"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"strings"
@@ -40,55 +41,69 @@ type Topology struct {
 }
 
 // newTopology will parse topic string to decide the exchange, queue, routing key ...
-// <exchange>:<RoutingKey>@<exchange type>
-// order:close ===> exchange: order, ExchangeType: fanout, queue: order_close, RoutingKey: "", BindingKey: "", ExchangeKind: default
-// cancel@delay ===> exchange: order, RoutingKey: cancel, ExchangeKind: delay
+// <routingKey>@<exchange>
 func newTopology(topic string) (*Topology, error) {
 	var result *Topology
-	index := strings.Index(topic, exchangeSeparator)
+	index := strings.LastIndex(topic, exchangeSeparator)
 	switch index {
 	case -1:
+		cleanTopic := text.CleanString(topic)
+		if cleanTopic == "" {
+			return nil, fmt.Errorf("invalid topic, topic: %s", topic)
+		}
+
 		// use default exchange
 		result = &Topology{
 			ExchangeKind: ExchangeKindDefault,
 			ExchangeType: ExchangeTypeDirect,
-			QueueName:    topic,
-			RoutingKey:   topic,
+			QueueName:    cleanTopic,
+			RoutingKey:   cleanTopic,
 		}
 	default:
+		cleanExchange := text.CleanString(topic[index+1:])
+		if cleanExchange == "" {
+			return nil, fmt.Errorf("invalid exchange, exchange: %s", topic[index+1:])
+		}
+
+		cleanTopic := text.CleanString(topic[:index])
+		if cleanTopic == "" {
+			return nil, fmt.Errorf("invalid topic, topic: %s", topic[index+1:])
+		}
+
 		// use explicit exchange
 		result = &Topology{
 			ExchangeKind: ExchangeKindDefault,
 			ExchangeType: ExchangeTypeFanout,
-			ExchangeName: topic[index+1:],
-			QueueName:    fmt.Sprintf("%s_%s", topic[:index], topic[index:]),
+			ExchangeName: cleanExchange,
+			QueueName:    fmt.Sprintf("%s:%s", cleanExchange, cleanTopic),
 		}
 	}
 	return result, nil
 }
 
 func newDelayTopology(topic string) (*Topology, error) {
-	var result *Topology
-	index := strings.Index(topic, exchangeSeparator)
-	switch index {
-	case -1:
-		// use default exchange
-		result = &Topology{
-			ExchangeKind: ExchangeKindDelay,
-			ExchangeType: ExchangeTypeDirect,
-			QueueName:    topic,
-			RoutingKey:   topic,
-		}
-	default:
-		// use explicit exchange
-		result = &Topology{
-			ExchangeKind: ExchangeKindDelay,
-			ExchangeType: ExchangeTypeFanout,
-			ExchangeName: topic[index+1:],
-			QueueName:    fmt.Sprintf("%s_%s", topic[:index], topic[index+1:]),
-		}
+	index := strings.LastIndex(topic, exchangeSeparator)
+	if index == -1 { // not specify exchange, raise error
+		return nil, errors.New("exchange must specified, e,g: topic@<exchange>")
 	}
-	return result, nil
+
+	exchangeName := text.CleanString(topic[index+1:])
+	if exchangeName == "" {
+		return nil, fmt.Errorf("invalid exchange, exchange: %s", topic[index+1:])
+	}
+
+	realTopic := text.CleanString(topic[:index])
+	if realTopic == "" {
+		return nil, fmt.Errorf("invalid topic, topic: %s", topic[index+1:])
+	}
+
+	// use explicit exchange
+	return &Topology{
+		ExchangeKind: ExchangeKindDelay,
+		ExchangeType: ExchangeTypeFanout,
+		ExchangeName: fmt.Sprintf("delay:%s", exchangeName),
+		QueueName:    fmt.Sprintf("delay:%s:%s", exchangeName, realTopic),
+	}, nil
 }
 
 func (t *Topology) DeclareExchange(amqpChannel *amqp.Channel) error {

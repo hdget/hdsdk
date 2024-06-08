@@ -166,7 +166,7 @@ func (impl *serverImpl) SubscribeDelayEvents() error {
 
 	subscriber, err := hdsdk.Mq().Subscriber()
 	if err != nil {
-		return errors.Wrap(err, "new message queue subscriber")
+		return errors.Wrap(err, "new subscriber")
 	}
 
 	for _, h := range topic2delayEventHandler {
