@@ -60,8 +60,8 @@ func newTopology(topic string) (*Topology, error) {
 			RoutingKey:   cleanTopic,
 		}
 	default:
-		cleanExchange := text.CleanString(topic[index+1:])
-		if cleanExchange == "" {
+		cleanExchangeName := text.CleanString(topic[index+1:])
+		if cleanExchangeName == "" {
 			return nil, fmt.Errorf("invalid exchange, exchange: %s", topic[index+1:])
 		}
 
@@ -70,12 +70,14 @@ func newTopology(topic string) (*Topology, error) {
 			return nil, fmt.Errorf("invalid topic, topic: %s", topic[index+1:])
 		}
 
+		key := fmt.Sprintf("%s:%s", cleanExchangeName, cleanTopic)
 		// use explicit exchange
 		result = &Topology{
 			ExchangeKind: ExchangeKindDefault,
-			ExchangeType: ExchangeTypeFanout,
-			ExchangeName: cleanExchange,
-			QueueName:    fmt.Sprintf("%s:%s", cleanExchange, cleanTopic),
+			ExchangeType: ExchangeTypeDirect,
+			ExchangeName: cleanExchangeName,
+			QueueName:    key,
+			RoutingKey:   key,
 		}
 	}
 	return result, nil
@@ -92,12 +94,14 @@ func newDelayTopology(exchangeName, topic string) (*Topology, error) {
 		return nil, fmt.Errorf("invalid topic, topic: %s", topic)
 	}
 
+	key := fmt.Sprintf("delay:%s:%s", cleanExchangeName, cleanTopic)
 	// use explicit exchange
 	return &Topology{
 		ExchangeKind: ExchangeKindDelay,
-		ExchangeType: ExchangeTypeFanout,
+		ExchangeType: ExchangeTypeDirect,
 		ExchangeName: fmt.Sprintf("delay:%s", cleanExchangeName),
-		QueueName:    fmt.Sprintf("delay:%s:%s", cleanExchangeName, cleanTopic),
+		QueueName:    key,
+		RoutingKey:   key,
 	}, nil
 }
 
