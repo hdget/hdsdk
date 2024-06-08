@@ -58,6 +58,7 @@ LOOP:
 					if nextBackOff == backoff.Stop {
 						logger.Error("drop delay event after retried many times", "err", err, "data", trimData(msg.Payload))
 						msg.Ack()
+						h.module.GetBackOffPolicy().Reset()
 					} else {
 						time.Sleep(nextBackOff)
 						logger.Error("retry delay event", "err", err, "data", trimData(msg.Payload))
