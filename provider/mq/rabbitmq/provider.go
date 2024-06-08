@@ -54,8 +54,8 @@ func (r rabbitmqProvider) Subscriber() (intf.MessageQueueSubscriber, error) {
 
 func (r rabbitmqProvider) DelayPublisher(name string) (intf.MessageQueuePublisher, error) {
 	var err error
-	if _publisher == nil {
-		_publisher, err = newDelayPublisher(r.config, r.logger, name)
+	if _delayPublisher == nil {
+		_delayPublisher, err = newDelayPublisher(r.config, r.logger, name)
 		if err != nil {
 			return nil, err
 		}
@@ -65,8 +65,8 @@ func (r rabbitmqProvider) DelayPublisher(name string) (intf.MessageQueuePublishe
 
 func (r rabbitmqProvider) DelaySubscriber(name string) (intf.MessageQueueSubscriber, error) {
 	var err error
-	if _subscriber == nil {
-		_subscriber, err = newDelaySubscriber(r.config, r.logger, name)
+	if _delaySubscriber == nil {
+		_delaySubscriber, err = newDelaySubscriber(r.config, r.logger, name)
 		if err != nil {
 			return nil, err
 		}

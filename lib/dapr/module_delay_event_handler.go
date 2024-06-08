@@ -4,12 +4,12 @@ import (
 	"context"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/hdget/hdsdk/v2/intf"
+	panicUtils "github.com/hdget/hdutils/panic"
 	"time"
 )
 
 type delayEventHandler interface {
 	GetTopic() string
-	GetApp() string
 	Handle(ctx context.Context, logger intf.LoggerProvider, subscriber intf.MessageQueueSubscriber)
 }
 
@@ -26,17 +26,19 @@ func (h delayEventHandlerImpl) GetTopic() string {
 	return h.topic
 }
 
-func (h delayEventHandlerImpl) GetApp() string {
-	// 如果使用的rabbitmq, 则第一个为实际topic, 第二个值为exchange
-	return h.module.GetApp()
-}
-
 // Handle
 // err: nil 只要错误为空，则消息成功消费, 不管retry的值为什么样
 // err: not nil + retry: false 打印DROP status消息
 // err: not nil + retry: true  进行重试，最后重试次数结束, 打印日志
 func (h delayEventHandlerImpl) Handle(ctx context.Context, logger intf.LoggerProvider, subscriber intf.MessageQueueSubscriber) {
-	msgChan, err := subscriber.Subscribe(context.Background(), h.GetTopic())
+	// 挂载defer函数
+	defer func() {
+		if r := recover(); r != nil {
+			panicUtils.RecordErrorStack(h.module.GetApp())
+		}
+	}()
+
+	msgChan, err := subscriber.Subscribe(ctx, h.GetTopic())
 	if err != nil {
 		logger.Fatal("subscribe delay event", "topic", h.GetTopic())
 	}
