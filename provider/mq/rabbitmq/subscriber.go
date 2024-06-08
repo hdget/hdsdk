@@ -21,7 +21,7 @@ type rmpSubscriberImpl struct {
 	subscriberWaitGroup *sync.WaitGroup
 }
 
-func newSubscriber(config *RabbitMqConfig, logger intf.LoggerProvider) (intf.MessageQueueSubscriber, error) {
+func newSubscriber(config *RabbitMqConfig, logger intf.LoggerProvider) (*rmpSubscriberImpl, error) {
 	conn, err := newConnection(logger, config)
 	if err != nil {
 		return nil, fmt.Errorf("subscriber create new connection: %w", err)
@@ -58,26 +58,6 @@ func newSubscriber(config *RabbitMqConfig, logger intf.LoggerProvider) (intf.Mes
 		closeSubscriber:     closeSubscriber,
 		subscriberWaitGroup: &subscriberWaitGroup,
 	}, nil
-}
-
-func (s *rmpSubscriberImpl) Init(args ...any) error {
-	return nil
-}
-
-func (s *rmpSubscriberImpl) Subscribe(ctx context.Context, topic string) (<-chan *mq.Message, error) {
-	t, err := newTopology(topic)
-	if err != nil {
-		return nil, errors.Wrap(err, "new topology")
-	}
-	return s.subscribe(ctx, t)
-}
-
-func (s *rmpSubscriberImpl) SubscribeDelay(ctx context.Context, topic string) (<-chan *mq.Message, error) {
-	t, err := newDelayTopology(topic)
-	if err != nil {
-		return nil, errors.Wrap(err, "new delay topology")
-	}
-	return s.subscribe(ctx, t)
 }
 
 // Subscribe consumes messages from AMQP broker.
@@ -142,7 +122,7 @@ func (s *rmpSubscriberImpl) subscribe(ctx context.Context, t *Topology) (<-chan 
 	return out, nil
 }
 
-func (s *rmpSubscriberImpl) prepareConsume(topology *Topology) error {
+func (s *rmpSubscriberImpl) prepareConsume(t *Topology) error {
 	amqpChannel, err := s.openSubscribeChannel()
 	if err != nil {
 		return err
@@ -154,7 +134,7 @@ func (s *rmpSubscriberImpl) prepareConsume(topology *Topology) error {
 		}
 	}()
 
-	err = s.prepareConsumeBindings(amqpChannel, topology)
+	err = s.prepareConsumeBindings(amqpChannel, t)
 	if err != nil {
 		return err
 	}

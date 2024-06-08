@@ -7,8 +7,12 @@ import (
 
 type MessageQueueProvider interface {
 	Provider
+	// Publisher 如果要使用PublishDelay接口的时候name必须设置
 	Publisher() (MessageQueuePublisher, error)
+	// Subscriber 如果要使用SubscribeDelay接口的时候name必须设置
 	Subscriber() (MessageQueueSubscriber, error)
+	DelayPublisher(name string) (MessageQueuePublisher, error)
+	DelaySubscriber(name string) (MessageQueueSubscriber, error)
 }
 
 type MessageQueuePublisher interface {
@@ -20,14 +24,12 @@ type MessageQueuePublisher interface {
 	// This means that if publishing one of the messages fails, the next messages will not be published.
 	//
 	// Publish must be thread safe.
-	Publish(topic string, messages [][]byte) error
+	Publish(topic string, messages [][]byte, delaySeconds ...int64) error
 	// Close should flush unsent messages, if publisher is async.
 	Close() error
-	PublishDelay(topic string, messages [][]byte, delaySeconds int64) error
 }
 
 type MessageQueueSubscriber interface {
-	Provider
 	// Subscribe returns output channel with messages from provided topic.
 	// Channel is closed, when Close() was called on the subscriber.
 	//
@@ -38,7 +40,6 @@ type MessageQueueSubscriber interface {
 	// Provided ctx is set to all produced messages.
 	// When Nack or Ack is called on the message, context of the message is canceled.
 	Subscribe(ctx context.Context, topic string) (<-chan *mq.Message, error)
-	SubscribeDelay(ctx context.Context, topic string) (<-chan *mq.Message, error)
 	// Close closes all subscriptions with their output channels and flush offsets etc. when needed.
 	Close() error
 }

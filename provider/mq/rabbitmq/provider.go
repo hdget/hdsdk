@@ -10,8 +10,10 @@ type rabbitmqProvider struct {
 }
 
 var (
-	_publisher  intf.MessageQueuePublisher
-	_subscriber intf.MessageQueueSubscriber
+	_publisher       intf.MessageQueuePublisher
+	_subscriber      intf.MessageQueueSubscriber
+	_delayPublisher  intf.MessageQueuePublisher
+	_delaySubscriber intf.MessageQueueSubscriber
 )
 
 func New(configProvider intf.ConfigProvider, logger intf.LoggerProvider) (intf.MessageQueueProvider, error) {
@@ -31,7 +33,7 @@ func (r rabbitmqProvider) Init(args ...any) error {
 func (r rabbitmqProvider) Publisher() (intf.MessageQueuePublisher, error) {
 	var err error
 	if _publisher == nil {
-		_publisher, err = newPublisher(r.config, r.logger)
+		_publisher, err = newDefaultPublisher(r.config, r.logger)
 		if err != nil {
 			return nil, err
 		}
@@ -42,10 +44,32 @@ func (r rabbitmqProvider) Publisher() (intf.MessageQueuePublisher, error) {
 func (r rabbitmqProvider) Subscriber() (intf.MessageQueueSubscriber, error) {
 	var err error
 	if _subscriber == nil {
-		_subscriber, err = newSubscriber(r.config, r.logger)
+		_subscriber, err = newDefaultSubscriber(r.config, r.logger)
 		if err != nil {
 			return nil, err
 		}
 	}
 	return _subscriber, nil
+}
+
+func (r rabbitmqProvider) DelayPublisher(name string) (intf.MessageQueuePublisher, error) {
+	var err error
+	if _publisher == nil {
+		_publisher, err = newDelayPublisher(r.config, r.logger, name)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return _delayPublisher, nil
+}
+
+func (r rabbitmqProvider) DelaySubscriber(name string) (intf.MessageQueueSubscriber, error) {
+	var err error
+	if _subscriber == nil {
+		_subscriber, err = newDelaySubscriber(r.config, r.logger, name)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return _delaySubscriber, nil
 }

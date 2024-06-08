@@ -81,28 +81,23 @@ func newTopology(topic string) (*Topology, error) {
 	return result, nil
 }
 
-func newDelayTopology(topic string) (*Topology, error) {
-	index := strings.LastIndex(topic, exchangeSeparator)
-	if index == -1 { // not specify exchange, raise error
-		return nil, errors.New("exchange must specified, e,g: topic@<exchange>")
+func newDelayTopology(exchangeName, topic string) (*Topology, error) {
+	cleanExchangeName := text.CleanString(exchangeName)
+	if cleanExchangeName == "" {
+		return nil, fmt.Errorf("invalid exchange, exchange: %s", exchangeName)
 	}
 
-	exchangeName := text.CleanString(topic[index+1:])
-	if exchangeName == "" {
-		return nil, fmt.Errorf("invalid exchange, exchange: %s", topic[index+1:])
-	}
-
-	realTopic := text.CleanString(topic[:index])
-	if realTopic == "" {
-		return nil, fmt.Errorf("invalid topic, topic: %s", topic[index+1:])
+	cleanTopic := text.CleanString(topic)
+	if cleanTopic == "" {
+		return nil, fmt.Errorf("invalid topic, topic: %s", topic)
 	}
 
 	// use explicit exchange
 	return &Topology{
 		ExchangeKind: ExchangeKindDelay,
 		ExchangeType: ExchangeTypeFanout,
-		ExchangeName: fmt.Sprintf("delay:%s", exchangeName),
-		QueueName:    fmt.Sprintf("delay:%s:%s", exchangeName, realTopic),
+		ExchangeName: fmt.Sprintf("delay:%s", cleanExchangeName),
+		QueueName:    fmt.Sprintf("delay:%s:%s", cleanExchangeName, cleanTopic),
 	}, nil
 }
 

@@ -148,8 +148,13 @@ func (impl *serverImpl) GetEvents() []daprEvent {
 }
 
 func (impl *serverImpl) SubscribeDelayEvents() error {
+	var app string
 	topic2delayEventHandler := make(map[string]delayEventHandler)
 	for _, m := range _moduleName2delayEventModule {
+		if app == "" {
+			app = m.GetApp()
+		}
+
 		for _, h := range m.GetHandlers() {
 			topic2delayEventHandler[h.GetTopic()] = h
 		}
@@ -159,18 +164,23 @@ func (impl *serverImpl) SubscribeDelayEvents() error {
 		return nil
 	}
 
+	// delaySubscriber.SubscribeDelay需要指定subscribe的name
+	if app == "" {
+		return errors.New("app not found")
+	}
+
 	// if we configured delay event module, but no message queue configured raise error
 	if hdsdk.Mq() == nil {
 		return errors.New("sdk message queue not initialized")
 	}
 
-	subscriber, err := hdsdk.Mq().Subscriber()
+	delaySubscriber, err := hdsdk.Mq().DelaySubscriber(app)
 	if err != nil {
-		return errors.Wrap(err, "new subscriber")
+		return errors.Wrapf(err, "new delaySubscriber, name: %s", app)
 	}
 
 	for _, h := range topic2delayEventHandler {
-		go h.Handle(impl.ctx, impl.logger, subscriber)
+		go h.Handle(impl.ctx, impl.logger, delaySubscriber)
 	}
 	return nil
 }

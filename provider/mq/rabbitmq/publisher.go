@@ -19,7 +19,7 @@ type rmqPublisherImpl struct {
 	channelManager          channelManager
 }
 
-func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (intf.MessageQueuePublisher, error) {
+func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (*rmqPublisherImpl, error) {
 	conn, err := newConnection(logger, config)
 	if err != nil {
 		return nil, fmt.Errorf("publisher create new connection: %w", err)
@@ -48,26 +48,6 @@ func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (intf.Mess
 		closePublisher:          closePublisher,
 		channelManager:          channelManager,
 	}, nil
-}
-
-func (p *rmqPublisherImpl) Init(args ...any) error {
-	return nil
-}
-
-func (p *rmqPublisherImpl) PublishDelay(topic string, messages [][]byte, delaySeconds int64) (err error) {
-	t, err := newDelayTopology(topic)
-	if err != nil {
-		return errors.Wrap(err, "new delay topology")
-	}
-	return p.publish(topic, messages, t, delaySeconds)
-}
-
-func (p *rmqPublisherImpl) Publish(topic string, messages [][]byte) (err error) {
-	t, err := newTopology(topic)
-	if err != nil {
-		return errors.Wrap(err, "new topology")
-	}
-	return p.publish(topic, messages, t)
 }
 
 // Publish publishes messages to AMQP broker.

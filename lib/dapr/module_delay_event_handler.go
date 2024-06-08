@@ -2,7 +2,6 @@ package dapr
 
 import (
 	"context"
-	"fmt"
 	"github.com/cenkalti/backoff/v4"
 	"github.com/hdget/hdsdk/v2/intf"
 	"time"
@@ -10,6 +9,7 @@ import (
 
 type delayEventHandler interface {
 	GetTopic() string
+	GetApp() string
 	Handle(ctx context.Context, logger intf.LoggerProvider, subscriber intf.MessageQueueSubscriber)
 }
 
@@ -21,10 +21,14 @@ type delayEventHandlerImpl struct {
 
 type DelayEventFunction func(message []byte) (retry bool, err error)
 
-// GetTopic 将app做为后缀加入
 func (h delayEventHandlerImpl) GetTopic() string {
 	// 如果使用的rabbitmq, 则第一个为实际topic, 第二个值为exchange
-	return fmt.Sprintf("%s@%s", h.topic, h.module.GetApp())
+	return h.topic
+}
+
+func (h delayEventHandlerImpl) GetApp() string {
+	// 如果使用的rabbitmq, 则第一个为实际topic, 第二个值为exchange
+	return h.module.GetApp()
 }
 
 // Handle
@@ -32,7 +36,7 @@ func (h delayEventHandlerImpl) GetTopic() string {
 // err: not nil + retry: false 打印DROP status消息
 // err: not nil + retry: true  进行重试，最后重试次数结束, 打印日志
 func (h delayEventHandlerImpl) Handle(ctx context.Context, logger intf.LoggerProvider, subscriber intf.MessageQueueSubscriber) {
-	msgChan, err := subscriber.SubscribeDelay(context.Background(), h.GetTopic())
+	msgChan, err := subscriber.Subscribe(context.Background(), h.GetTopic())
 	if err != nil {
 		logger.Fatal("subscribe delay event", "topic", h.GetTopic())
 	}
