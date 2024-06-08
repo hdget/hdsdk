@@ -48,33 +48,23 @@ LOOP:
 		case msg := <-msgChan:
 			retry, err := h.fn(msg.Payload)
 			if err == nil {
-				mustAck(msg)
+				msg.Ack()
 			} else {
 				if !retry { // err != nil && retry == false
-					logger.Error("drop delay event", "err", err, "msg", trimData(msg.Payload))
-					mustAck(msg)
+					logger.Error("drop delay event", "err", err, "data", trimData(msg.Payload))
+					msg.Ack()
 				} else { // err != nil && retry == true
 					nextBackOff := h.module.GetBackOffPolicy().NextBackOff()
 					if nextBackOff == backoff.Stop {
-						logger.Error("drop delay event after retried many times", "err", err, "msg", trimData(msg.Payload))
-						mustAck(msg)
+						logger.Error("drop delay event after retried many times", "err", err, "data", trimData(msg.Payload))
+						msg.Ack()
 					} else {
 						time.Sleep(nextBackOff)
-						logger.Error("retry delay event", "err", err, "msg", trimData(msg.Payload))
-						mustNAck(msg)
+						logger.Error("retry delay event", "err", err, "data", trimData(msg.Payload))
+						msg.Nack()
 					}
 				}
 			}
 		}
 	}
-}
-
-func mustAck(msg *mq.Message) {
-	msg.Ack()
-	<-msg.Acked()
-}
-
-func mustNAck(msg *mq.Message) {
-	msg.Nack()
-	<-msg.Nacked()
 }
