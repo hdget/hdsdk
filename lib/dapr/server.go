@@ -180,7 +180,13 @@ func (impl *serverImpl) SubscribeDelayEvents() error {
 	}
 
 	for _, h := range topic2delayEventHandler {
-		go h.Handle(impl.ctx, impl.logger, delaySubscriber)
+		msgChan, err := delaySubscriber.Subscribe(impl.ctx, h.GetTopic())
+		if err != nil {
+			return errors.Wrapf(err, "subscribe topic, topic: %s", h.GetTopic())
+		}
+
+		impl.logger.Debug("subscribe delay event", "topic", h.GetTopic())
+		go h.Handle(impl.ctx, impl.logger, msgChan)
 	}
 	return nil
 }
