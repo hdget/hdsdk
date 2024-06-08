@@ -5,7 +5,6 @@ import (
 	"github.com/hdget/hdutils/text"
 	"github.com/pkg/errors"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"strings"
 )
 
 // direct: exchange --> RoutingKey --> q1,q2...
@@ -28,7 +27,6 @@ type ExchangeType string
 const (
 	ExchangeTypeDirect ExchangeType = "direct"
 	ExchangeTypeFanout ExchangeType = "fanout"
-	exchangeSeparator               = "@"
 )
 
 type Topology struct {
@@ -43,46 +41,18 @@ type Topology struct {
 // newTopology will parse topic string to decide the exchange, queue, routing key ...
 // <routingKey>@<exchange>
 func newTopology(topic string) (*Topology, error) {
-	var result *Topology
-	index := strings.LastIndex(topic, exchangeSeparator)
-	switch index {
-	case -1:
-		cleanTopic := text.CleanString(topic)
-		if cleanTopic == "" {
-			return nil, fmt.Errorf("invalid topic, topic: %s", topic)
-		}
-
-		// use default exchange
-		result = &Topology{
-			ExchangeKind: ExchangeKindDefault,
-			ExchangeType: ExchangeTypeDirect,
-			QueueName:    cleanTopic,
-			RoutingKey:   cleanTopic,
-			BindingKey:   cleanTopic,
-		}
-	default:
-		cleanExchangeName := text.CleanString(topic[index+1:])
-		if cleanExchangeName == "" {
-			return nil, fmt.Errorf("invalid exchange, exchange: %s", topic[index+1:])
-		}
-
-		cleanTopic := text.CleanString(topic[:index])
-		if cleanTopic == "" {
-			return nil, fmt.Errorf("invalid topic, topic: %s", topic[index+1:])
-		}
-
-		key := fmt.Sprintf("%s:%s", cleanExchangeName, cleanTopic)
-		// use explicit exchange
-		result = &Topology{
-			ExchangeKind: ExchangeKindDefault,
-			ExchangeType: ExchangeTypeDirect,
-			ExchangeName: cleanExchangeName,
-			QueueName:    key,
-			RoutingKey:   key,
-			BindingKey:   key,
-		}
+	cleanTopic := text.CleanString(topic)
+	if cleanTopic == "" {
+		return nil, fmt.Errorf("invalid topic, topic: %s", topic)
 	}
-	return result, nil
+
+	// use default exchange
+	return &Topology{
+		ExchangeKind: ExchangeKindDefault,
+		ExchangeType: ExchangeTypeDirect,
+		QueueName:    cleanTopic,
+		RoutingKey:   cleanTopic,
+	}, nil
 }
 
 func newDelayTopology(exchangeName, topic string) (*Topology, error) {
