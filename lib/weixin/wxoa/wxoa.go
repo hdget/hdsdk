@@ -7,12 +7,16 @@ import (
 	"github.com/hdget/hdsdk/v2/lib/weixin/types"
 	"github.com/hdget/hdutils/hash"
 	"github.com/pkg/errors"
+	"io"
+	"sort"
+	"strings"
 	"time"
 )
 
 type ApiWxoa interface {
 	GetSignature(url string) (*Signature, error) // jsapi_ticket获取签名
 	GetAccessToken() (string, error)
+	VerifySignature(signature, token, timestamp, nonce string) bool // 校验签名
 }
 
 type wxoaImpl struct {
@@ -46,6 +50,16 @@ func (impl *wxoaImpl) GetSignature(url string) (*Signature, error) {
 	}
 
 	return signature, nil
+}
+
+func (impl *wxoaImpl) VerifySignature(signature, token, timestamp, nonce string) bool {
+	si := []string{token, timestamp, nonce}
+	sort.Strings(si)              //字典序排序
+	str := strings.Join(si, "")   //组合字符串
+	s := sha1.New()               //返回一个新的使用SHA1校验的hash.Hash接口
+	_, _ = io.WriteString(s, str) //WriteString函数将字符串数组str中的内容写入到s中
+	calculatedSignature := fmt.Sprintf("%x", s.Sum(nil))
+	return signature == calculatedSignature
 }
 
 // 生成微信签名

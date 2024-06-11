@@ -13,7 +13,7 @@ import (
 
 const ContentTypeJson = "application/json"
 
-// as we use gogoprotobuf which doesn't has protojson.Message interface
+// as we use gogoprotobuf which doesn't has protojson.RecvMessage interface
 //var jsonpb = protojson.MarshalOptions{
 //	EmitUnpopulated: true,
 //}

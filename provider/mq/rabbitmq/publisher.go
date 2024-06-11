@@ -50,6 +50,11 @@ func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (*rmqPubli
 	}, nil
 }
 
+// Close closes all subscriptions with their output channels.
+func (s *rmqPublisherImpl) Close() error {
+	return s.closePublisher()
+}
+
 // Publish publishes messages to AMQP broker.
 // Publish is blocking until the broker has received and saved the message.
 // Publish is always thread safe.

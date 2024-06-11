@@ -60,6 +60,11 @@ func newSubscriber(config *RabbitMqConfig, logger intf.LoggerProvider) (*rmpSubs
 	}, nil
 }
 
+// Close closes all subscriptions with their output channels.
+func (s *rmpSubscriberImpl) Close() error {
+	return s.closeSubscriber()
+}
+
 // Subscribe consumes messages from AMQP broker.
 func (s *rmpSubscriberImpl) subscribe(ctx context.Context, t *Topology) (<-chan *mq.Message, error) {
 	if s.connection.IsClosed() {

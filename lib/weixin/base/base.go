@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
+	"github.com/hdget/hdsdk/v2"
 	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdsdk/v2/lib/weixin/cache"
 	"github.com/hdget/hdsdk/v2/lib/weixin/types"
@@ -27,6 +28,7 @@ type ErrResponse struct {
 
 const (
 	urlGetWxAccessToken = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s"
+	urlGetUnionId       = "https://api.weixin.qq.com/cgi-bin/user/info?access_token=%s&openid=%s&lang=zh_CN"
 )
 
 func New(app types.WeixinApp, appId, appSecret string) *ApiWeixin {
@@ -57,6 +59,29 @@ func (b *ApiWeixin) GetAccessToken() (string, error) {
 	}
 
 	return wxAccessToken.AccessToken, nil
+}
+
+// GetUser 通过openId获取用户信息
+func (b *ApiWeixin) GetUser(openid string) (*types.UserInfo, error) {
+	accessToken, err := b.GetAccessToken()
+	if err != nil {
+		hdsdk.Logger().Error("get access token", "err", err)
+		return nil, err
+	}
+
+	url := fmt.Sprintf(urlGetUnionId, accessToken, openid)
+	resp, err := resty.New().R().Get(url)
+	if err != nil {
+		return nil, errors.Wrapf(err, "get access token, appId: %s", b.AppId)
+	}
+
+	var result types.UserInfo
+	err = json.Unmarshal(resp.Body(), &result)
+	if err != nil {
+		return nil, errors.Wrapf(err, "unmarshal result, body: %s", convert.BytesToString(resp.Body()))
+	}
+
+	return &result, nil
 }
 
 func (b *ApiWeixin) ParseResult(data []byte, result any) error {
