@@ -7,7 +7,7 @@ type Signature struct {
 	AppID     string `json:"appId"`
 	Ticket    string `json:"ticket"`
 	Noncestr  string `json:"noncestr"`
-	Url       string `json:"JumpUrl"`
+	Url       string `json:"Url"`
 	Timestamp int64  `json:"timestamp"`
 	Signature string `json:"signature"`
 }

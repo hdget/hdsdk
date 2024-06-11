@@ -13,7 +13,7 @@ type SendMessageTemplateArgument struct {
 	AppSecret    string
 	ToUserOpenId string
 	TemplateId   string
-	JumpUrl      string
+	Url          string // 公众号的跳转页面
 	MiniProgram  *SendMessageTemplateMiniProgram
 }
 
@@ -30,7 +30,7 @@ type templateSendMessageImpl struct {
 type sendMessageTemplate struct {
 	ToUser      string                          `json:"touser"`
 	TemplateId  string                          `json:"template_id"`
-	Url         string                          `json:"JumpUrl"`
+	Url         string                          `json:"Url"`
 	MiniProgram *SendMessageTemplateMiniProgram `json:"miniprogram"`
 	Data        any                             `json:"data"`
 }
@@ -56,13 +56,13 @@ func NewTemplateSendMessage(arg *SendMessageTemplateArgument) (SendMessager, err
 }
 
 // Send 发送模板消息
-func (m templateSendMessageImpl) Send(kvs ...string) error {
+func (m templateSendMessageImpl) Send(contents map[string]string) error {
 	accessToken, err := New(m.arg.AppId, m.arg.AppSecret).GetAccessToken()
 	if err != nil {
 		return err
 	}
 
-	realMsg, err := m.getTemplateMessage(kvs...)
+	realMsg, err := m.getTemplateMessage(contents)
 	if err != nil {
 		return err
 	}
@@ -70,24 +70,20 @@ func (m templateSendMessageImpl) Send(kvs ...string) error {
 	url := fmt.Sprintf(urlSendTemplateMessage, accessToken)
 	resp, err := m.httpClient.SetHeader("Content-Type", "application/json; charset=UTF-8").R().SetBody(realMsg).Post(url)
 	if err != nil {
-		return errors.Wrapf(err, "send template message, JumpUrl: %s, content: %v", url, kvs)
+		return errors.Wrapf(err, "send template message, Url: %s, content: %v", url, contents)
 	}
 	if resp.StatusCode() != http.StatusOK {
-		return errors.Wrapf(err, "send template message, JumpUrl: %s, content: %v, statusCode: %d", url, kvs, resp.StatusCode())
+		return errors.Wrapf(err, "send template message, Url: %s, content: %v, statusCode: %d", url, contents, resp.StatusCode())
 	}
 
 	return nil
 }
 
-func (m templateSendMessageImpl) getTemplateMessage(kvs ...string) (*sendMessageTemplate, error) {
-	if len(kvs)%2 == 1 {
-		return nil, errors.New("invalid key value content")
-	}
-
+func (m templateSendMessageImpl) getTemplateMessage(contents map[string]string) (*sendMessageTemplate, error) {
 	data := make(map[string]*sendMessageTemplateLine)
-	for i := 0; i < len(kvs); i += 2 {
-		data[kvs[i]] = &sendMessageTemplateLine{
-			Value: kvs[i+1],
+	for k, v := range contents {
+		data[k] = &sendMessageTemplateLine{
+			Value: v,
 			Color: defaultColor,
 		}
 	}
@@ -95,7 +91,7 @@ func (m templateSendMessageImpl) getTemplateMessage(kvs ...string) (*sendMessage
 	msg := &sendMessageTemplate{
 		ToUser:      m.arg.ToUserOpenId,
 		TemplateId:  m.arg.TemplateId,
-		Url:         m.arg.JumpUrl,
+		Url:         m.arg.Url,
 		MiniProgram: m.arg.MiniProgram,
 		Data:        data,
 	}

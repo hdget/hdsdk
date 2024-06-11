@@ -1,5 +1,5 @@
 package wxoa
 
 type SendMessager interface {
-	Send(contents ...string) error
+	Send(contents map[string]string) error
 }
