@@ -68,7 +68,7 @@ func (impl *wxoaImpl) generateSignature(ticket, url string) (*Signature, error) 
 	now := time.Now().Unix()
 	nonceStr := hash.GenerateRandString(32)
 	s := fmt.Sprintf(
-		"jsapi_ticket=%s&noncestr=%s&timestamp=%d&url=%s",
+		"jsapi_ticket=%s&noncestr=%s&timestamp=%d&JumpUrl=%s",
 		ticket,
 		nonceStr,
 		now,

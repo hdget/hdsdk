@@ -9,12 +9,17 @@ import (
 )
 
 type SendMessageTemplateArgument struct {
-	appId       string
-	appSecret   string
-	openId      string
-	templateId  string
-	url         string
-	miniProgram *sendMessageTemplateMiniProgram
+	AppId        string
+	AppSecret    string
+	ToUserOpenId string
+	TemplateId   string
+	JumpUrl      string
+	MiniProgram  *SendMessageTemplateMiniProgram
+}
+
+type SendMessageTemplateMiniProgram struct {
+	AppId    string `json:"appid"`
+	PagePath string `json:"pagepath"`
 }
 
 type templateSendMessageImpl struct {
@@ -25,14 +30,9 @@ type templateSendMessageImpl struct {
 type sendMessageTemplate struct {
 	ToUser      string                          `json:"touser"`
 	TemplateId  string                          `json:"template_id"`
-	Url         string                          `json:"url"`
-	MiniProgram *sendMessageTemplateMiniProgram `json:"miniprogram"`
+	Url         string                          `json:"JumpUrl"`
+	MiniProgram *SendMessageTemplateMiniProgram `json:"miniprogram"`
 	Data        any                             `json:"data"`
-}
-
-type sendMessageTemplateMiniProgram struct {
-	AppId    string `json:"appid"`
-	PagePath string `json:"pagepath"`
 }
 
 type sendMessageTemplateLine struct {
@@ -57,7 +57,7 @@ func NewTemplateSendMessage(arg *SendMessageTemplateArgument) (SendMessager, err
 
 // Send 发送模板消息
 func (m templateSendMessageImpl) Send(kvs ...string) error {
-	accessToken, err := New(m.arg.appId, m.arg.appSecret).GetAccessToken()
+	accessToken, err := New(m.arg.AppId, m.arg.AppSecret).GetAccessToken()
 	if err != nil {
 		return err
 	}
@@ -70,10 +70,10 @@ func (m templateSendMessageImpl) Send(kvs ...string) error {
 	url := fmt.Sprintf(urlSendTemplateMessage, accessToken)
 	resp, err := m.httpClient.SetHeader("Content-Type", "application/json; charset=UTF-8").R().SetBody(realMsg).Post(url)
 	if err != nil {
-		return errors.Wrapf(err, "send template message, url: %s, content: %v", url, kvs)
+		return errors.Wrapf(err, "send template message, JumpUrl: %s, content: %v", url, kvs)
 	}
 	if resp.StatusCode() != http.StatusOK {
-		return errors.Wrapf(err, "send template message, url: %s, content: %v, statusCode: %d", url, kvs, resp.StatusCode())
+		return errors.Wrapf(err, "send template message, JumpUrl: %s, content: %v, statusCode: %d", url, kvs, resp.StatusCode())
 	}
 
 	return nil
@@ -93,10 +93,10 @@ func (m templateSendMessageImpl) getTemplateMessage(kvs ...string) (*sendMessage
 	}
 
 	msg := &sendMessageTemplate{
-		ToUser:      m.arg.openId,
-		TemplateId:  m.arg.templateId,
-		Url:         m.arg.url,
-		MiniProgram: m.arg.miniProgram,
+		ToUser:      m.arg.ToUserOpenId,
+		TemplateId:  m.arg.TemplateId,
+		Url:         m.arg.JumpUrl,
+		MiniProgram: m.arg.MiniProgram,
 		Data:        data,
 	}
 	return msg, nil
