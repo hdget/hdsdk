@@ -7,7 +7,6 @@ replace modernc.org/sqlite v1.29.10 => modernc.org/sqlite v1.29.6
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
-	github.com/buger/jsonparser v1.1.1
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/dapr/go-sdk v1.10.1
 	github.com/elliotchance/pie/v2 v2.8.0

@@ -3,7 +3,7 @@ package dapr
 import "github.com/hdget/hdutils/convert"
 
 var (
-	maxTrimSize = 120
+	maxTrimSize = 200
 )
 
 func trimData(data []byte) string {

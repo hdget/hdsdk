@@ -2,7 +2,6 @@ package wxoa
 
 import (
 	"encoding/xml"
-	"github.com/buger/jsonparser"
 	"github.com/pkg/errors"
 	"time"
 )
@@ -20,13 +19,14 @@ const (
 )
 
 func GetMessageKind(data []byte) (MessageKind, error) {
-	msgType, err := jsonparser.GetString(data, "MsgType")
+	var msg RecvMessage
+	err := xml.Unmarshal(data, &msg)
 	if err != nil {
 		return MessageKindUnknown, err
 	}
 
 	msgKind := MessageKindUnknown
-	switch msgType {
+	switch msg.MsgType {
 	case "event":
 		msgKind = MessageKindEvent
 	}
