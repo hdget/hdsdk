@@ -1,6 +1,7 @@
 package wxoa
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"github.com/pkg/errors"
@@ -40,6 +41,12 @@ type sendMessageTemplateLine struct {
 	Color string `json:"color"`
 }
 
+type sendResult struct {
+	Errcode int    `json:"errcode"`
+	Errmsg  string `json:"errmsg"`
+	Msgid   int    `json:"msgid"`
+}
+
 const (
 	urlSendTemplateMessage = "https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=%s"
 	defaultColor           = "#173177"
@@ -72,8 +79,19 @@ func (m templateSendMessageImpl) Send(contents map[string]string) error {
 	if err != nil {
 		return errors.Wrapf(err, "send template message, url: %s, message: %v", url, msg)
 	}
+
 	if resp.StatusCode() != http.StatusOK {
 		return errors.Wrapf(err, "send template message, url: %s, message: %v, statusCode: %d", url, msg, resp.StatusCode())
+	}
+
+	var result sendResult
+	err = json.Unmarshal(resp.Body(), &result)
+	if err != nil {
+		return errors.Wrapf(err, "parse template message send result, url: %s, message: %v, statusCode: %d", url, msg, resp.StatusCode())
+	}
+
+	if result.Errcode != 0 {
+		return errors.Wrapf(errors.New(result.Errmsg), "send template message, url: %s, message: %v, statusCode: %d", url, msg, resp.StatusCode())
 	}
 
 	return nil
