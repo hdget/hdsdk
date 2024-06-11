@@ -30,7 +30,7 @@ type templateSendMessageImpl struct {
 type sendMessageTemplate struct {
 	ToUser      string                          `json:"touser"`
 	TemplateId  string                          `json:"template_id"`
-	Url         string                          `json:"Url"`
+	Url         string                          `json:"url"`
 	MiniProgram *SendMessageTemplateMiniProgram `json:"miniprogram"`
 	Data        any                             `json:"data"`
 }
@@ -62,18 +62,18 @@ func (m templateSendMessageImpl) Send(contents map[string]string) error {
 		return err
 	}
 
-	realMsg, err := m.getTemplateMessage(contents)
+	msg, err := m.getTemplateMessage(contents)
 	if err != nil {
 		return err
 	}
 
 	url := fmt.Sprintf(urlSendTemplateMessage, accessToken)
-	resp, err := m.httpClient.SetHeader("Content-Type", "application/json; charset=UTF-8").R().SetBody(realMsg).Post(url)
+	resp, err := m.httpClient.SetHeader("Content-Type", "application/json; charset=UTF-8").R().SetBody(msg).Post(url)
 	if err != nil {
-		return errors.Wrapf(err, "send template message, Url: %s, content: %v", url, contents)
+		return errors.Wrapf(err, "send template message, url: %s, message: %v", url, msg)
 	}
 	if resp.StatusCode() != http.StatusOK {
-		return errors.Wrapf(err, "send template message, Url: %s, content: %v, statusCode: %d", url, contents, resp.StatusCode())
+		return errors.Wrapf(err, "send template message, url: %s, message: %v, statusCode: %d", url, msg, resp.StatusCode())
 	}
 
 	return nil
