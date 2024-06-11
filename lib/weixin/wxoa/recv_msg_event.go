@@ -13,7 +13,7 @@ type eventRecvMessageImpl struct {
 
 type EventMessageHandler func(message *RecvEventMessage) ([]byte, error)
 
-func NewEventMessage(data []byte, eventHandlers map[string]EventMessageHandler) (RecvMessager, error) {
+func NewEventRecvMessage(data []byte, eventHandlers map[string]EventMessageHandler) (RecvMessager, error) {
 	var msg RecvEventMessage
 	err := xml.Unmarshal(data, &msg)
 	if err != nil {

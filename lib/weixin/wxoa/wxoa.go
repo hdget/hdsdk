@@ -17,6 +17,7 @@ type ApiWxoa interface {
 	GetSignature(url string) (*Signature, error) // jsapi_ticket获取签名
 	GetAccessToken() (string, error)
 	VerifySignature(signature, token, timestamp, nonce string) bool // 校验签名
+	GetUser(openid string) (*types.UserInfo, error)
 }
 
 type wxoaImpl struct {
