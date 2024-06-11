@@ -94,7 +94,6 @@ func getDefaultGinEngine(logger intf.LoggerProvider) *gin.Engine {
 	// add basic middleware
 	engine.Use(
 		gin.Recovery(),
-		newLoggerMiddleware(logger), // logger middleware
 	)
 
 	return engine
