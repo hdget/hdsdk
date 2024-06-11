@@ -81,17 +81,20 @@ func (m templateSendMessageImpl) Send(contents map[string]string) error {
 	}
 
 	if resp.StatusCode() != http.StatusOK {
-		return errors.Wrapf(err, "send template message, url: %s, message: %v, statusCode: %d", url, msg, resp.StatusCode())
+		msgContent, _ := json.Marshal(msg)
+		return errors.Wrapf(err, "send template message, url: %s, message: %s, statusCode: %d", url, msgContent, resp.StatusCode())
 	}
 
 	var result sendResult
 	err = json.Unmarshal(resp.Body(), &result)
 	if err != nil {
-		return errors.Wrapf(err, "parse template message send result, url: %s, message: %v, statusCode: %d", url, msg, resp.StatusCode())
+		msgContent, _ := json.Marshal(msg)
+		return errors.Wrapf(err, "parse template message send result, url: %s, message: %s, statusCode: %d", url, msgContent, resp.StatusCode())
 	}
 
 	if result.Errcode != 0 {
-		return errors.Wrapf(errors.New(result.Errmsg), "send template message, url: %s, message: %v, statusCode: %d", url, msg, resp.StatusCode())
+		msgContent, _ := json.Marshal(msg)
+		return errors.Wrapf(errors.New(result.Errmsg), "send template message, url: %s, message: %s, statusCode: %d", url, msgContent, resp.StatusCode())
 	}
 
 	return nil
