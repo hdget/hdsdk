@@ -7,9 +7,9 @@ import (
 
 var Capability = &intf.Capability{
 	Category: intf.ProviderCategoryLogger,
-	Name:     intf.ProviderNameZerolog,
+	Name:     intf.ProviderNameLoggerZerolog,
 	Module: fx.Module(
-		string(intf.ProviderNameZerolog),
+		string(intf.ProviderNameLoggerZerolog),
 		fx.Provide(New),
 	),
 }

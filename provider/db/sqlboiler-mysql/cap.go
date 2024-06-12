@@ -8,7 +8,7 @@ import (
 var Capability = &intf.Capability{
 	Category: intf.ProviderCategoryDb,
 	Module: fx.Module(
-		string(intf.ProviderNameSqlBoilerMysql),
+		string(intf.ProviderNameDbSqlBoilerMysql),
 		fx.Provide(New),
 	),
 }

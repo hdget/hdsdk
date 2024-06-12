@@ -8,7 +8,7 @@ import (
 var Capability = &intf.Capability{
 	Category: intf.ProviderCategoryConfig,
 	Module: fx.Module(
-		string(intf.ProviderNameViper),
+		string(intf.ProviderNameConfigViper),
 		fx.Provide(New),
 	),
 }

@@ -7,9 +7,9 @@ import (
 
 var Capability = &intf.Capability{
 	Category: intf.ProviderCategoryMq,
-	Name:     intf.ProviderNameRabbitMq,
+	Name:     intf.ProviderNameMqRabbitMq,
 	Module: fx.Module(
-		string(intf.ProviderNameRabbitMq),
+		string(intf.ProviderNameMqRabbitMq),
 		fx.Provide(New),
 	),
 }

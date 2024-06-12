@@ -18,14 +18,14 @@ const (
 type ProviderName string
 
 const (
-	ProviderNameViper           ProviderName = "viper"
-	ProviderNameZerolog         ProviderName = "zerolog"
-	ProviderNameRedigo          ProviderName = "redigo"
-	ProviderNameSqlBoilerMysql  ProviderName = "sqlboiler-mysql"
-	ProviderNameSqlBoilerSqlite ProviderName = "sqlboiler-sqlite3"
-	ProviderNameSqlxMysql       ProviderName = "sqlx-mysql"
-	ProviderNameSquirrelMysql   ProviderName = "squirrel-mysql"
-	ProviderNameRabbitMq        ProviderName = "rabbitmq"
+	ProviderNameConfigViper       ProviderName = "config-viper"
+	ProviderNameLoggerZerolog     ProviderName = "logger-zerolog"
+	ProviderNameRedisRedigo       ProviderName = "redis-redigo"
+	ProviderNameDbSqlBoilerMysql  ProviderName = "db-sqlboiler-mysql"
+	ProviderNameDbSqlBoilerSqlite ProviderName = "db-sqlboiler-sqlite3"
+	ProviderNameDbSqlxMysql       ProviderName = "db-sqlx-mysql"
+	ProviderNameDbSquirrelMysql   ProviderName = "db-squirrel-mysql"
+	ProviderNameMqRabbitMq        ProviderName = "mq-rabbitmq"
 )
 
 // Capability 能力提供者

@@ -8,7 +8,7 @@ import (
 var Capability = &intf.Capability{
 	Category: intf.ProviderCategoryDbSqlx,
 	Module: fx.Module(
-		string(intf.ProviderNameSqlxMysql),
+		string(intf.ProviderNameDbSqlxMysql),
 		fx.Provide(New),
 	),
 }

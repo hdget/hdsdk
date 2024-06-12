@@ -7,9 +7,9 @@ import (
 
 var Capability = &intf.Capability{
 	Category: intf.ProviderCategoryRedis,
-	Name:     intf.ProviderNameRedigo,
+	Name:     intf.ProviderNameRedisRedigo,
 	Module: fx.Module(
-		string(intf.ProviderNameRedigo),
+		string(intf.ProviderNameRedisRedigo),
 		fx.Provide(New),
 	),
 }
