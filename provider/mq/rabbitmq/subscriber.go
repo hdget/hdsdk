@@ -19,9 +19,12 @@ type rmpSubscriberImpl struct {
 	closedChan          chan struct{}
 	closeSubscriber     func() error
 	subscriberWaitGroup *sync.WaitGroup
+	// new added
+	name             string
+	useDelayTopology bool
 }
 
-func newSubscriber(config *RabbitMqConfig, logger intf.LoggerProvider) (*rmpSubscriberImpl, error) {
+func newSubscriber(name string, config *RabbitMqConfig, logger intf.LoggerProvider, options ...subscriberOption) (*rmpSubscriberImpl, error) {
 	conn, err := newConnection(logger, config)
 	if err != nil {
 		return nil, fmt.Errorf("subscriber create new connection: %w", err)
@@ -50,14 +53,22 @@ func newSubscriber(config *RabbitMqConfig, logger intf.LoggerProvider) (*rmpSubs
 		return conn.Close()
 	}
 
-	return &rmpSubscriberImpl{
+	s := &rmpSubscriberImpl{
 		connection:          conn,
 		logger:              logger,
 		config:              config,
 		closedChan:          closedChan,
 		closeSubscriber:     closeSubscriber,
 		subscriberWaitGroup: &subscriberWaitGroup,
-	}, nil
+		name:                name,
+		useDelayTopology:    false,
+	}
+
+	for _, option := range options {
+		option(s)
+	}
+
+	return s, nil
 }
 
 // Close closes all subscriptions with their output channels.
@@ -66,7 +77,7 @@ func (s *rmpSubscriberImpl) Close() error {
 }
 
 // Subscribe consumes messages from AMQP broker.
-func (s *rmpSubscriberImpl) subscribe(ctx context.Context, t *Topology) (<-chan *mq.Message, error) {
+func (s *rmpSubscriberImpl) Subscribe(ctx context.Context, topic string) (<-chan *mq.Message, error) {
 	if s.connection.IsClosed() {
 		return nil, errors.New("AMQP connection is closed")
 	}
@@ -76,6 +87,12 @@ func (s *rmpSubscriberImpl) subscribe(ctx context.Context, t *Topology) (<-chan 
 	}
 
 	out := make(chan *mq.Message)
+
+	t, err := newTopology(s.name, topic, s.useDelayTopology)
+	if err != nil {
+		return nil, errors.Wrap(err, "new topology")
+	}
+
 	if err := s.prepareConsume(t); err != nil {
 		return nil, errors.Wrap(err, "failed to prepare consume")
 	}

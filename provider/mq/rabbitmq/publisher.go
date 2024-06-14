@@ -17,9 +17,12 @@ type rmqPublisherImpl struct {
 	publishBindingsPrepared map[string]struct{}
 	closePublisher          func() error
 	channelManager          channelManager
+	// new added
+	name             string
+	useDelayTopology bool
 }
 
-func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (*rmqPublisherImpl, error) {
+func newPublisher(name string, config *RabbitMqConfig, logger intf.LoggerProvider, options ...publisherOption) (*rmqPublisherImpl, error) {
 	conn, err := newConnection(logger, config)
 	if err != nil {
 		return nil, fmt.Errorf("publisher create new connection: %w", err)
@@ -39,7 +42,7 @@ func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (*rmqPubli
 		return conn.Close()
 	}
 
-	return &rmqPublisherImpl{
+	p := &rmqPublisherImpl{
 		connection:              conn,
 		logger:                  logger,
 		config:                  config,
@@ -47,7 +50,15 @@ func newPublisher(config *RabbitMqConfig, logger intf.LoggerProvider) (*rmqPubli
 		publishBindingsPrepared: make(map[string]struct{}),
 		closePublisher:          closePublisher,
 		channelManager:          chanManager,
-	}, nil
+		name:                    name,
+		useDelayTopology:        false,
+	}
+
+	for _, option := range options {
+		option(p)
+	}
+
+	return p, nil
 }
 
 // Close closes all subscriptions with their output channels.
@@ -58,7 +69,7 @@ func (s *rmqPublisherImpl) Close() error {
 // Publish publishes messages to AMQP broker.
 // Publish is blocking until the broker has received and saved the message.
 // Publish is always thread safe.
-func (p *rmqPublisherImpl) publish(topic string, messages [][]byte, t *Topology, args ...int64) (err error) {
+func (p *rmqPublisherImpl) Publish(topic string, messages [][]byte, args ...int64) (err error) {
 	if p.connection.IsClosed() {
 		return errors.New("connection is closed while publish message")
 	}
@@ -80,6 +91,11 @@ func (p *rmqPublisherImpl) publish(topic string, messages [][]byte, t *Topology,
 			p.logger.Error("close AMQP channel", "err", channelCloseErr)
 		}
 	}()
+
+	t, err := newTopology(p.name, topic, p.useDelayTopology)
+	if err != nil {
+		return errors.Wrap(err, "new topology")
+	}
 
 	err = p.preparePublishBindings(topic, theChannel.AMQPChannel(), t)
 	if err != nil {
@@ -120,7 +136,7 @@ func (p *rmqPublisherImpl) preparePublishBindings(topic string, amqpChannel *amq
 
 func (p *rmqPublisherImpl) publishMessage(channel channel, t *Topology, msgPayload []byte, args ...int64) error {
 	var headers amqp.Table
-	if t.ExchangeKind == ExchangeKindDelay {
+	if t.Kind == TopologyKindDelay {
 		if len(args) == 0 {
 			return errors.New("no delay seconds specified")
 		}

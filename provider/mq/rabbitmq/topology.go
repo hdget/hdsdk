@@ -15,50 +15,34 @@ import (
 // RoutingKey: publisher send message to which exchange depends on RoutingKey
 // BindingKey: exchange bind to which queue depends on BindingKey
 
-type ExchangeKind int
+type TopologyKind int
 
 const (
-	ExchangeKindDefault ExchangeKind = iota // default exchange
-	ExchangeKindDelay                       // delay exchange
+	TopologyKindDefault TopologyKind = iota // default topology
+	TopologyKindDelay                       // delay topology kind
 )
 
-type ExchangeType string
+type ExchangeKind string
 
 const (
-	ExchangeTypeDirect ExchangeType = "direct"
-	ExchangeTypeFanout ExchangeType = "fanout"
+	ExchangeKindFanout ExchangeKind = "fanout"
 )
 
 type Topology struct {
+	Kind         TopologyKind
 	ExchangeKind ExchangeKind
-	ExchangeType ExchangeType
 	ExchangeName string
 	QueueName    string
 	RoutingKey   string
 	BindingKey   string
 }
 
-// newTopology will parse topic string to decide the exchange, queue, routing key ...
-// <routingKey>@<exchange>
-func newTopology(topic string) (*Topology, error) {
-	cleanTopic := text.CleanString(topic)
-	if cleanTopic == "" {
-		return nil, fmt.Errorf("invalid topic, topic: %s", topic)
-	}
-
-	// use default exchange
-	return &Topology{
-		ExchangeKind: ExchangeKindDefault,
-		ExchangeType: ExchangeTypeDirect,
-		QueueName:    cleanTopic,
-		RoutingKey:   cleanTopic,
-	}, nil
-}
-
-func newDelayTopology(exchangeName, topic string) (*Topology, error) {
-	cleanExchangeName := text.CleanString(exchangeName)
-	if cleanExchangeName == "" {
-		return nil, fmt.Errorf("invalid exchange, exchange: %s", exchangeName)
+// 相同name的多个订阅者如果订阅同一个topic,则只有一个订阅者会收到消息
+// 不同name的多个订阅者果订阅同一个topic,则所有订阅者都会收到消息
+func newTopology(name, topic string, useDelayTopology bool) (*Topology, error) {
+	cleanName := text.CleanString(name)
+	if cleanName == "" {
+		return nil, fmt.Errorf("invalid name, name: %s", name)
 	}
 
 	cleanTopic := text.CleanString(topic)
@@ -67,19 +51,21 @@ func newDelayTopology(exchangeName, topic string) (*Topology, error) {
 	}
 
 	// use explicit exchange
+	kind := TopologyKindDefault
+	if useDelayTopology {
+		kind = TopologyKindDelay
+	}
 	return &Topology{
-		ExchangeKind: ExchangeKindDelay,
-		ExchangeType: ExchangeTypeDirect,
-		ExchangeName: cleanExchangeName,
-		QueueName:    cleanTopic,
-		RoutingKey:   cleanTopic,
-		BindingKey:   cleanTopic,
+		Kind:         kind,
+		ExchangeKind: ExchangeKindFanout,
+		ExchangeName: cleanTopic,
+		QueueName:    fmt.Sprintf("%s@%s", cleanTopic, cleanName),
 	}, nil
 }
 
 func (t *Topology) DeclareExchange(amqpChannel *amqp.Channel) error {
 	var err error
-	if t.ExchangeKind == ExchangeKindDelay {
+	if t.Kind == TopologyKindDelay {
 		err = amqpChannel.ExchangeDeclare(
 			t.ExchangeName,
 			"x-delayed-message",
@@ -87,12 +73,12 @@ func (t *Topology) DeclareExchange(amqpChannel *amqp.Channel) error {
 			false,
 			false,
 			false,
-			amqp.Table{"x-delayed-type": string(t.ExchangeType)},
+			amqp.Table{"x-delayed-type": string(t.ExchangeKind)},
 		)
 	} else {
 		err = amqpChannel.ExchangeDeclare(
 			t.ExchangeName,
-			string(t.ExchangeType),
+			string(t.ExchangeKind),
 			true,
 			false,
 			false,

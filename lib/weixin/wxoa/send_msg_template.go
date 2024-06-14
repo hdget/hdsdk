@@ -77,24 +77,25 @@ func (m templateSendMessageImpl) Send(contents map[string]string) error {
 	url := fmt.Sprintf(urlSendTemplateMessage, accessToken)
 	resp, err := m.httpClient.SetHeader("Content-Type", "application/json; charset=UTF-8").R().SetBody(msg).Post(url)
 	if err != nil {
-		return errors.Wrapf(err, "send template message, url: %s, message: %v", url, msg)
+		msgContent, _ := json.Marshal(msg)
+		return errors.Wrapf(err, "wxoa send template message, message: %s", msgContent)
 	}
 
 	if resp.StatusCode() != http.StatusOK {
 		msgContent, _ := json.Marshal(msg)
-		return errors.Wrapf(err, "send template message, url: %s, message: %s, statusCode: %d", url, msgContent, resp.StatusCode())
+		return errors.Wrapf(err, "wxoa send template message, message: %s, statusCode: %d", msgContent, resp.StatusCode())
 	}
 
 	var result sendResult
 	err = json.Unmarshal(resp.Body(), &result)
 	if err != nil {
 		msgContent, _ := json.Marshal(msg)
-		return errors.Wrapf(err, "parse template message send result, url: %s, message: %s, statusCode: %d", url, msgContent, resp.StatusCode())
+		return errors.Wrapf(err, "wxoa parse template message send result, message: %s", msgContent)
 	}
 
 	if result.Errcode != 0 {
 		msgContent, _ := json.Marshal(msg)
-		return errors.Wrapf(errors.New(result.Errmsg), "send template message, url: %s, message: %s, statusCode: %d", url, msgContent, resp.StatusCode())
+		return errors.Wrapf(errors.New(result.Errmsg), "wxoa send template message, message: %s", msgContent)
 	}
 
 	return nil
