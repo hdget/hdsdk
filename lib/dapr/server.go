@@ -8,6 +8,7 @@ import (
 	"github.com/dapr/go-sdk/service/http"
 	"github.com/hdget/hdsdk/v2"
 	"github.com/hdget/hdsdk/v2/intf"
+	"github.com/hdget/hdsdk/v2/provider/mq"
 	"github.com/pkg/errors"
 	"net"
 )
@@ -174,7 +175,7 @@ func (impl *serverImpl) SubscribeDelayEvents() error {
 		return errors.New("sdk message queue not initialized")
 	}
 
-	delaySubscriber, err := hdsdk.Mq().DelaySubscriber(app)
+	delaySubscriber, err := hdsdk.Mq().Subscriber(app, &mq.SubscriberOption{SubscribeDelayMessage: true})
 	if err != nil {
 		return errors.Wrapf(err, "new delaySubscriber, name: %s", app)
 	}

@@ -5,14 +5,15 @@ import (
 	"github.com/hdget/hdsdk/v2/provider/mq"
 )
 
+// MessageQueueProvider
+// 相同name的多个订阅者如果订阅同一个topic,则只有一个订阅者会收到消息
+// 不同name的多个订阅者果订阅同一个topic,则所有订阅者都会收到消息
 type MessageQueueProvider interface {
 	Provider
 	// Publisher 如果要使用PublishDelay接口的时候name必须设置
-	Publisher() (MessageQueuePublisher, error)
+	Publisher(name string, args ...*mq.PublisherOption) (MessageQueuePublisher, error)
 	// Subscriber 如果要使用SubscribeDelay接口的时候name必须设置
-	Subscriber() (MessageQueueSubscriber, error)
-	DelayPublisher(name string) (MessageQueuePublisher, error)
-	DelaySubscriber(name string) (MessageQueueSubscriber, error)
+	Subscriber(name string, args ...*mq.SubscriberOption) (MessageQueueSubscriber, error)
 }
 
 type MessageQueuePublisher interface {
