@@ -14,7 +14,7 @@ type RoleValue struct {
 
 const (
 	MetaKeyAppId      = "Hd-App-Id"
-	MetaKeyApiVersion = "Hd-Api-Version"
+	MetaKeyRelease    = "Hd-Release"
 	MetaKeyUserId     = "Hd-User-Id"
 	MetaKeyRoleValues = "Hd-Role-Values"
 	MetaKeyPermIds    = "Hd-Perm-Ids"
@@ -24,7 +24,7 @@ var (
 	// MetaKeys 所有meta的关键字
 	_httpHeaderKeys = []string{
 		MetaKeyAppId,
-		MetaKeyApiVersion,
+		MetaKeyRelease,
 	}
 )
 
@@ -33,7 +33,7 @@ type MetaManager interface {
 	GetValue(ctx context.Context, key string) string
 	GetValues(ctx context.Context, key string) []string
 	GetAppId(ctx context.Context) string
-	GetApiVersion(ctx context.Context) string
+	GetRelease(ctx context.Context) string
 	GetUserId(ctx context.Context) int64
 	GetRoleValues(ctx context.Context) []*RoleValue
 	GetPermIds(ctx context.Context) []int64
@@ -54,8 +54,8 @@ func (m metaManagerImpl) GetHttpHeaderKeys() []string {
 	return _httpHeaderKeys
 }
 
-func (m metaManagerImpl) GetApiVersion(ctx context.Context) string {
-	return m.GetValue(ctx, MetaKeyApiVersion)
+func (m metaManagerImpl) GetRelease(ctx context.Context) string {
+	return m.GetValue(ctx, MetaKeyRelease)
 }
 
 func (m metaManagerImpl) GetUserId(ctx context.Context) int64 {
