@@ -175,7 +175,7 @@ func (impl *serverImpl) SubscribeDelayEvents() error {
 		return errors.New("sdk message queue not initialized")
 	}
 
-	delaySubscriber, err := hdsdk.Mq().Subscriber(app, &mq.SubscriberOption{SubscribeDelayMessage: true})
+	delaySubscriber, err := hdsdk.Mq().NewSubscriber(app, &mq.SubscriberOption{SubscribeDelayMessage: true})
 	if err != nil {
 		return errors.Wrapf(err, "new delaySubscriber, name: %s", app)
 	}
