@@ -26,7 +26,7 @@ func (r rabbitmqProvider) Init(args ...any) error {
 	panic("implement me")
 }
 
-func (r rabbitmqProvider) Publisher(name string, args ...*mq.PublisherOption) (intf.MessageQueuePublisher, error) {
+func (r rabbitmqProvider) NewPublisher(name string, args ...*mq.PublisherOption) (intf.MessageQueuePublisher, error) {
 	option := mq.DefaultPublisherOption
 	if len(args) > 0 {
 		option = args[0]
@@ -40,7 +40,7 @@ func (r rabbitmqProvider) Publisher(name string, args ...*mq.PublisherOption) (i
 	return newPublisher(name, r.config, r.logger, publisherOptions...)
 }
 
-func (r rabbitmqProvider) Subscriber(name string, args ...*mq.SubscriberOption) (intf.MessageQueueSubscriber, error) {
+func (r rabbitmqProvider) NewSubscriber(name string, args ...*mq.SubscriberOption) (intf.MessageQueueSubscriber, error) {
 	option := mq.DefaultSubscriberOption
 	if len(args) > 0 {
 		option = args[0]

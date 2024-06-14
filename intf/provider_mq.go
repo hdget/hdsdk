@@ -10,10 +10,8 @@ import (
 // 不同name的多个订阅者果订阅同一个topic,则所有订阅者都会收到消息
 type MessageQueueProvider interface {
 	Provider
-	// Publisher 如果要使用PublishDelay接口的时候name必须设置
-	Publisher(name string, args ...*mq.PublisherOption) (MessageQueuePublisher, error)
-	// Subscriber 如果要使用SubscribeDelay接口的时候name必须设置
-	Subscriber(name string, args ...*mq.SubscriberOption) (MessageQueueSubscriber, error)
+	NewPublisher(name string, args ...*mq.PublisherOption) (MessageQueuePublisher, error)
+	NewSubscriber(name string, args ...*mq.SubscriberOption) (MessageQueueSubscriber, error)
 }
 
 type MessageQueuePublisher interface {
