@@ -1,6 +1,7 @@
 package dapr
 
 import (
+	"fmt"
 	reflectUtils "github.com/hdget/hdutils/reflect"
 	"github.com/pkg/errors"
 	"regexp"
@@ -45,6 +46,10 @@ func newModule(app string, moduleObject any) (moduler, error) {
 	structName := reflectUtils.GetStructName(moduleObject)
 	if structName == "" {
 		return nil, errInvalidModule
+	}
+
+	if !reflectUtils.IsAssignableStruct(moduleObject) {
+		return nil, fmt.Errorf("module object: %s must be a pointer to struct", structName)
 	}
 
 	mInfo, err := parseModuleInfo(structName)

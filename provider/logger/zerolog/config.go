@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/hdget/hdsdk/v2/errdef"
 	"github.com/hdget/hdsdk/v2/intf"
-	"github.com/hdget/hdutils/logger"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -66,7 +65,6 @@ func newConfig(configProvider intf.ConfigProvider) (*zerologProviderConfig, erro
 }
 
 func getDefaultConfig() *zerologProviderConfig {
-	logger.LogDebug("use default logger config")
 	if dir, err := os.Getwd(); err == nil {
 		guessAppName := filepath.Base(dir)
 		defaultConfig.Filename = fmt.Sprintf("%s.log", guessAppName)

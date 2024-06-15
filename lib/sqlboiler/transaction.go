@@ -38,7 +38,7 @@ func (t Transaction) CommitOrRollback(err error) {
 		return
 	}
 
-	errLogger := logger.LogError
+	errLogger := logger.Error
 	if hdsdk.HasInitialized() {
 		errLogger = hdsdk.Logger().Error
 	}

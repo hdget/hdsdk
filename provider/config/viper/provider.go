@@ -11,7 +11,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/hdget/hdsdk/v2/intf"
-	"github.com/hdget/hdutils/logger"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"path/filepath"
@@ -146,50 +145,51 @@ func (p *viperConfigLoader) loadMinimal() error {
 
 func (p *viperConfigLoader) loadFromFile() error {
 	// 找配置文件
-	p.setupConfigFile()
-
-	// 读取配置文件
-	err := p.local.ReadInConfig()
+	err := p.setupConfigFile()
 	if err != nil {
-		return err
+		return errors.Wrapf(err, "setup config file")
 	}
 
-	logger.LogDebug("load configer from file", "file", p.local.ConfigFileUsed())
+	// 读取配置文件
+	err = p.local.ReadInConfig()
+	if err != nil {
+		return errors.Wrapf(err, "read config file: %s", p.local.ConfigFileUsed())
+	}
+
 	return nil
 }
 
-func (p *viperConfigLoader) setupConfigFile() {
+func (p *viperConfigLoader) setupConfigFile() error {
 	// 如果指定了配置文件
 	if p.fileOption.configFile != "" {
 		p.local.SetConfigFile(p.fileOption.configFile)
-		return
+		return nil
 	}
 
 	// 未指定配置文件
-	{
-		// 获取config filename
-		configFileName := p.fileOption.filename
-		if configFileName == "" {
-			configFileName = p.getDefaultConfigFilename()
-		}
-
-		// 获取config dirs
-		configDirs := p.fileOption.dirs
-		if len(configDirs) == 0 {
-			foundDir := p.findConfigDir()
-			if foundDir != "" {
-				configDirs = append(configDirs, foundDir)
-			} else {
-				logger.LogFatal("no config dir found", "app", p.app, "env", p.env)
-			}
-		}
-
-		// 设置搜索选项
-		for _, dir := range configDirs {
-			p.local.AddConfigPath(dir) // 指定目录
-		}
-		p.local.SetConfigName(configFileName)
+	// 获取config filename
+	configFileName := p.fileOption.filename
+	if configFileName == "" {
+		configFileName = p.getDefaultConfigFilename()
 	}
+
+	// 获取config dirs
+	configDirs := p.fileOption.dirs
+	if len(configDirs) == 0 {
+		foundDir := p.findConfigDir()
+		if foundDir == "" {
+			return fmt.Errorf("config dir not found, app: %s, env: %s", p.app, p.env)
+		}
+		configDirs = append(configDirs, foundDir)
+	}
+
+	// 设置搜索选项
+	for _, dir := range configDirs {
+		p.local.AddConfigPath(dir) // 指定目录
+	}
+	p.local.SetConfigName(configFileName)
+
+	return nil
 }
 
 // getDefaultConfigFilename 缺省的配置文件名: <app>.<env>

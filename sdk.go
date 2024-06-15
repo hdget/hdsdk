@@ -12,7 +12,8 @@ import (
 )
 
 type SdkInstance struct {
-	debug          bool // debug mode
+	option *sdkOption
+
 	configProvider intf.ConfigProvider
 	logger         intf.LoggerProvider
 	db             intf.DbProvider
@@ -29,17 +30,12 @@ var (
 
 func New(app, env string, options ...Option) *SdkInstance {
 	if _instance == nil {
-		_instance = &SdkInstance{}
+		_instance = newInstance(app, env, options...)
 	}
 
-	for _, option := range options {
-		option(_instance)
-	}
-
-	var err error
-	_instance.configProvider, err = viper.New(app, env)
+	err := _instance.newConfig()
 	if err != nil {
-		logger.LogFatal("new default config provider", "err", err)
+		logger.Fatal("new config", "err", err)
 	}
 
 	return _instance
@@ -49,14 +45,20 @@ func HasInitialized() bool {
 	return _instance != nil
 }
 
+func GetInstance() *SdkInstance {
+	return _instance
+}
+
 func (i *SdkInstance) LoadConfig(configVar any) *SdkInstance {
-	if i.configProvider != nil {
-		// if config provider is already provided in New, ignore it
-		err := i.configProvider.Unmarshal(configVar)
-		if err != nil {
-			logger.LogError("unmarshal to config var", "err", err)
-		}
+	if i.configProvider == nil {
+		logger.Fatal("config provider not initialized")
 	}
+
+	err := i.configProvider.Unmarshal(configVar)
+	if err != nil {
+		logger.Fatal("unmarshal to config variable", "err", err)
+	}
+
 	return i
 }
 
@@ -99,7 +101,7 @@ func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
 	}
 
 	// in product mode disable fx internal logger
-	if !i.debug {
+	if !i.option.debug {
 		fxOptions = append(fxOptions, fx.NopLogger)
 	}
 
@@ -108,5 +110,32 @@ func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
 		return err
 	}
 
+	return nil
+}
+
+func newInstance(app, env string, options ...Option) *SdkInstance {
+	i := &SdkInstance{
+		option: defaultSdkOption,
+	}
+	i.option.app = app
+	i.option.env = env
+
+	for _, apply := range options {
+		apply(i.option)
+	}
+	return i
+}
+
+func (i *SdkInstance) newConfig() error {
+	var viperOptions []viper.Option
+	if i.option.configFilePath != "" {
+		viperOptions = append(viperOptions, viper.WithConfigFile(i.option.configFilePath))
+	}
+
+	var err error
+	_instance.configProvider, err = viper.New(i.option.app, i.option.env, viperOptions...)
+	if err != nil {
+		return errors.Wrap(err, "new viper config provider")
+	}
 	return nil
 }
