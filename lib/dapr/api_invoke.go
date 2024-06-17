@@ -40,7 +40,7 @@ func (a apiImpl) Invoke(appId string, moduleVersion int, moduleName, handler str
 		return nil, errors.Wrap(err, "new dapr client")
 	}
 	if daprClient == nil {
-		return nil, errors.New("dapr client is null, handlerName resolution service may not started, please check it")
+		return nil, errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
 	// IMPORTANT: daprClient是全局的连接, 不能关闭

@@ -13,7 +13,7 @@ func (a apiImpl) Lock(lockStore, lockOwner, resource string, expiryInSeconds int
 		return errors.Wrap(err, "new dapr client")
 	}
 	if daprClient == nil {
-		return errors.New("dapr client is null, handlerName resolution service may not started, please check it")
+		return errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
 	resp, err := daprClient.TryLockAlpha1(context.Background(), lockStore, &client.LockRequest{
@@ -39,7 +39,7 @@ func (a apiImpl) Unlock(lockStore, lockOwner, resource string) error {
 		return errors.Wrap(err, "new dapr client")
 	}
 	if daprClient == nil {
-		return errors.New("dapr client is null, handlerName resolution service may not started, please check it")
+		return errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
 	resp, err := daprClient.UnlockAlpha1(context.Background(), lockStore, &client.UnlockRequest{

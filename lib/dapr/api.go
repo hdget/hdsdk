@@ -1,5 +1,10 @@
 package dapr
 
+import (
+	"context"
+	"github.com/dapr/go-sdk/client"
+)
+
 type APIer interface {
 	Invoke(appId string, moduleVersion int, module, method string, data any, args ...string) ([]byte, error)
 	Lock(lockStore, lockOwner, resource string, expiryInSeconds int) error
@@ -8,6 +13,8 @@ type APIer interface {
 	SaveState(storeName, key string, value interface{}) error
 	GetState(storeName, key string) ([]byte, error)
 	DeleteState(storeName, key string) error
+	GetConfigurationItems(configStore string, keys []string) (map[string]*client.ConfigurationItem, error)
+	SubscribeConfigurationItems(ctx context.Context, configStore string, keys []string, handler client.ConfigurationHandleFunction) (string, error)
 }
 
 type apiImpl struct {
