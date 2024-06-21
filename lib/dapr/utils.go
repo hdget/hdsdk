@@ -1,15 +1,14 @@
 package dapr
 
-import "github.com/hdget/hdutils/convert"
-
-var (
-	maxTrimSize = 200
+import (
+	"github.com/hdget/hdutils/convert"
+	"github.com/hdget/hdutils/text"
 )
 
-func trimData(data []byte) string {
-	trimmed := []rune(convert.BytesToString(data))
-	if len(trimmed) > maxTrimSize {
-		trimmed = append(trimmed[:maxTrimSize], []rune("...")...)
-	}
-	return string(trimmed)
+var (
+	truncateSize = 200
+)
+
+func truncate(data []byte) string {
+	return text.Truncate(convert.BytesToString(data), truncateSize)
 }
