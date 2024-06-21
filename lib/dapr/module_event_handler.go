@@ -55,14 +55,14 @@ func (h eventHandlerImpl) GetEventFunction(logger intf.LoggerProvider) common.To
 		var result *eventHandleResult
 		select {
 		case <-time.After(h.module.GetAckTimeout()): // 超时则丢弃消息
-			logger.Error("event processing timeout, discard message", "data", trimData(event.RawData))
+			logger.Error("event processing timeout, discard message", "data", truncate(event.RawData))
 			result = &eventHandleResult{
 				retry: false,
 				err:   nil,
 			}
 		case result = <-quit: // 如果gorouting中的函数在没超时之前退出,获取执行结果
 			if result.err != nil {
-				logger.Error("event processing", "data", trimData(event.RawData), "err", result.err)
+				logger.Error("event processing", "data", truncate(event.RawData), "err", result.err)
 			}
 		}
 		return result.retry, result.err

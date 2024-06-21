@@ -51,17 +51,17 @@ LOOP:
 				msg.Ack()
 			} else {
 				if !retry { // err != nil && retry == false
-					logger.Error("drop delay event", "err", err, "data", trimData(msg.Payload))
+					logger.Error("drop delay event", "err", err, "data", truncate(msg.Payload))
 					msg.Ack()
 				} else { // err != nil && retry == true
 					nextBackOff := h.module.GetBackOffPolicy().NextBackOff()
 					if nextBackOff == backoff.Stop {
-						logger.Error("drop delay event after retried many times", "err", err, "data", trimData(msg.Payload))
+						logger.Error("drop delay event after retried many times", "err", err, "data", truncate(msg.Payload))
 						msg.Ack()
 						h.module.GetBackOffPolicy().Reset()
 					} else {
 						time.Sleep(nextBackOff)
-						logger.Error("retry delay event", "err", err, "data", trimData(msg.Payload))
+						logger.Error("retry delay event", "err", err, "data", truncate(msg.Payload))
 						msg.Nack()
 					}
 				}
