@@ -55,6 +55,12 @@ func (impl *hotConfigManager) LoadConfig(configName string) ([]byte, error) {
 		return nil, errors.Errorf("load function not specified")
 	}
 
+	// 订阅配置变化
+	err := impl.subscribeConfigChanges()
+	if err != nil {
+		return nil, errors.Wrap(err, "subscribe config changes")
+	}
+
 	return impl.loadFunction(configName)
 
 }
@@ -87,12 +93,6 @@ func (impl *hotConfigManager) SaveConfig(configName string, data []byte) error {
 		}
 		_ = tx.Commit()
 	}()
-
-	// 订阅配置变化
-	err = impl.subscribeConfigChanges()
-	if err != nil {
-		return err
-	}
 
 	// 保存到数据库的同时，写入到缓存中
 	err = dapr.Api().SaveState(impl.daprStateStore, impl.getConfigKey(configName), data)
