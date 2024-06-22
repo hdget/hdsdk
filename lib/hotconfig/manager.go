@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"github.com/dapr/go-sdk/client"
 	"github.com/elliotchance/pie/v2"
-	"github.com/hdget/hdsdk/v2/intf"
+	"github.com/hdget/hdsdk/v2"
 	"github.com/hdget/hdsdk/v2/lib/dapr"
 	"github.com/hdget/hdutils/convert"
 	"github.com/hdget/hdutils/logger"
 	"github.com/pkg/errors"
+	"sync"
 )
 
 type Transactor interface {
@@ -28,15 +29,15 @@ type hotConfigManager struct {
 	saveFunction    SaveFunction
 	loadFunction    LoadFunction
 	daprConfigStore string
-	redisClient     intf.RedisClient
 }
 
 var (
-	_managerInstance Manager
+	_managerInstance      Manager
+	initializeManagerOnce sync.Once
 )
 
-func NewManager(app string, options ...Option) Manager {
-	if _managerInstance == nil {
+func GetManager(app string, options ...Option) Manager {
+	initializeManagerOnce.Do(func() {
 		v := &hotConfigManager{
 			app:        app,
 			registry:   make(map[string]HotConfig),
@@ -47,7 +48,7 @@ func NewManager(app string, options ...Option) Manager {
 			option(v)
 		}
 		_managerInstance = v
-	}
+	})
 	return _managerInstance
 }
 
@@ -75,8 +76,8 @@ func (impl *hotConfigManager) SaveConfig(configName string, data []byte) error {
 		return errors.New("save function not specified")
 	}
 
-	if impl.redisClient == nil {
-		return errors.New("redis client not initialized")
+	if hdsdk.Redis() == nil {
+		return errors.New("redis not initialized")
 	}
 
 	if impl.daprConfigStore == "" {
@@ -96,7 +97,7 @@ func (impl *hotConfigManager) SaveConfig(configName string, data []byte) error {
 	}()
 
 	// 保存到数据库的同时，写入到缓存中
-	err = impl.redisClient.Set(impl.getConfigKey(configName), data)
+	err = hdsdk.Redis().My().Set(impl.getConfigKey(configName), data)
 	if err != nil {
 		return err
 	}

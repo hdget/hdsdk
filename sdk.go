@@ -9,6 +9,7 @@ import (
 	"github.com/hdget/hdutils/logger"
 	"github.com/pkg/errors"
 	"go.uber.org/fx"
+	"sync"
 )
 
 type SdkInstance struct {
@@ -26,18 +27,20 @@ type SdkInstance struct {
 
 var (
 	_instance *SdkInstance
+	once      sync.Once
 )
 
 func New(app, env string, options ...Option) *SdkInstance {
-	if _instance == nil {
-		_instance = newInstance(app, env, options...)
-	}
-
-	err := _instance.newConfig()
-	if err != nil {
-		logger.Fatal("new config", "err", err)
-	}
-
+	once.Do(
+		func() {
+			v := newInstance(app, env, options...)
+			err := v.newConfig()
+			if err != nil {
+				logger.Fatal("new config", "err", err)
+			}
+			_instance = v
+		},
+	)
 	return _instance
 }
 
