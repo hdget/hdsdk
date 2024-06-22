@@ -2,8 +2,8 @@ package hotconfig
 
 import (
 	"encoding/json"
-	"github.com/friendsofgo/errors"
 	jsonUtils "github.com/hdget/hdutils/json"
+	"github.com/pkg/errors"
 )
 
 type HotConfig interface {
