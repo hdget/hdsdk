@@ -1,5 +1,7 @@
 package hotconfig
 
+import "github.com/hdget/hdsdk/v2/intf"
+
 type Option func(*hotConfigManager)
 type SaveFunction func(configName string, data []byte) (Transactor, error)
 type LoadFunction func(configName string) ([]byte, error)
@@ -16,9 +18,9 @@ func WithLoadFunction(fn LoadFunction) Option {
 	}
 }
 
-func WithStateStore(stateStore string) Option {
+func WithRedisClient(redisClient intf.RedisClient) Option {
 	return func(hc *hotConfigManager) {
-		hc.daprStateStore = stateStore
+		hc.redisClient = redisClient
 	}
 }
 

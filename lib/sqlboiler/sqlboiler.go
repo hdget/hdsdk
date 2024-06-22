@@ -33,7 +33,8 @@ func IfNullZeroNumber(oldValue string, args ...string) string {
 	return fmt.Sprintf("IFNULL((%s), 0) AS \"%s\"", oldValue, alias)
 }
 
-func GetUpdateCols(cols map[string]any, args ...string) map[string]any {
+// WithUpdateTime 除了cols中的会更新以外还会更新更新时间字段
+func WithUpdateTime(cols map[string]any, args ...string) map[string]any {
 	updateColName := "updated_at"
 	if len(args) > 0 {
 		updateColName = args[0]

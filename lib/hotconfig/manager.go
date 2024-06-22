@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/dapr/go-sdk/client"
 	"github.com/elliotchance/pie/v2"
+	"github.com/hdget/hdsdk/v2/intf"
 	"github.com/hdget/hdsdk/v2/lib/dapr"
 	"github.com/hdget/hdutils/convert"
 	"github.com/hdget/hdutils/logger"
@@ -27,7 +28,7 @@ type hotConfigManager struct {
 	saveFunction    SaveFunction
 	loadFunction    LoadFunction
 	daprConfigStore string
-	daprStateStore  string
+	redisClient     intf.RedisClient
 }
 
 var (
@@ -74,8 +75,8 @@ func (impl *hotConfigManager) SaveConfig(configName string, data []byte) error {
 		return errors.New("save function not specified")
 	}
 
-	if impl.daprStateStore == "" {
-		return errors.New("state store not specified")
+	if impl.redisClient == nil {
+		return errors.New("redis client not initialized")
 	}
 
 	if impl.daprConfigStore == "" {
@@ -95,7 +96,7 @@ func (impl *hotConfigManager) SaveConfig(configName string, data []byte) error {
 	}()
 
 	// 保存到数据库的同时，写入到缓存中
-	err = dapr.Api().SaveState(impl.daprStateStore, impl.getConfigKey(configName), data)
+	err = impl.redisClient.Set(impl.getConfigKey(configName), data)
 	if err != nil {
 		return err
 	}
