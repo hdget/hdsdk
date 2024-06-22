@@ -13,7 +13,7 @@ import (
 )
 
 type SdkInstance struct {
-	option *sdkOption
+	option *optionObject
 
 	configProvider intf.ConfigProvider
 	logger         intf.LoggerProvider
@@ -34,10 +34,6 @@ func New(app, env string, options ...Option) *SdkInstance {
 	once.Do(
 		func() {
 			v := newInstance(app, env, options...)
-			err := v.newConfig()
-			if err != nil {
-				logger.Fatal("new config", "err", err)
-			}
 			_instance = v
 		},
 	)
@@ -117,28 +113,23 @@ func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
 }
 
 func newInstance(app, env string, options ...Option) *SdkInstance {
-	i := &SdkInstance{
-		option: defaultSdkOption,
-	}
-	i.option.app = app
-	i.option.env = env
-
+	sdkOption := defaultSdkOption
 	for _, apply := range options {
-		apply(i.option)
+		apply(sdkOption)
 	}
-	return i
-}
 
-func (i *SdkInstance) newConfig() error {
 	var viperOptions []viper.Option
-	if i.option.configFilePath != "" {
-		viperOptions = append(viperOptions, viper.WithConfigFile(i.option.configFilePath))
+	if sdkOption.configFilePath != "" {
+		viperOptions = append(viperOptions, viper.WithConfigFile(sdkOption.configFilePath))
 	}
 
-	var err error
-	_instance.configProvider, err = viper.New(i.option.app, i.option.env, viperOptions...)
+	configProvider, err := viper.New(app, env, viperOptions...)
 	if err != nil {
-		return errors.Wrap(err, "new viper config provider")
+		panic(err)
 	}
-	return nil
+
+	return &SdkInstance{
+		option:         sdkOption,
+		configProvider: configProvider,
+	}
 }
