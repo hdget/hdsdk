@@ -17,14 +17,14 @@ func GetLimitQueryMods(list *protobuf.ListParam) []qm.QueryMod {
 	return []qm.QueryMod{qm.Offset(int(p.Offset)), qm.Limit(int(p.PageSize))}
 }
 
-func IfNull(column string, zeroValue any, args ...string) string {
+func IfNull(column string, defaultValue any, args ...string) string {
 	alias := column
 	if len(args) > 0 {
 		alias = args[0]
 	}
 
-	if reflect.ValueOf(zeroValue).IsZero() {
-		switch v := zeroValue.(type) {
+	if reflect.ValueOf(defaultValue).IsZero() {
+		switch v := defaultValue.(type) {
 		case string:
 			if v == "" {
 				return fmt.Sprintf("IFNULL((%s), '') AS \"%s\"", column, alias)
@@ -42,7 +42,7 @@ func IfNull(column string, zeroValue any, args ...string) string {
 		}
 	}
 
-	return fmt.Sprintf("IFNULL((%s), %v) AS \"%s\"", column, zeroValue, alias)
+	return fmt.Sprintf("IFNULL((%s), '%v') AS \"%s\"", column, defaultValue, alias)
 }
 
 //// IfNullZeroString 如果传了args则用args[0]做为alias, 否则就用column做为alias
