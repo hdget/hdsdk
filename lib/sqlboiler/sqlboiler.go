@@ -45,6 +45,14 @@ func IfNull(column string, defaultValue any, args ...string) string {
 	return fmt.Sprintf("IFNULL((%s), '%v') AS \"%s\"", column, defaultValue, alias)
 }
 
+func IfNullWithColumn(column string, anotherColumn string, args ...string) string {
+	alias := column
+	if len(args) > 0 {
+		alias = args[0]
+	}
+	return fmt.Sprintf("IFNULL((%s), %s) AS \"%s\"", column, anotherColumn, alias)
+}
+
 //// IfNullZeroString 如果传了args则用args[0]做为alias, 否则就用column做为alias
 //func IfNullZeroString(column string, args ...string) string {
 //	alias := column
