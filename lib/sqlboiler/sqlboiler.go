@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/hdget/hdsdk/v2/lib/pagination"
 	"github.com/hdget/hdsdk/v2/protobuf"
+	"github.com/hdget/hdutils/convert"
 	jsonUtils "github.com/hdget/hdutils/json"
+	reflectUtils "github.com/hdget/hdutils/reflect"
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 	"reflect"
@@ -23,21 +25,25 @@ func IfNull(column string, defaultValue any, args ...string) string {
 		alias = args[0]
 	}
 
-	if reflect.ValueOf(defaultValue).IsZero() {
-		switch v := defaultValue.(type) {
-		case string:
-			if v == "" {
-				return fmt.Sprintf("IFNULL((%s), '') AS \"%s\"", column, alias)
-			}
-		case int8, int, int32, int64, uint8, uint, uint32, uint64:
-			return fmt.Sprintf("IFNULL((%s), 0) AS \"%s\"", column, alias)
-		case float32, float64:
-			return fmt.Sprintf("IFNULL((%s), 0.0) AS \"%s\"", column, alias)
-		case []byte:
-			if jsonUtils.IsEmptyJsonObject(v) {
+	if defaultValue == nil {
+		return fmt.Sprintf("IFNULL((%s), '') AS \"%s\"", column, alias)
+	}
+
+	v := reflectUtils.Indirect(defaultValue)
+
+	switch vv := reflect.ValueOf(v); vv.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return fmt.Sprintf("IFNULL((%s), %d) AS \"%s\"", column, v, alias)
+	case reflect.Float32, reflect.Float64:
+		return fmt.Sprintf("IFNULL((%s), %.4f) AS \"%s\"", column, v, alias)
+	case reflect.Slice:
+		if vv.Type().Elem().Kind() == reflect.Uint8 {
+			if jsonUtils.IsEmptyJsonObject(vv.Bytes()) {
 				return fmt.Sprintf("IFNULL((%s), '{}') AS \"%s\"", column, alias)
-			} else if jsonUtils.IsEmptyJsonArray(v) {
+			} else if jsonUtils.IsEmptyJsonArray(vv.Bytes()) {
 				return fmt.Sprintf("IFNULL((%s), '[]') AS \"%s\"", column, alias)
+			} else {
+				return fmt.Sprintf("IFNULL((%s), '%s') AS \"%s\"", column, convert.BytesToString(vv.Bytes()), alias)
 			}
 		}
 	}
@@ -52,33 +58,6 @@ func IfNullWithColumn(column string, anotherColumn string, args ...string) strin
 	}
 	return fmt.Sprintf("IFNULL((%s), %s) AS \"%s\"", column, anotherColumn, alias)
 }
-
-//// IfNullZeroString 如果传了args则用args[0]做为alias, 否则就用column做为alias
-//func IfNullZeroString(column string, args ...string) string {
-//	alias := column
-//	if len(args) > 0 {
-//		alias = args[0]
-//	}
-//	return fmt.Sprintf("IFNULL((%s), '') AS \"%s\"", column, alias)
-//}
-//
-//// IfNullZeroNumber 如果传了args则用args[0]做为alias, 否则就用oldValue做为alias
-//func IfNullZeroNumber(column string, args ...string) string {
-//	alias := column
-//	if len(args) > 0 {
-//		alias = args[0]
-//	}
-//	return fmt.Sprintf("IFNULL((%s), 0) AS \"%s\"", column, alias)
-//}
-//
-//// IfNullJsonObject 如果传了args则用args[0]做为alias, 否则就用column做为alias
-//func IfNullJsonObject(column string, args ...string) string {
-//	alias := column
-//	if len(args) > 0 {
-//		alias = args[0]
-//	}
-//	return fmt.Sprintf("IFNULL((%s), 0) AS \"%s\"", column, alias)
-//}
 
 // WithUpdateTime 除了cols中的会更新以外还会更新更新时间字段
 func WithUpdateTime(cols map[string]any, args ...string) map[string]any {

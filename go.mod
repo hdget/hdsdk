@@ -9,7 +9,7 @@ require (
 	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/dapr/go-sdk v1.10.1
-	github.com/elliotchance/pie/v2 v2.8.0
+	github.com/elliotchance/pie/v2 v2.8.1
 	github.com/fatih/structs v1.1.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-resty/resty/v2 v2.13.1
@@ -17,7 +17,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/gomodule/redigo v1.9.2
 	github.com/hamba/avro v1.8.0
-	github.com/hdget/hdutils v0.0.21
+	github.com/hdget/hdutils v0.0.23
 	github.com/jinzhu/copier v0.4.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/kabukky/httpscerts v0.0.0-20150320125433-617593d7dcb3
@@ -90,7 +90,7 @@ require (
 	golang.org/x/exp v0.0.0-20240119083558-1b970713d09a // indirect
 	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/text v0.15.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
