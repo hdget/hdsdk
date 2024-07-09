@@ -17,7 +17,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/gomodule/redigo v1.9.2
 	github.com/hamba/avro v1.8.0
-	github.com/hdget/hdutils v0.0.26
+	github.com/hdget/hdutils v0.0.27
 	github.com/jinzhu/copier v0.4.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/kabukky/httpscerts v0.0.0-20150320125433-617593d7dcb3
