@@ -25,8 +25,12 @@ func newClient(c *sqliteProviderConfig, args ...string) (intf.DbClient, error) {
 	if len(args) > 0 {
 		absDbFile = args[0]
 	} else {
-		workDir, _ := os.Getwd()
-		absDbFile = filepath.Join(workDir, c.DbName)
+		if !filepath.IsAbs(c.DbName) {
+			workDir, _ := os.Getwd()
+			absDbFile = filepath.Join(workDir, c.DbName)
+		} else {
+			absDbFile = c.DbName
+		}
 	}
 
 	// 构造连接参数
