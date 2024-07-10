@@ -31,7 +31,7 @@ func newConfig(configProvider intf.ConfigProvider) (*sqliteProviderConfig, error
 
 	err = c.validate()
 	if err != nil {
-		return nil, errors.Wrap(err, "validate mysql provider config")
+		return nil, errors.Wrap(err, "validate sqlite3 provider config")
 	}
 
 	return c, nil
