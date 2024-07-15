@@ -37,8 +37,8 @@ func New(fs embed.FS, options ...DataOption) DataManager {
 
 func (m *dataManagerImpl) Load(file string) ([]byte, error) {
 	_, err := os.Stat(file)
-	if os.IsNotExist(err) {
-		return nil, nil
+	if err != nil {
+		return nil, err
 	}
 
 	content, err := m.fs.ReadFile(file)
