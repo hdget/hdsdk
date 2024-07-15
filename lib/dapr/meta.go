@@ -18,6 +18,7 @@ const (
 	MetaKeyUserId     = "Hd-User-Id"
 	MetaKeyRoleValues = "Hd-Role-Values"
 	MetaKeyPermIds    = "Hd-Perm-Ids"
+	MetaKeyCaller     = "dapr-caller-app-id"
 )
 
 var (
@@ -37,6 +38,7 @@ type MetaManager interface {
 	GetUserId(ctx context.Context) int64
 	GetRoleValues(ctx context.Context) []*RoleValue
 	GetPermIds(ctx context.Context) []int64
+	GetCaller(ctx context.Context) string
 }
 
 type metaManagerImpl struct {
@@ -60,6 +62,10 @@ func (m metaManagerImpl) GetRelease(ctx context.Context) string {
 
 func (m metaManagerImpl) GetUserId(ctx context.Context) int64 {
 	return cast.ToInt64(m.GetValue(ctx, MetaKeyUserId))
+}
+
+func (m metaManagerImpl) GetCaller(ctx context.Context) string {
+	return m.GetValue(ctx, MetaKeyCaller)
 }
 
 func (m metaManagerImpl) GetRoleValues(ctx context.Context) []*RoleValue {
