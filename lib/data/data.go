@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/hdget/hdutils/convert"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 )
@@ -36,11 +37,6 @@ func New(fs embed.FS, options ...DataOption) DataManager {
 }
 
 func (m *dataManagerImpl) Load(file string) ([]byte, error) {
-	_, err := os.Stat(file)
-	if err != nil {
-		return nil, err
-	}
-
 	content, err := m.fs.ReadFile(file)
 	if err != nil {
 		return nil, err
@@ -50,7 +46,8 @@ func (m *dataManagerImpl) Load(file string) ([]byte, error) {
 }
 
 func (m *dataManagerImpl) LoadTempFile(file string) ([]byte, error) {
-	return m.Load(filepath.Join(tempDir, file))
+	// IMPORTANT: embedfs使用的是斜杠来获取文件路径,在windows平台下如果使用filepath来处理路径会导致问题
+	return m.Load(path.Join(tempDir, file))
 }
 
 func (m *dataManagerImpl) Store(file string, data any) error {
@@ -97,5 +94,5 @@ func (m *dataManagerImpl) Store(file string, data any) error {
 }
 
 func (m *dataManagerImpl) StoreTempFile(file string, data any) error {
-	return m.Store(filepath.Join(m.tempDir, file), data)
+	return m.Store(path.Join(m.tempDir, file), data)
 }
