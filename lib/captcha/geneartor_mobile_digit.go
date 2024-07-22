@@ -6,13 +6,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-type digitCaptchaManager struct {
+type mobileDigitCaptchaGenerator struct {
 	*baseGenerator
 }
 
-func NewDigitCaptcha(options ...Option) CaptchaGenerator {
-	m := &digitCaptchaManager{
-		baseGenerator: newGenerator(),
+func NewMobileDigitCaptcha(mobile string, options ...Option) CaptchaGenerator {
+	m := &mobileDigitCaptchaGenerator{
+		baseGenerator: newGenerator(mobile),
 	}
 
 	for _, option := range options {
@@ -22,7 +22,7 @@ func NewDigitCaptcha(options ...Option) CaptchaGenerator {
 	return m
 }
 
-func (m digitCaptchaManager) Generate() (string, string, error) {
+func (m mobileDigitCaptchaGenerator) Generate() (string, string, error) {
 	uuid, err := uuid.NewRandom()
 	if err != nil {
 		return "", "", errors.Wrap(err, "generate captcha id")
@@ -33,7 +33,8 @@ func (m digitCaptchaManager) Generate() (string, string, error) {
 		return "", "", errors.Wrap(err, "generate captcha")
 	}
 
-	err = m.store.Set(uuid.String(), captchaValue, m.option.expires)
+	// 保存验证码的时候加入generator前缀
+	err = Store(m.name).Set(uuid.String(), captchaValue, m.option.expires)
 	if err != nil {
 		return "", "", errors.Wrap(err, "store set captcha")
 	}

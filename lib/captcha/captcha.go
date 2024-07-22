@@ -11,13 +11,13 @@ type CaptchaStore interface {
 }
 
 type baseGenerator struct {
+	name   string
 	option *captchaOption
-	store  CaptchaStore
 }
 
-func newGenerator() *baseGenerator {
+func newGenerator(generator string) *baseGenerator {
 	return &baseGenerator{
 		option: newOption(),
-		store:  Store(),
+		name:   generator,
 	}
 }

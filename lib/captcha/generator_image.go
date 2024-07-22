@@ -12,7 +12,7 @@ type imageCaptchaGenerator struct {
 
 func NewImageCaptcha(options ...Option) CaptchaGenerator {
 	m := &imageCaptchaGenerator{
-		baseGenerator: newGenerator(),
+		baseGenerator: newGenerator(""),
 	}
 
 	for _, option := range options {
@@ -32,7 +32,7 @@ func NewImageCaptcha(options ...Option) CaptchaGenerator {
 func (m imageCaptchaGenerator) Generate() (string, string, error) {
 	s := &imageCaptchaStore{
 		expires: m.option.expires,
-		store:   m.store,
+		store:   Store(m.name),
 	}
 
 	captcha := base64Captcha.NewCaptcha(m.driver, s)

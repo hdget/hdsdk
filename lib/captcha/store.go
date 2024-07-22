@@ -7,18 +7,21 @@ import (
 )
 
 type redisCaptchaStore struct {
+	generator string // 验证码生成者
 }
 
 const (
 	captchaRedisKeyTemplate = "captcha:%s"
 )
 
-func Store() CaptchaStore {
-	return &redisCaptchaStore{}
+func Store(generator string) CaptchaStore {
+	return &redisCaptchaStore{
+		generator: generator,
+	}
 }
 
 func (r redisCaptchaStore) Set(captchaId string, value string, expires int) error {
-	err := hdsdk.Redis().My().SetEx(r.getKey(captchaId), value, expires)
+	err := hdsdk.Redis().My().SetEx(r.getKey(captchaId), r.generator+value, expires)
 	if err != nil {
 		return errors.Wrap(err, "store set captcha")
 	}
@@ -54,7 +57,7 @@ func (r redisCaptchaStore) Verify(captchaId, answer string, clear bool) (bool, e
 		return false, errors.New("empty captcha")
 	}
 
-	return answer == captcha, nil
+	return r.generator+answer == captcha, nil
 }
 
 func (r redisCaptchaStore) getKey(id string) string {
