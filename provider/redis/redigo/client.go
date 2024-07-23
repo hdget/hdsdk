@@ -109,7 +109,7 @@ func (r *redisClient) Expire(key string, expire int) error {
 		_ = conn.Close()
 	}(conn)
 
-	_, err := conn.Do("Expire", key, expire)
+	_, err := conn.Do("EXPIRE", key, expire)
 	return err
 }
 
