@@ -14,7 +14,12 @@ const (
 	captchaRedisKeyTemplate = "captcha:%s"
 )
 
-func Store(generator string) CaptchaStore {
+func Store(args ...string) CaptchaStore {
+	var generator string
+	if len(args) > 0 {
+		generator = args[0]
+	}
+
 	return &redisCaptchaStore{
 		generator: generator,
 	}

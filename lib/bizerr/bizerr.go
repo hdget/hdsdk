@@ -7,15 +7,26 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+type Integer interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
+}
+
 type BizError struct {
 	Code int32  `json:"code"`
 	Msg  string `json:"msg"`
 }
 
 // New an error support error code
-func New(code int32, message string) *BizError {
+func New[T Integer](code T, message string) *BizError {
 	return &BizError{
-		Code: code,
+		Code: int32(code),
+		Msg:  message,
+	}
+}
+
+func InternalError(message string) *BizError {
+	return &BizError{
+		Code: 10001, // 10001为自定义的内部错误编码
 		Msg:  message,
 	}
 }

@@ -35,9 +35,9 @@ func (m imageCaptchaGenerator) Generate() (string, string, error) {
 		store:   Store(m.name),
 	}
 
-	captcha := base64Captcha.NewCaptcha(m.driver, s)
-	id, b64s, _, err := captcha.Generate()
-	return id, b64s, err
+	c := base64Captcha.NewCaptcha(m.driver, s)
+	captchaId, imgContent, _, err := c.Generate()
+	return captchaId, imgContent, err
 }
 
 type imageCaptchaStore struct {
