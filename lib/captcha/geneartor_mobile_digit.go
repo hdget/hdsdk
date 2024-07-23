@@ -39,5 +39,5 @@ func (m mobileDigitCaptchaGenerator) Generate() (string, string, error) {
 		return "", "", errors.Wrap(err, "store set captcha")
 	}
 
-	return uuid.String(), "", nil
+	return uuid.String(), captchaValue, nil
 }

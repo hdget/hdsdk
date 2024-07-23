@@ -25,8 +25,8 @@ func Store(args ...string) CaptchaStore {
 	}
 }
 
-func (r redisCaptchaStore) Set(captchaId string, value string, expires int) error {
-	err := hdsdk.Redis().My().SetEx(r.getKey(captchaId), r.generator+value, expires)
+func (r redisCaptchaStore) Set(captchaId string, captchaValue string, expires int) error {
+	err := hdsdk.Redis().My().SetEx(r.getStoreKey(captchaId), r.getStoreValue(captchaValue), expires)
 	if err != nil {
 		return errors.Wrap(err, "store set captcha")
 	}
@@ -34,13 +34,13 @@ func (r redisCaptchaStore) Set(captchaId string, value string, expires int) erro
 }
 
 func (r redisCaptchaStore) Get(captchaId string, clear bool) (string, error) {
-	val, err := hdsdk.Redis().My().GetString(r.getKey(captchaId))
+	val, err := hdsdk.Redis().My().GetString(r.getStoreKey(captchaId))
 	if err != nil {
 		return "", errors.Wrap(err, "store get captcha")
 	}
 
 	if clear {
-		err = hdsdk.Redis().My().Del(r.getKey(captchaId))
+		err = hdsdk.Redis().My().Del(r.getStoreKey(captchaId))
 		if err != nil {
 			return "", errors.Wrap(err, "store clear captcha")
 		}
@@ -53,18 +53,22 @@ func (r redisCaptchaStore) Verify(captchaId, answer string, clear bool) (bool, e
 		return false, errors.New("empty answer")
 	}
 
-	captcha, err := r.Get(captchaId, clear)
+	storeValue, err := r.Get(captchaId, clear)
 	if err != nil {
 		return false, err
 	}
 
-	if captcha == "" {
-		return false, errors.New("empty captcha")
+	if storeValue == "" {
+		return false, errors.New("empty store value")
 	}
 
-	return r.generator+answer == captcha, nil
+	return r.getStoreValue(answer) == storeValue, nil
 }
 
-func (r redisCaptchaStore) getKey(id string) string {
+func (r redisCaptchaStore) getStoreKey(id string) string {
 	return fmt.Sprintf(captchaRedisKeyTemplate, id)
+}
+
+func (r redisCaptchaStore) getStoreValue(captchaValue string) string {
+	return r.generator + captchaValue
 }
