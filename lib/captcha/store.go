@@ -88,6 +88,7 @@ func (r redisCaptchaStore) Verify(captchaId, answer string, clear bool) (bool, e
 			}
 		}
 	}
+
 	return verified, nil
 }
 

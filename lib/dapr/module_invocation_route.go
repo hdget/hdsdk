@@ -15,7 +15,7 @@ type routeAnnotation struct {
 	Origin        string   `json:"origin"`        // 请求来源
 	IsRawResponse bool     `json:"isRawResponse"` // 是否返回原始消息
 	IsPublic      bool     `json:"isPublic"`      // 是否是公共路由
-	Permissions   []string `json:"permissions"`   // 所属权限列表
+	Roles         []string `json:"roles"`         // 可以访问的角色列表
 	HandlerAlias  string
 	Comments      []string
 }
@@ -91,13 +91,13 @@ func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...Handl
 // parseRouteAnnotation handlerName为register或者discover handler时候使用的handlerAlias
 func (m *invocationModuleImpl) parseRouteAnnotation(handlerAlias string, fnInfo *ast.Function, ann *ast.Annotation) (*routeAnnotation, error) {
 	// 设置初始值
-	routeAnnotation := &routeAnnotation{
+	result := &routeAnnotation{
 		Endpoint:      "",
 		Methods:       []string{"GET"},
 		Origin:        "",
 		IsRawResponse: false,
 		IsPublic:      false,
-		Permissions:   []string{},
+		Roles:         []string{},
 		HandlerAlias:  handlerAlias,
 		Comments:      fnInfo.PlainComments,
 	}
@@ -105,16 +105,16 @@ func (m *invocationModuleImpl) parseRouteAnnotation(handlerAlias string, fnInfo 
 	// 尝试将注解后的值进行jsonUnmarshal
 	if strings.HasPrefix(ann.Value, "{") && strings.HasSuffix(ann.Value, "}") {
 		// 如果定义不为空，尝试unmarshal
-		err := json.Unmarshal(convert.StringToBytes(ann.Value), &routeAnnotation)
+		err := json.Unmarshal(convert.StringToBytes(ann.Value), &result)
 		if err != nil {
 			return nil, errors.Wrapf(err, "parse route annotation, annotation: %s", ann.Value)
 		}
 	}
 
 	// 处理特殊情况, 设置缺省值
-	if len(routeAnnotation.Methods) == 0 {
-		routeAnnotation.Methods = []string{"GET"}
+	if len(result.Methods) == 0 {
+		result.Methods = []string{"GET"}
 	}
 
-	return routeAnnotation, nil
+	return result, nil
 }
