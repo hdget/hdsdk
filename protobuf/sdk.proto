@@ -35,7 +35,7 @@ message RouteItem {
   string origin = 8;
   int32 isPublic = 9;
   int32 isRawResponse = 10;
-  repeated string roles = 11;
+  repeated string permissions = 11;
   string url = 12;
   string comment = 13;
 }

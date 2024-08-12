@@ -15,7 +15,7 @@ type routeAnnotation struct {
 	Origin        string   `json:"origin"`        // 请求来源
 	IsRawResponse bool     `json:"isRawResponse"` // 是否返回原始消息
 	IsPublic      bool     `json:"isPublic"`      // 是否是公共路由
-	Roles         []string `json:"roles"`         // 可以访问的角色列表
+	Permissions   []string `json:"permissions"`   // 对应的权限列表
 	HandlerAlias  string
 	Comments      []string
 }
@@ -77,12 +77,12 @@ func (m *invocationModuleImpl) GetRouteAnnotations(srcPath string, args ...Handl
 		}
 
 		h := m.handlers[foundIndex]
-		routeAnnotation, err := m.parseRouteAnnotation(h.GetAlias(), fnInfo, ann)
+		item, err := m.parseRouteAnnotation(h.GetAlias(), fnInfo, ann)
 		if err != nil {
 			return nil, err
 		}
 
-		routeAnnotations = append(routeAnnotations, routeAnnotation)
+		routeAnnotations = append(routeAnnotations, item)
 	}
 
 	return routeAnnotations, nil
@@ -97,7 +97,7 @@ func (m *invocationModuleImpl) parseRouteAnnotation(handlerAlias string, fnInfo 
 		Origin:        "",
 		IsRawResponse: false,
 		IsPublic:      false,
-		Roles:         []string{},
+		Permissions:   []string{},
 		HandlerAlias:  handlerAlias,
 		Comments:      fnInfo.PlainComments,
 	}
