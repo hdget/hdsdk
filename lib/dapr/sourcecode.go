@@ -324,7 +324,7 @@ func (p sourceCodeHandleImpl) FindRoutes(sourceCodeInfo *SourceCodeInfo, handler
 					Handler:       ann.HandlerAlias,
 					Endpoint:      ann.Endpoint,
 					HttpMethod:    httpMethod,
-					Roles:         ann.Roles,
+					Permissions:   ann.Permissions,
 					Origin:        ann.Origin,
 					IsPublic:      isPublic,
 					IsRawResponse: isRawResponse,
