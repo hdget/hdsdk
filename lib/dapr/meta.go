@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/spf13/cast"
 	"google.golang.org/grpc/metadata"
-	"strings"
 )
 
 type RoleValue struct {
@@ -36,7 +35,7 @@ type MetaManager interface {
 	GetAppId(ctx context.Context) string
 	GetRelease(ctx context.Context) string
 	GetUserId(ctx context.Context) int64
-	GetRoleValues(ctx context.Context) []*RoleValue
+	GetRoleValues(ctx context.Context) []string
 	GetPermIds(ctx context.Context) []int64
 	GetCaller(ctx context.Context) string
 }
@@ -68,25 +67,8 @@ func (m metaManagerImpl) GetCaller(ctx context.Context) string {
 	return m.GetValue(ctx, MetaKeyCaller)
 }
 
-func (m metaManagerImpl) GetRoleValues(ctx context.Context) []*RoleValue {
-	results := make([]*RoleValue, 0)
-	for _, v := range m.GetValues(ctx, MetaKeyRoleValues) {
-		tokens := strings.Split(v, ":")
-		if len(tokens) != 2 {
-			return nil
-		}
-
-		roleId := cast.ToInt64(tokens[0])
-		if roleId == 0 {
-			return nil
-		}
-
-		results = append(results, &RoleValue{
-			Id:    roleId,
-			Level: cast.ToInt(tokens[1]),
-		})
-	}
-	return results
+func (m metaManagerImpl) GetRoleValues(ctx context.Context) []string {
+	return m.GetValues(ctx, MetaKeyRoleValues)
 }
 
 func (m metaManagerImpl) GetPermIds(ctx context.Context) []int64 {
