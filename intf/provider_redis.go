@@ -39,7 +39,7 @@ type RedisClient interface {
 
 	// HashMap operations
 	HGetAll(key string) (map[string]string, error)
-	HGet(key string, field string) ([]byte, error)
+	HGet(key string, field any) ([]byte, error)
 	HGetInt(key string, field string) (int, error)
 	HGetInt64(key string, field string) (int64, error)
 	HGetFloat64(key string, field string) (float64, error)

@@ -243,7 +243,7 @@ func (r *redisClient) HMSet(key string, fieldvalues map[string]interface{}) erro
 }
 
 // HGet 获取某个field的值
-func (r *redisClient) HGet(key string, field string) ([]byte, error) {
+func (r *redisClient) HGet(key string, field any) ([]byte, error) {
 	conn := r.pool.Get()
 	defer func(conn redis.Conn) {
 		_ = conn.Close()
@@ -298,7 +298,7 @@ func (r *redisClient) HGetAll(key string) (map[string]string, error) {
 
 // HSet 设置某个field的值
 func (r *redisClient) HSet(key string, field interface{}, value interface{}) (int, error) {
-	strValue, err := convert.ToString(value)
+	s, err := convert.ToString(value)
 	if err != nil {
 		return 0, err
 	}
@@ -308,7 +308,7 @@ func (r *redisClient) HSet(key string, field interface{}, value interface{}) (in
 		_ = conn.Close()
 	}(conn)
 
-	return redis.Int(conn.Do("HSET", key, field, strValue))
+	return redis.Int(conn.Do("HSET", key, field, s))
 }
 
 // HLen 设置某个field的值
