@@ -75,7 +75,7 @@ func AsAliasColumn(alias, colName string) string {
 }
 
 func GetDB(args ...boil.Executor) boil.Executor {
-	if len(args) > 0 {
+	if len(args) > 0 && args[0] != nil {
 		return args[0]
 	}
 	return boil.GetDB()
