@@ -33,7 +33,10 @@ var (
 func New(app, env string, options ...Option) *SdkInstance {
 	once.Do(
 		func() {
-			v := newInstance(app, env, options...)
+			v, err := newInstance(app, env, options...)
+			if err != nil {
+				logger.Fatal("new sdk instance", "err", err)
+			}
 			_instance = v
 		},
 	)
@@ -112,7 +115,7 @@ func (i *SdkInstance) Initialize(capabilities ...*intf.Capability) error {
 	return nil
 }
 
-func newInstance(app, env string, options ...Option) *SdkInstance {
+func newInstance(app, env string, options ...Option) (*SdkInstance, error) {
 	sdkOption := defaultSdkOption
 	for _, apply := range options {
 		apply(sdkOption)
@@ -125,11 +128,11 @@ func newInstance(app, env string, options ...Option) *SdkInstance {
 
 	configProvider, err := viper.New(app, env, viperOptions...)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return &SdkInstance{
 		option:         sdkOption,
 		configProvider: configProvider,
-	}
+	}, nil
 }
