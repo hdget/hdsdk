@@ -8,7 +8,6 @@ import (
 )
 
 type Role struct {
-	Id    int64  // 角色ID
 	Name  string // 角色名
 	Level int32  // 角色级别
 }
@@ -73,13 +72,12 @@ func (m metaManagerImpl) GetRoles(ctx context.Context) []*Role {
 	roles := make([]*Role, 0)
 	for _, v := range m.GetValues(ctx, MetaKeyRoles) {
 		tokens := strings.Split(v, ":")
-		if len(tokens) != 3 {
+		if len(tokens) != 2 {
 			return nil
 		}
 		roles = append(roles, &Role{
-			Id:    cast.ToInt64(tokens[0]),
-			Name:  tokens[1],
-			Level: cast.ToInt32(tokens[2]),
+			Name:  tokens[0],
+			Level: cast.ToInt32(tokens[1]),
 		})
 	}
 	return roles
