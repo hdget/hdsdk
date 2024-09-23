@@ -13,12 +13,12 @@ type Role struct {
 }
 
 const (
-	MetaKeyAppId   = "Hd-App-Id"
-	MetaKeyRelease = "Hd-Release"
-	MetaKeyUserId  = "Hd-User-Id"
-	MetaKeyRoles   = "Hd-Roles"
-	MetaKeyPermIds = "Hd-Perm-Ids"
-	MetaKeyCaller  = "dapr-caller-app-id"
+	MetaKeyAppId      = "Hd-App-Id"
+	MetaKeyRelease    = "Hd-Release"
+	MetaKeyUserId     = "Hd-User-Id"
+	MetaKeyRoleValues = "Hd-Role-Values"
+	MetaKeyPermIds    = "Hd-Perm-Ids"
+	MetaKeyCaller     = "dapr-caller-app-id"
 )
 
 var (
@@ -70,8 +70,8 @@ func (m metaManagerImpl) GetCaller(ctx context.Context) string {
 
 func (m metaManagerImpl) GetRoles(ctx context.Context) []*Role {
 	roles := make([]*Role, 0)
-	for _, v := range m.GetValues(ctx, MetaKeyRoles) {
-		tokens := strings.Split(v, ":")
+	for _, roleValue := range m.GetValues(ctx, MetaKeyRoleValues) {
+		tokens := strings.Split(roleValue, ":")
 		if len(tokens) != 2 {
 			return nil
 		}
