@@ -9,7 +9,7 @@ import (
 
 type Role struct {
 	Name  string // 角色名
-	Level int32  // 角色级别
+	Level int    // 角色级别
 }
 
 const (
@@ -77,7 +77,7 @@ func (m metaManagerImpl) GetRoles(ctx context.Context) []*Role {
 		}
 		roles = append(roles, &Role{
 			Name:  tokens[0],
-			Level: cast.ToInt32(tokens[1]),
+			Level: cast.ToInt(tokens[1]),
 		})
 	}
 	return roles
