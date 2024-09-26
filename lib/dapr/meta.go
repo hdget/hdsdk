@@ -37,6 +37,7 @@ type MetaManager interface {
 	GetRelease(ctx context.Context) string
 	GetUserId(ctx context.Context) int64
 	GetRoles(ctx context.Context) []*Role
+	GetRoleValues(ctx context.Context) []string
 	GetPermIds(ctx context.Context) []int64
 	GetCaller(ctx context.Context) string
 }
@@ -81,6 +82,10 @@ func (m metaManagerImpl) GetRoles(ctx context.Context) []*Role {
 		})
 	}
 	return roles
+}
+
+func (m metaManagerImpl) GetRoleValues(ctx context.Context) []string {
+	return m.GetValues(ctx, MetaKeyRoleValues)
 }
 
 func (m metaManagerImpl) GetPermIds(ctx context.Context) []int64 {
