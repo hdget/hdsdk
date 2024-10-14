@@ -15,6 +15,7 @@ type APIer interface {
 	DeleteState(storeName, key string) error
 	GetConfigurationItems(configStore string, keys []string) (map[string]*client.ConfigurationItem, error)
 	SubscribeConfigurationItems(ctx context.Context, configStore string, keys []string, handler client.ConfigurationHandleFunction) (string, error)
+	GetBulkState(storeName string, keys any) (map[string][]byte, error)
 }
 
 type apiImpl struct {
