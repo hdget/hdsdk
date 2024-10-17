@@ -26,17 +26,10 @@ func NewTransactor() (Transactor, error) {
 }
 
 func (i *trans) Executor() boil.Executor {
-	if i.tx != nil {
-		return i.tx
-	}
-	return boil.GetDB()
+	return i.tx
 }
 
 func (i *trans) Finalize(err error) {
-	if i.tx == nil {
-		return
-	}
-
 	// 处理transaction
 	errLogger := logger.Error
 	if hdsdk.HasInitialized() {
