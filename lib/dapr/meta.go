@@ -13,7 +13,7 @@ type Role struct {
 }
 
 const (
-	MetaTenantId      = "Hd-Tenant-Id"
+	MetaTenantId      = "Hd-Tid"
 	MetaKeyAppId      = "Hd-App-Id"
 	MetaKeyRelease    = "Hd-Release"
 	MetaKeyUserId     = "Hd-User-Id"
