@@ -19,6 +19,7 @@ const (
 	MetaKeyUserId     = "Hd-User-Id"
 	MetaKeyRoleValues = "Hd-Role-Values"
 	MetaKeyPermIds    = "Hd-Perm-Ids"
+	MetaKeyRoleIds    = "Hd-Role-Ids"
 	MetaKeyCaller     = "dapr-caller-app-id"
 )
 
@@ -89,6 +90,14 @@ func (m metaManagerImpl) GetRoles(ctx context.Context) []*Role {
 		})
 	}
 	return roles
+}
+
+func (m metaManagerImpl) GetRoleIds(ctx context.Context) []int64 {
+	roleIds := make([]int64, 0)
+	for _, v := range m.GetValues(ctx, MetaKeyRoleIds) {
+		roleIds = append(roleIds, cast.ToInt64(v))
+	}
+	return roleIds
 }
 
 func (m metaManagerImpl) GetRoleValues(ctx context.Context) []string {
