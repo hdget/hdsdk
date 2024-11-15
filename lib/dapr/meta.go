@@ -43,6 +43,7 @@ type MetaManager interface {
 	GetRoles(ctx context.Context) []*Role
 	GetRoleValues(ctx context.Context) []string
 	GetPermIds(ctx context.Context) []int64
+	GetRoleIds(ctx context.Context) []int64
 	GetCaller(ctx context.Context) string
 }
 
