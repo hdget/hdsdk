@@ -1,13 +1,11 @@
 package dapr
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/hdutils/convert"
 	"github.com/pkg/errors"
-	"google.golang.org/grpc/metadata"
 	"strings"
 )
 
@@ -20,7 +18,7 @@ const ContentTypeJson = "application/json"
 //var jsonpbMarshaler = jsonpb.Marshaler{EmitDefaults: true}
 
 // Invoke 调用dapr服务
-func (a apiImpl) Invoke(appId string, moduleVersion int, moduleName, handler string, data any, args ...string) ([]byte, error) {
+func (a apiImpl) Invoke(appId string, moduleVersion int, moduleName, handler string, data any) ([]byte, error) {
 	var value []byte
 	switch t := data.(type) {
 	case string:
@@ -45,15 +43,9 @@ func (a apiImpl) Invoke(appId string, moduleVersion int, moduleName, handler str
 
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
 	//defer daprClient.Close()
-	// 添加额外的meta信息
-	ctx := context.Background()
-	if len(args) > 0 {
-		md := metadata.Pairs(args...)
-		ctx = metadata.NewOutgoingContext(ctx, md)
-	}
 
 	fullMethodName := getServiceInvocationName(moduleVersion, moduleName, handler)
-	resp, err := daprClient.InvokeMethodWithContent(ctx, appId, fullMethodName, "post", &client.DataContent{
+	resp, err := daprClient.InvokeMethodWithContent(a.ctx, appId, fullMethodName, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
 	})

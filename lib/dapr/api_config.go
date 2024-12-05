@@ -16,7 +16,7 @@ func (a apiImpl) GetConfigurationItems(configStore string, keys []string) (map[s
 		return nil, errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
-	items, err := daprClient.GetConfigurationItems(context.Background(), configStore, keys)
+	items, err := daprClient.GetConfigurationItems(a.ctx, configStore, keys)
 	if err != nil {
 		return nil, errors.Wrap(err, "get configuration items")
 	}

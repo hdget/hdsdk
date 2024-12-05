@@ -1,7 +1,6 @@
 package dapr
 
 import (
-	"context"
 	"github.com/dapr/go-sdk/client"
 	"github.com/dapr/go-sdk/service/common"
 	"github.com/pkg/errors"
@@ -30,9 +29,9 @@ func (a apiImpl) Publish(pubSubName, topic string, data interface{}, args ...boo
 	metaOptions := getPublishMetaOptions(args...)
 	if metaOptions != nil {
 		opt = client.PublishEventWithMetadata(metaOptions)
-		err = daprClient.PublishEvent(context.Background(), pubSubName, topic, data, opt)
+		err = daprClient.PublishEvent(a.ctx, pubSubName, topic, data, opt)
 	} else {
-		err = daprClient.PublishEvent(context.Background(), pubSubName, topic, data)
+		err = daprClient.PublishEvent(a.ctx, pubSubName, topic, data)
 	}
 
 	if err != nil {

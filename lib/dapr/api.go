@@ -3,10 +3,12 @@ package dapr
 import (
 	"context"
 	"github.com/dapr/go-sdk/client"
+	"github.com/spf13/cast"
+	"google.golang.org/grpc/metadata"
 )
 
 type APIer interface {
-	Invoke(appId string, moduleVersion int, module, method string, data any, args ...string) ([]byte, error)
+	Invoke(appId string, moduleVersion int, module, method string, data any) ([]byte, error)
 	Lock(lockStore, lockOwner, resource string, expiryInSeconds int) error
 	Unlock(lockStore, lockOwner, resource string) error
 	Publish(pubSubName, topic string, data interface{}, args ...bool) error
@@ -19,8 +21,20 @@ type APIer interface {
 }
 
 type apiImpl struct {
+	ctx context.Context
 }
 
-func Api() APIer {
-	return &apiImpl{}
+func Api(kvs ...string) APIer {
+	ctx := context.Background()
+	if len(kvs) > 0 {
+		md := metadata.Pairs(kvs...)
+		ctx = metadata.NewOutgoingContext(ctx, md)
+	}
+	return &apiImpl{
+		ctx: ctx,
+	}
+}
+
+func TenantApi(tid int64) APIer {
+	return Api(MetaTenantId, cast.ToString(tid))
 }
