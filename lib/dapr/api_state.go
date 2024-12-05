@@ -1,7 +1,6 @@
 package dapr
 
 import (
-	"context"
 	"fmt"
 	"github.com/dapr/go-sdk/client"
 	"github.com/hdget/hdutils/convert"
@@ -27,7 +26,7 @@ func (a apiImpl) SaveState(storeName, key string, value interface{}) error {
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
 	//defer daprClient.Close()
 
-	err = daprClient.SaveState(context.Background(), storeName, key, data, nil)
+	err = daprClient.SaveState(a.ctx, storeName, key, data, nil)
 	if err != nil {
 		return errors.Wrapf(err, "save state, store: %s, key: %s, value: %s", storeName, key, value)
 	}
@@ -46,7 +45,7 @@ func (a apiImpl) GetState(storeName, key string) ([]byte, error) {
 	}
 
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
-	item, err := daprClient.GetState(context.Background(), storeName, key, nil)
+	item, err := daprClient.GetState(a.ctx, storeName, key, nil)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get state, store: %s, key: %s", storeName, key)
 	}
@@ -70,7 +69,7 @@ func (a apiImpl) GetBulkState(storeName string, keys any) (map[string][]byte, er
 	}
 
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
-	items, err := daprClient.GetBulkState(context.Background(), storeName, strKeys, nil, 100)
+	items, err := daprClient.GetBulkState(a.ctx, storeName, strKeys, nil, 100)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get bulk state, store: %s, keys: %s", storeName, keys)
 	}
@@ -96,7 +95,7 @@ func (a apiImpl) DeleteState(storeName, key string) error {
 
 	// IMPORTANT: daprClient是全局的连接, 不能关闭
 	//defer daprClient.Close()
-	err = daprClient.DeleteState(context.Background(), storeName, key, nil)
+	err = daprClient.DeleteState(a.ctx, storeName, key, nil)
 	if err != nil {
 		return errors.Wrapf(err, "delete state, store: %s, key: %s", storeName, key)
 	}

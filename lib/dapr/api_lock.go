@@ -1,7 +1,6 @@
 package dapr
 
 import (
-	"context"
 	"github.com/dapr/go-sdk/client"
 	"github.com/pkg/errors"
 )
@@ -16,7 +15,7 @@ func (a apiImpl) Lock(lockStore, lockOwner, resource string, expiryInSeconds int
 		return errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
-	resp, err := daprClient.TryLockAlpha1(context.Background(), lockStore, &client.LockRequest{
+	resp, err := daprClient.TryLockAlpha1(a.ctx, lockStore, &client.LockRequest{
 		LockOwner:       lockOwner,
 		ResourceID:      resource,
 		ExpiryInSeconds: int32(expiryInSeconds),
@@ -42,7 +41,7 @@ func (a apiImpl) Unlock(lockStore, lockOwner, resource string) error {
 		return errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
-	resp, err := daprClient.UnlockAlpha1(context.Background(), lockStore, &client.UnlockRequest{
+	resp, err := daprClient.UnlockAlpha1(a.ctx, lockStore, &client.UnlockRequest{
 		LockOwner:  lockOwner,
 		ResourceID: resource,
 	})
