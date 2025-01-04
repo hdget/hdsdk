@@ -21,6 +21,8 @@ const (
 	MetaKeyPermIds    = "Hd-Perm-Ids"
 	MetaKeyRoleIds    = "Hd-Role-Ids"
 	MetaKeyCaller     = "dapr-caller-app-id"
+	MetaKeyUid        = "Hd-Uid"
+	MetaKeyRid        = "Hd-Rid"
 )
 
 var (
@@ -43,15 +45,19 @@ type MetaManager interface {
 	GetRoles(ctx context.Context) []*Role
 	GetRoleValues(ctx context.Context) []string
 	GetPermIds(ctx context.Context) []int64
-	GetRoleIds(ctx context.Context) []int64
 	GetCaller(ctx context.Context) string
+	GetUid(ctx context.Context) uint64
+	GetRoleIds(ctx context.Context) []uint64
 }
 
 type metaManagerImpl struct {
+	secret []byte
 }
 
-func Meta() MetaManager {
-	return &metaManagerImpl{}
+func Meta(secret ...byte) MetaManager {
+	return &metaManagerImpl{
+		secret: secret,
+	}
 }
 
 func (m metaManagerImpl) GetTenantId(ctx context.Context) int64 {
@@ -93,12 +99,14 @@ func (m metaManagerImpl) GetRoles(ctx context.Context) []*Role {
 	return roles
 }
 
-func (m metaManagerImpl) GetRoleIds(ctx context.Context) []int64 {
-	roleIds := make([]int64, 0)
-	for _, v := range m.GetValues(ctx, MetaKeyRoleIds) {
-		roleIds = append(roleIds, cast.ToInt64(v))
-	}
+func (m metaManagerImpl) GetRoleIds(ctx context.Context) []uint64 {
+	roleIds, _ := Coder(m.secret).DecodeUint64Slice(m.GetValue(ctx, MetaKeyRid))
 	return roleIds
+}
+
+func (m metaManagerImpl) GetUid(ctx context.Context) uint64 {
+	uid, _ := Coder(m.secret).DecodeUint64(m.GetValue(ctx, MetaKeyUid))
+	return uid
 }
 
 func (m metaManagerImpl) GetRoleValues(ctx context.Context) []string {
