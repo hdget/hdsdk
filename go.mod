@@ -32,6 +32,7 @@ require (
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/cast v1.7.0
 	github.com/spf13/viper v1.19.0
+	github.com/sqids/sqids-go v0.4.1
 	github.com/volatiletech/sqlboiler/v4 v4.16.2
 	go.uber.org/fx v1.22.2
 	google.golang.org/grpc v1.67.0
