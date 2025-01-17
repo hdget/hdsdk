@@ -11,9 +11,11 @@ import (
 )
 
 type Coder interface {
-	Encode(secret []byte, ids ...int64) string
-	DecodeInt64(code string, secret []byte) int64
-	DecodeInt64Slice(code string, secret []byte) []int64
+	Encrypt(secret []byte, ids ...int64) string
+	DecryptInt64(secret []byte, ciphertext string) int64
+	DecryptInt64Slice(secret []byte, ciphertext string) []int64
+	Encode(ids ...int64) string
+	DecodeInt64(code string) int64
 }
 
 type coderImpl struct {
@@ -42,12 +44,13 @@ func New() Coder {
 	return _coder
 }
 
-func (impl coderImpl) Encode(secret []byte, ids ...int64) string {
+func (impl coderImpl) Encrypt(secret []byte, ids ...int64) string {
 	uint64s := pie.Map(ids, func(v int64) uint64 { return uint64(v) })
 	s, err := impl.sqids.Encode(uint64s)
 	if err != nil {
 		return ""
 	}
+
 	encoded, err := impl.encodeWithSalt(s, secret)
 	if err != nil {
 		return ""
@@ -55,7 +58,7 @@ func (impl coderImpl) Encode(secret []byte, ids ...int64) string {
 	return encoded
 }
 
-func (impl coderImpl) DecodeInt64(ciphertext string, secret []byte) int64 {
+func (impl coderImpl) DecryptInt64(secret []byte, ciphertext string) int64 {
 	plainText, err := impl.decodeWithSalt(ciphertext, secret)
 	if err != nil {
 		return 0
@@ -69,7 +72,7 @@ func (impl coderImpl) DecodeInt64(ciphertext string, secret []byte) int64 {
 	return int64(uint64s[0])
 }
 
-func (impl coderImpl) DecodeInt64Slice(ciphertext string, secret []byte) []int64 {
+func (impl coderImpl) DecryptInt64Slice(secret []byte, ciphertext string) []int64 {
 	plainText, err := impl.decodeWithSalt(ciphertext, secret)
 	if err != nil {
 		return nil
@@ -77,6 +80,24 @@ func (impl coderImpl) DecodeInt64Slice(ciphertext string, secret []byte) []int64
 
 	uint64s := impl.sqids.Decode(plainText)
 	return pie.Map(uint64s, func(v uint64) int64 { return int64(v) })
+}
+
+func (impl coderImpl) Encode(ids ...int64) string {
+	uint64s := pie.Map(ids, func(v int64) uint64 { return uint64(v) })
+	s, err := impl.sqids.Encode(uint64s)
+	if err != nil {
+		return ""
+	}
+	return s
+}
+
+func (impl coderImpl) DecodeInt64(s string) int64 {
+	uint64s := impl.sqids.Decode(s)
+	if len(uint64s) <= 0 {
+		return 0
+	}
+
+	return int64(uint64s[0])
 }
 
 // 加密函数
