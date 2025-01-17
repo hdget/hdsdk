@@ -36,8 +36,8 @@ type MetaManager interface {
 	GetAppId(ctx context.Context) string
 	GetRelease(ctx context.Context) string
 	GetCaller(ctx context.Context) string
-	GetUserId(ctx context.Context, secret []byte) int64
-	GetRoleIds(ctx context.Context, secret []byte) []int64
+	GetUserId(ctx context.Context) int64
+	GetRoleIds(ctx context.Context) []int64
 	GetTenantId(ctx context.Context) int64
 }
 
@@ -64,12 +64,12 @@ func (m metaManagerImpl) GetCaller(ctx context.Context) string {
 	return m.GetValue(ctx, MetaKeyCaller)
 }
 
-func (m metaManagerImpl) GetRoleIds(ctx context.Context, secret []byte) []int64 {
-	return code.New().DecryptInt64Slice(secret, m.GetValue(ctx, MetaKeyErids))
+func (m metaManagerImpl) GetRoleIds(ctx context.Context) []int64 {
+	return code.New().DecodeInt64Slice(m.GetValue(ctx, MetaKeyErids))
 }
 
-func (m metaManagerImpl) GetUserId(ctx context.Context, secret []byte) int64 {
-	return code.New().DecryptInt64(secret, m.GetValue(ctx, MetaKeyEuid))
+func (m metaManagerImpl) GetUserId(ctx context.Context) int64 {
+	return code.New().DecodeInt64(m.GetValue(ctx, MetaKeyEuid))
 }
 
 func (m metaManagerImpl) GetTenantId(ctx context.Context) int64 {

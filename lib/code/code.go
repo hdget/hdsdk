@@ -16,6 +16,7 @@ type Coder interface {
 	DecryptInt64Slice(secret []byte, ciphertext string) []int64
 	Encode(ids ...int64) string
 	DecodeInt64(code string) int64
+	DecodeInt64Slice(code string) []int64
 }
 
 type coderImpl struct {
@@ -98,6 +99,11 @@ func (impl coderImpl) DecodeInt64(s string) int64 {
 	}
 
 	return int64(uint64s[0])
+}
+
+func (impl coderImpl) DecodeInt64Slice(code string) []int64 {
+	uint64s := impl.sqids.Decode(code)
+	return pie.Map(uint64s, func(v uint64) int64 { return int64(v) })
 }
 
 // 加密函数
