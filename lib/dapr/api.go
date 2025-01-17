@@ -36,5 +36,5 @@ func Api(kvs ...string) APIer {
 }
 
 func TenantApi(tid int64) APIer {
-	return Api(MetaTenantId, cast.ToString(tid))
+	return Api(MetaKeyEtid, cast.ToString(tid))
 }

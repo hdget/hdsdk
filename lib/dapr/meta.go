@@ -3,7 +3,6 @@ package dapr
 import (
 	"context"
 	"github.com/hdget/hdsdk/v2/lib/code"
-	"github.com/spf13/cast"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -13,9 +12,9 @@ type Role struct {
 }
 
 const (
-	MetaTenantId   = "Hd-Tid"
 	MetaKeyAppId   = "Hd-App-Id"
 	MetaKeyRelease = "Hd-Release"
+	MetaKeyEtid    = "Hd-Etid"
 	MetaKeyEuid    = "Hd-Euid"  // encoded user id
 	MetaKeyErids   = "Hd-Erids" // encoded role ids
 	MetaKeyCaller  = "dapr-caller-app-id"
@@ -24,7 +23,7 @@ const (
 var (
 	// MetaKeys 所有meta的关键字
 	_httpHeaderKeys = []string{
-		MetaTenantId,
+		MetaKeyEtid,
 		MetaKeyAppId,
 		MetaKeyRelease,
 	}
@@ -34,12 +33,12 @@ type MetaManager interface {
 	GetHttpHeaderKeys() []string
 	GetValue(ctx context.Context, key string) string
 	GetValues(ctx context.Context, key string) []string
-	GetTenantId(ctx context.Context) int64
 	GetAppId(ctx context.Context) string
 	GetRelease(ctx context.Context) string
 	GetCaller(ctx context.Context) string
 	GetUserId(ctx context.Context, secret []byte) int64
 	GetRoleIds(ctx context.Context, secret []byte) []int64
+	GetTenantId(ctx context.Context) int64
 }
 
 type metaManagerImpl struct {
@@ -47,10 +46,6 @@ type metaManagerImpl struct {
 
 func Meta() MetaManager {
 	return &metaManagerImpl{}
-}
-
-func (m metaManagerImpl) GetTenantId(ctx context.Context) int64 {
-	return cast.ToInt64(m.GetValue(ctx, MetaTenantId))
 }
 
 func (m metaManagerImpl) GetAppId(ctx context.Context) string {
@@ -70,11 +65,15 @@ func (m metaManagerImpl) GetCaller(ctx context.Context) string {
 }
 
 func (m metaManagerImpl) GetRoleIds(ctx context.Context, secret []byte) []int64 {
-	return code.New().DecodeInt64Slice(m.GetValue(ctx, MetaKeyErids), secret)
+	return code.New().DecryptInt64Slice(secret, m.GetValue(ctx, MetaKeyErids))
 }
 
 func (m metaManagerImpl) GetUserId(ctx context.Context, secret []byte) int64 {
-	return code.New().DecodeInt64(m.GetValue(ctx, MetaKeyEuid), secret)
+	return code.New().DecryptInt64(secret, m.GetValue(ctx, MetaKeyEuid))
+}
+
+func (m metaManagerImpl) GetTenantId(ctx context.Context) int64 {
+	return code.New().DecodeInt64(m.GetValue(ctx, MetaKeyEtid))
 }
 
 // GetValues get grpc meta values
