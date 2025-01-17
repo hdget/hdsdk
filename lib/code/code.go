@@ -92,12 +92,12 @@ func (impl coderImpl) encodeWithSalt(plaintext string, secret []byte) (string, e
 		data[i] ^= secret[i%len(secret)]
 	}
 	// 返回Base64编码后的结果
-	return base64.StdEncoding.EncodeToString(data), nil
+	return base64.URLEncoding.EncodeToString(data), nil
 }
 
 // 解密函数
 func (impl coderImpl) decodeWithSalt(ciphertextBase64 string, secret []byte) (string, error) {
-	data, err := base64.StdEncoding.DecodeString(ciphertextBase64)
+	data, err := base64.URLEncoding.DecodeString(ciphertextBase64)
 	if err != nil {
 		return "", err
 	}
