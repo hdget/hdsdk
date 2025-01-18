@@ -39,6 +39,7 @@ type MetaManager interface {
 	GetUserId(ctx context.Context) int64
 	GetRoleIds(ctx context.Context) []int64
 	GetTenantId(ctx context.Context) int64
+	GetEtid(ctx context.Context) string
 }
 
 type metaManagerImpl struct {
@@ -74,6 +75,10 @@ func (m metaManagerImpl) GetUserId(ctx context.Context) int64 {
 
 func (m metaManagerImpl) GetTenantId(ctx context.Context) int64 {
 	return code.New().DecodeInt64(m.GetValue(ctx, MetaKeyEtid))
+}
+
+func (m metaManagerImpl) GetEtid(ctx context.Context) string {
+	return m.GetValue(ctx, MetaKeyEtid)
 }
 
 // GetValues get grpc meta values
