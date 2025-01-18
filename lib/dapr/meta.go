@@ -3,6 +3,7 @@ package dapr
 import (
 	"context"
 	"github.com/hdget/hdsdk/v2/lib/code"
+	"github.com/spf13/cast"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -14,6 +15,7 @@ type Role struct {
 const (
 	MetaKeyAppId   = "Hd-App-Id"
 	MetaKeyRelease = "Hd-Release"
+	MetaKeyTid     = "Hd-Tid"
 	MetaKeyEtid    = "Hd-Etid"
 	MetaKeyEuid    = "Hd-Euid"  // encoded user id
 	MetaKeyErids   = "Hd-Erids" // encoded role ids
@@ -74,6 +76,9 @@ func (m metaManagerImpl) GetUserId(ctx context.Context) int64 {
 }
 
 func (m metaManagerImpl) GetTenantId(ctx context.Context) int64 {
+	if v := m.GetValue(ctx, MetaKeyTid); v != "" {
+		return cast.ToInt64(v)
+	}
 	return code.New().DecodeInt64(m.GetValue(ctx, MetaKeyEtid))
 }
 

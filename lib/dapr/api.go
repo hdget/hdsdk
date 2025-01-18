@@ -3,6 +3,7 @@ package dapr
 import (
 	"context"
 	"github.com/dapr/go-sdk/client"
+	"github.com/spf13/cast"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -34,6 +35,6 @@ func Api(kvs ...string) APIer {
 	}
 }
 
-func TenantApi(etid string) APIer {
-	return Api(MetaKeyEtid, etid)
+func TenantApi(tid int64) APIer {
+	return Api(MetaKeyTid, cast.ToString(tid))
 }
