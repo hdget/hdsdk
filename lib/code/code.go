@@ -7,6 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sqids/sqids-go"
 	"io"
+	"strings"
 	"sync"
 )
 
@@ -25,7 +26,7 @@ type coderImpl struct {
 
 const (
 	saltLength = 4
-	codeLength = 8
+	codeLength = 6
 )
 
 var (
@@ -37,6 +38,7 @@ func New() Coder {
 	_onceCoder.Do(func() {
 		s, _ := sqids.New(sqids.Options{
 			MinLength: codeLength,
+			Alphabet:  "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNOPQRSTUVWXYZ123456789",
 		})
 		_coder = &coderImpl{
 			sqids: s,
@@ -84,6 +86,10 @@ func (impl coderImpl) DecryptInt64Slice(secret []byte, ciphertext string) []int6
 }
 
 func (impl coderImpl) Encode(ids ...int64) string {
+	if len(ids) == 1 && ids[0] == 0 {
+		return ""
+	}
+
 	uint64s := pie.Map(ids, func(v int64) uint64 { return uint64(v) })
 	s, err := impl.sqids.Encode(uint64s)
 	if err != nil {
@@ -92,8 +98,12 @@ func (impl coderImpl) Encode(ids ...int64) string {
 	return s
 }
 
-func (impl coderImpl) DecodeInt64(s string) int64 {
-	uint64s := impl.sqids.Decode(s)
+func (impl coderImpl) DecodeInt64(code string) int64 {
+	if strings.TrimSpace(code) == "" {
+		return 0
+	}
+
+	uint64s := impl.sqids.Decode(code)
 	if len(uint64s) <= 0 {
 		return 0
 	}
@@ -102,6 +112,10 @@ func (impl coderImpl) DecodeInt64(s string) int64 {
 }
 
 func (impl coderImpl) DecodeInt64Slice(code string) []int64 {
+	if strings.TrimSpace(code) == "" {
+		return nil
+	}
+
 	uint64s := impl.sqids.Decode(code)
 	return pie.Map(uint64s, func(v uint64) int64 { return int64(v) })
 }
