@@ -8,7 +8,7 @@ import (
 )
 
 type APIer interface {
-	Invoke(appId string, moduleVersion int, module, method string, data any) ([]byte, error)
+	Invoke(app string, moduleVersion int, module, method string, data any) ([]byte, error)
 	Lock(lockStore, lockOwner, resource string, expiryInSeconds int) error
 	Unlock(lockStore, lockOwner, resource string) error
 	Publish(pubSubName, topic string, data interface{}, args ...bool) error
@@ -21,20 +21,26 @@ type APIer interface {
 }
 
 type apiImpl struct {
-	ctx context.Context
+	project string
+	ctx     context.Context
 }
 
-func Api(kvs ...string) APIer {
+func Api(project string, kvs ...string) APIer {
 	ctx := context.Background()
 	if len(kvs) > 0 {
 		md := metadata.Pairs(kvs...)
 		ctx = metadata.NewOutgoingContext(ctx, md)
 	}
 	return &apiImpl{
-		ctx: ctx,
+		project: project,
+		ctx:     ctx,
 	}
 }
 
-func TenantApi(tid int64) APIer {
-	return Api(MetaKeyTid, cast.ToString(tid))
+func TenantApi(project string, tid int64) APIer {
+	return Api(project, MetaKeyTid, cast.ToString(tid))
+}
+
+func (a apiImpl) standardize(input string) string {
+	return a.project + "_" + input
 }

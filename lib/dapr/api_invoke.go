@@ -18,7 +18,7 @@ const ContentTypeJson = "application/json"
 //var jsonpbMarshaler = jsonpb.Marshaler{EmitDefaults: true}
 
 // Invoke 调用dapr服务
-func (a apiImpl) Invoke(appId string, moduleVersion int, moduleName, handler string, data any) ([]byte, error) {
+func (a apiImpl) Invoke(app string, moduleVersion int, moduleName, handler string, data any) ([]byte, error) {
 	var value []byte
 	switch t := data.(type) {
 	case string:
@@ -45,7 +45,7 @@ func (a apiImpl) Invoke(appId string, moduleVersion int, moduleName, handler str
 	//defer daprClient.Close()
 
 	fullMethodName := getServiceInvocationName(moduleVersion, moduleName, handler)
-	resp, err := daprClient.InvokeMethodWithContent(a.ctx, appId, fullMethodName, "post", &client.DataContent{
+	resp, err := daprClient.InvokeMethodWithContent(a.ctx, a.standardize(app), fullMethodName, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
 	})
