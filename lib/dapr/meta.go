@@ -7,11 +7,6 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-type Role struct {
-	Name  string // 角色名
-	Level int    // 角色级别
-}
-
 const (
 	MetaKeyAppId   = "Hd-App-Id"
 	MetaKeyRelease = "Hd-Release"
@@ -42,6 +37,11 @@ type MetaManager interface {
 	GetRoleIds(ctx context.Context) []int64
 	GetTenantId(ctx context.Context) int64
 	GetEtid(ctx context.Context) string
+	// DEPRECATED
+	OldGetRoles(ctx context.Context) []*Role
+	OldGetRoleValues(ctx context.Context) []string
+	OldGetRoleIds(ctx context.Context) []int64
+	OldGetPermIds(ctx context.Context) []int64
 }
 
 type metaManagerImpl struct {
