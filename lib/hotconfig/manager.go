@@ -23,7 +23,6 @@ type Transactor interface {
 }
 
 type hotConfigManager struct {
-	project         string
 	app             string
 	registry        map[string]HotConfig
 	subscribed      bool // 是否订阅了动态配置的变化
@@ -37,10 +36,9 @@ var (
 	initializeManagerOnce sync.Once
 )
 
-func GetManager(project, app string, options ...Option) Manager {
+func GetManager(app string, options ...Option) Manager {
 	initializeManagerOnce.Do(func() {
 		v := &hotConfigManager{
-			project:    project,
 			app:        app,
 			registry:   make(map[string]HotConfig),
 			subscribed: false,
@@ -133,7 +131,7 @@ func (impl *hotConfigManager) subscribeConfigChanges() error {
 		return nil
 	}
 
-	subscriberId, err := dapr.Api(impl.project).SubscribeConfigurationItems(context.Background(), impl.daprConfigStore, pie.Keys(configKey2name), func(id string, items map[string]*client.ConfigurationItem) {
+	subscriberId, err := dapr.Api().SubscribeConfigurationItems(context.Background(), impl.daprConfigStore, pie.Keys(configKey2name), func(id string, items map[string]*client.ConfigurationItem) {
 		for configKey, configItem := range items {
 			instance := impl.GetInstance(configKey2name[configKey])
 			if instance != nil {

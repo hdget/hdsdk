@@ -45,7 +45,7 @@ func (a apiImpl) Invoke(app string, moduleVersion int, moduleName, handler strin
 	//defer daprClient.Close()
 
 	fullMethodName := getServiceInvocationName(moduleVersion, moduleName, handler)
-	resp, err := daprClient.InvokeMethodWithContent(a.ctx, a.standardize(app), fullMethodName, "post", &client.DataContent{
+	resp, err := daprClient.InvokeMethodWithContent(a.ctx, a.normalize(app), fullMethodName, "post", &client.DataContent{
 		ContentType: "application/json",
 		Data:        value,
 	})
