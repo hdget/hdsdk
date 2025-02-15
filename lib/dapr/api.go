@@ -5,6 +5,11 @@ import (
 	"github.com/dapr/go-sdk/client"
 	"github.com/spf13/cast"
 	"google.golang.org/grpc/metadata"
+	"os"
+)
+
+const (
+	_envVarNamespace = "HD_NAMESPACE"
 )
 
 type APIer interface {
@@ -21,26 +26,27 @@ type APIer interface {
 }
 
 type apiImpl struct {
-	project string
-	ctx     context.Context
+	ctx context.Context
 }
 
-func Api(project string, kvs ...string) APIer {
+func Api(kvs ...string) APIer {
 	ctx := context.Background()
 	if len(kvs) > 0 {
 		md := metadata.Pairs(kvs...)
 		ctx = metadata.NewOutgoingContext(ctx, md)
 	}
 	return &apiImpl{
-		project: project,
-		ctx:     ctx,
+		ctx: ctx,
 	}
 }
 
-func TenantApi(project string, tid int64) APIer {
-	return Api(project, MetaKeyTid, cast.ToString(tid))
+func TenantApi(tid int64) APIer {
+	return Api(MetaKeyTid, cast.ToString(tid))
 }
 
-func (a apiImpl) standardize(input string) string {
-	return a.project + "_" + input
+func (a apiImpl) normalize(input string) string {
+	if namespace, exists := os.LookupEnv(_envVarNamespace); exists {
+		return namespace + "_" + input
+	}
+	return input
 }
