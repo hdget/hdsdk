@@ -5,11 +5,6 @@ import (
 	"github.com/dapr/go-sdk/client"
 	"github.com/spf13/cast"
 	"google.golang.org/grpc/metadata"
-	"os"
-)
-
-const (
-	_envVarNamespace = "HD_NAMESPACE"
 )
 
 type APIer interface {
@@ -42,11 +37,4 @@ func Api(kvs ...string) APIer {
 
 func TenantApi(tid int64) APIer {
 	return Api(MetaKeyTid, cast.ToString(tid))
-}
-
-func (a apiImpl) normalize(input string) string {
-	if namespace, exists := os.LookupEnv(_envVarNamespace); exists {
-		return namespace + "_" + input
-	}
-	return input
 }

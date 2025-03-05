@@ -15,7 +15,7 @@ func (a apiImpl) Lock(lockStore, lockOwner, resource string, expiryInSeconds int
 		return errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
-	resp, err := daprClient.TryLockAlpha1(a.ctx, a.normalize(lockStore), &client.LockRequest{
+	resp, err := daprClient.TryLockAlpha1(a.ctx, injectEnv(lockStore), &client.LockRequest{
 		LockOwner:       lockOwner,
 		ResourceID:      resource,
 		ExpiryInSeconds: int32(expiryInSeconds),
@@ -41,7 +41,7 @@ func (a apiImpl) Unlock(lockStore, lockOwner, resource string) error {
 		return errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
-	resp, err := daprClient.UnlockAlpha1(a.ctx, a.normalize(lockStore), &client.UnlockRequest{
+	resp, err := daprClient.UnlockAlpha1(a.ctx, injectEnv(lockStore), &client.UnlockRequest{
 		LockOwner:  lockOwner,
 		ResourceID: resource,
 	})

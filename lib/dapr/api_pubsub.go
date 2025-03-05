@@ -29,9 +29,9 @@ func (a apiImpl) Publish(pubSubName, topic string, data interface{}, args ...boo
 	metaOptions := getPublishMetaOptions(args...)
 	if metaOptions != nil {
 		opt = client.PublishEventWithMetadata(metaOptions)
-		err = daprClient.PublishEvent(a.ctx, a.normalize(pubSubName), topic, data, opt)
+		err = daprClient.PublishEvent(a.ctx, injectEnv(pubSubName), topic, data, opt)
 	} else {
-		err = daprClient.PublishEvent(a.ctx, a.normalize(pubSubName), topic, data)
+		err = daprClient.PublishEvent(a.ctx, injectEnv(pubSubName), topic, data)
 	}
 
 	if err != nil {
