@@ -68,7 +68,7 @@ func AsEventModule(app, pubsub string, moduleObject any, options ...EventModuleO
 
 	moduleInstance := &eventModuleImpl{
 		moduler:    m,
-		pubsub:     pubsub,
+		pubsub:     injectEnv(pubsub),
 		ackTimeout: defaultAckTimeout,
 	}
 

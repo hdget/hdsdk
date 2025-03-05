@@ -16,7 +16,7 @@ func (a apiImpl) GetConfigurationItems(configStore string, keys []string) (map[s
 		return nil, errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
-	items, err := daprClient.GetConfigurationItems(a.ctx, a.normalize(configStore), keys)
+	items, err := daprClient.GetConfigurationItems(a.ctx, injectEnv(configStore), keys)
 	if err != nil {
 		return nil, errors.Wrap(err, "get configuration items")
 	}
@@ -34,7 +34,7 @@ func (a apiImpl) SubscribeConfigurationItems(ctx context.Context, configStore st
 		return "", errors.New("dapr client is null, name resolution service may not started, please check it")
 	}
 
-	subscriberId, err := daprClient.SubscribeConfigurationItems(ctx, a.normalize(configStore), keys, handler)
+	subscriberId, err := daprClient.SubscribeConfigurationItems(ctx, injectEnv(configStore), keys, handler)
 	if err != nil {
 		return "", errors.Wrap(err, "subscribe configuration items update")
 	}
