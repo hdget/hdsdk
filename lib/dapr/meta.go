@@ -42,6 +42,7 @@ type MetaManager interface {
 	OldGetRoleValues(ctx context.Context) []string
 	OldGetRoleIds(ctx context.Context) []int64
 	OldGetPermIds(ctx context.Context) []int64
+	OldGetUserId(ctx context.Context) int64
 }
 
 type metaManagerImpl struct {
